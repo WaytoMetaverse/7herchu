@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { EventType } from '@prisma/client'
+import { EventType, Role } from '@prisma/client'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -62,8 +62,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 	})
 
 	const session = await getServerSession(authOptions)
-	const roles: string[] = ((session as any)?.user?.roles as string[]) || []
-	const canManage = roles.includes('admin') || roles.includes('event_manager')
+	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
+	const canManage = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-6">

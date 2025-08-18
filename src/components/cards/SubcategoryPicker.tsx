@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 
 const MAP: Record<string, string[]> = {
@@ -28,7 +28,7 @@ export default function SubcategoryPicker({
       if (onChange) onChange(next)
       return next
     })
-  }, [category])
+  }, [category, onChange])
 
   const list = MAP[category] || []
   const selectedCount = subs.length

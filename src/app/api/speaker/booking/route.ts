@@ -48,7 +48,7 @@ export async function DELETE() {
   try {
     await prisma.speakerBooking.deleteMany({})
     return NextResponse.json({ ok: true, deleted: 'all' })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: '刪除失敗' }, { status: 500 })
   }
 }

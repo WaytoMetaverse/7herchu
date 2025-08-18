@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { EventType, PricingMode } from '@prisma/client'
+import { EventType, PricingMode, Prisma } from '@prisma/client'
 
 function getNextTuesdays(count: number) {
 	const result: Date[] = []
-	let d = new Date()
+	const d = new Date()
 	// move to next Tuesday
 	while (d.getDay() !== 2) d.setDate(d.getDate() + 1)
 	for (let i = 0; i < count; i++) {
@@ -49,7 +49,7 @@ export async function GET() {
 		const exists = await prisma.event.findFirst({ where: { startAt } })
 		if (exists) continue
 
-		const base: any = {
+		const base: Prisma.EventCreateInput = {
 			startAt,
 			endAt,
 			type,

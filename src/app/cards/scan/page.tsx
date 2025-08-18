@@ -56,8 +56,8 @@ export default function CardScanPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '保存失敗')
       window.location.href = '/cards'
-    } catch (e: any) {
-      setErr(e.message || '發生錯誤')
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : '發生錯誤')
     } finally {
       setLoading(false)
     }

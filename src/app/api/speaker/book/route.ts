@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 			},
 		})
 		return NextResponse.json({ ok: true, id: created.id })
-	} catch (e: any) {
+	} catch {
 		return NextResponse.json({ error: '同一手機已預約或提交錯誤' }, { status: 400 })
 	}
 } 

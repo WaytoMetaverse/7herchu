@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { EventType } from '@prisma/client'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { format } from 'date-fns'
 import zhTW from 'date-fns/locale/zh-TW'

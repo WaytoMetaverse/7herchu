@@ -37,7 +37,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
             <Link href="/group" className="hover:text-black">小組管理</Link>
             <Link href="/cards" className="hover:text-black">名片庫</Link>
             <Link href="/profile" className="hover:text-black">個人資料</Link>
-            <UserNav user={session?.user as any} />
+            <UserNav user={session?.user ?? null} />
           </nav>
         </div>
         {children}

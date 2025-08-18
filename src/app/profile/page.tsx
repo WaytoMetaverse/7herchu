@@ -74,7 +74,7 @@ export default async function ProfilePage() {
 		await fs.mkdir(uploadDir, { recursive: true })
 		const urls: string[] = []
 		for (const file of files) {
-			if (!file || typeof (file as any).arrayBuffer !== 'function') continue
+			if (!file || typeof file.arrayBuffer !== 'function') continue
 			const buf = Buffer.from(await file.arrayBuffer())
 			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
 			const filename = `pf_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`

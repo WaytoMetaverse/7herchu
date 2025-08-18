@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null)
   if (!form) return NextResponse.json({ error: 'invalid form' }, { status: 400 })
   const file = form.get('file') as File | null
-  if (!file || typeof (file as any).arrayBuffer !== 'function') {
+  if (!file || typeof file.arrayBuffer !== 'function') {
     return NextResponse.json({ error: 'no file' }, { status: 400 })
   }
   const buf = Buffer.from(await file.arrayBuffer())

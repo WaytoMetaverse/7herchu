@@ -13,7 +13,7 @@ export default function SignInPage() {
 		setLoading(true)
 		setErr(null)
 		const res = await signIn('credentials', { email, password, redirect: true, callbackUrl: '/' })
-		if ((res as any)?.error) setErr((res as any).error)
+		if (res?.error) setErr(res.error)
 		setLoading(false)
 	}
 

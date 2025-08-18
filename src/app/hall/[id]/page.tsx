@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { EventType, RegRole } from '@prisma/client'
+import { EventType } from '@prisma/client'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import zhTW from 'date-fns/locale/zh-TW'
