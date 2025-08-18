@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { FinanceTxnType } from '@prisma/client'
+import { FinanceTxnType, Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import Button from '@/components/ui/Button'
 
@@ -8,7 +8,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	const type = (sp?.type || '') as FinanceTxnType | ''
 	const month = (sp?.month || new Date().toISOString().slice(0,7))
 
-	const where: any = {}
+	const where: Prisma.FinanceTransactionWhereInput = {}
 	if (type) where.type = type
 	if (month) {
 		const start = new Date(`${month}-01T00:00:00`)

@@ -1,12 +1,15 @@
-import NextAuth, { NextAuthOptions } from 'next-auth'
+import NextAuth, { NextAuthOptions, type DefaultSession } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
+import type { Adapter } from 'next-auth/adapters'
+import type { JWT } from 'next-auth/jwt'
+import type { Role } from '@prisma/client'
 
 export const authOptions: NextAuthOptions = {
-	adapter: PrismaAdapter(prisma) as any,
+	adapter: PrismaAdapter(prisma) as Adapter,
 	session: { strategy: 'jwt' },
 	providers: [
 		GoogleProvider({
@@ -28,7 +31,7 @@ export const authOptions: NextAuthOptions = {
 				if (!user || !user.passwordHash) return null
 				const ok = bcrypt.compareSync(password, user.passwordHash)
 				if (!ok) return null
-				return { id: user.id, email: user.email, name: user.name || '' } as any
+				return { id: user.id, email: user.email, name: user.name || '' }
 			},
 		}),
 	],
@@ -37,15 +40,20 @@ export const authOptions: NextAuthOptions = {
 			if (token?.email) {
 				const u = await prisma.user.findUnique({ where: { email: token.email } })
 				if (u) {
-					;(token as any).uid = u.id
-					;(token as any).roles = u.roles
+					const t = token as JWT & { uid?: string; roles?: Role[] }
+					t.uid = u.id
+					t.roles = u.roles
 				}
 			}
 			return token
 		},
 		async session({ session, token }) {
-			;(session.user as any).id = (token as any).uid
-			;(session.user as any).roles = (token as any).roles || []
+			const t = token as JWT & { uid?: string; roles?: Role[] }
+			const s = session as { user: DefaultSession['user'] & { id?: string; roles?: Role[] } }
+			if (s.user) {
+				s.user.id = t.uid
+				s.user.roles = t.roles || []
+			}
 			return session
 		},
 	},

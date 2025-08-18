@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { EventType, PricingMode } from '@prisma/client'
+import { EventType, PricingMode, Prisma } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import EventTypePricing from '@/components/EventTypePricing'
@@ -41,7 +41,7 @@ async function createEvent(formData: FormData) {
 	if (!dateStr || !startTime || !endTime || !title) return
 	const startAt = buildDate(dateStr, startTime)
 	const endAt = buildDate(dateStr, endTime)
-	const data: any = { type, title, startAt, endAt, location }
+	const data: Prisma.EventCreateInput = { type, title, startAt, endAt, location }
 	if (type === 'GENERAL') {
 		data.allowSpeakers = true
 		data.allowGuests = true

@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
+import { Registration } from '@prisma/client'
 import { notFound } from 'next/navigation'
 
-function toCsv(rows: any[]) {
+function toCsv(rows: Registration[]) {
 	const headers = ['角色', '姓名', '手機', '公司', '產業', 'BNI', '邀請人', '餐點', '葷素', '不吃牛', '不吃豬', '簽到時間', '付款狀態']
 	const lines = rows.map((r) => [
 		r.role,
