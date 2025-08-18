@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { EventType, PricingMode } from '@prisma/client'
+
+export async function GET() {
+	const list = await prisma.event.findMany({ orderBy: { startAt: 'asc' } })
+	return NextResponse.json(list)
+}
+
+export async function POST(req: NextRequest) {
+	const data = await req.json()
+
+	if (data.type === EventType.BOD) {
+		if (!data.bodMemberPriceCents || !data.bodGuestPriceCents) return NextResponse.json({ error: 'BOD 需填成員價與來賓價' }, { status: 400 })
+		data.allowSpeakers = false
+		data.allowGuests = true
+	} else if (data.type === EventType.DINNER) {
+		data.pricingMode = PricingMode.MANUAL_PER_REG
+		if (!data.defaultPriceCents) return NextResponse.json({ error: '餐敘需填活動價格' }, { status: 400 })
+		data.allowSpeakers = false
+		data.allowGuests = true
+	} else if (data.type === EventType.CLOSED) {
+		data.allowSpeakers = false
+		data.allowGuests = false
+	} else if (data.type === EventType.JOINT) {
+		data.allowSpeakers = false
+		data.allowGuests = true
+	} else if (data.type === EventType.GENERAL) {
+		data.allowSpeakers = true
+		data.allowGuests = true
+		data.speakerQuota ??= 5
+		data.guestPriceCents ??= 25000
+	}
+
+	const created = await prisma.event.create({ data })
+	return NextResponse.json(created)
+} 

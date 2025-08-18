@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  GENERAL
+  CLOSED
+  BOD
+  DINNER
+  JOINT
+  SOFT
+}
+
+enum MemberType {
+  SINGLE
+  FIXED
+}
+
+enum PricingMode {
+  DEFAULT
+  MANUAL_PER_REG
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  MONTHLY_BILL
+}
+
+enum RegRole {
+  MEMBER
+  GUEST
+  SPEAKER
+}
+
+enum BillingType {
+  NONE
+  SINGLE_220
+  FIXED_MONTHLY
+  MANUAL
+}
+
+enum FinanceTxnType {
+  INCOME
+  EXPENSE
+}
+
+enum Role {
+  admin
+  event_manager
+  menu_manager
+  finance_manager
+  checkin_manager
+}
+
+enum PaymentMethod {
+  TRANSFER
+  LINEPAY
+}
+
+enum PaymentPreference {
+  BANK_ACCOUNT
+  INVITER
+}
+
+enum CardCategory {
+  FINANCE         // 金融租賃（銀行、租賃、等）
+  DEVELOPMENT     // 開發買賣（仲介、土開、等）
+  DESIGN          // 規畫設計（建築師、設計師、跑照、等）
+  CONSTRUCTION    // 整地建築（營造發、鋼筋、板模、等）
+  MATERIALS       // 建材裝修（木工、水電、油漆、等）
+  MANAGEMENT      // 管理專業（旅宿管理、包租代管、律師等）
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  googleId      String?  @unique
+  phone         String?  @unique
+  passwordHash  String?
+  roles         Role[]
+  memberProfile MemberProfile?
+  registrations Registration[]
+  invoices      FinanceInvoice[]
+  cards         BusinessCard[]
+  createdAt     DateTime @default(now())
+}
+
+model MemberProfile {
+  userId     String @id
+  user       User   @relation(fields: [userId], references: [id])
+  memberType MemberType
+  active     Boolean @default(true)
+
+  // 基本資料
+  birthday        DateTime?
+  dietPreference  String?   // 'meat' | 'veg'
+  bio             String?
+
+  // 工作資訊
+  occupation       String?
+  companyName      String?
+  companyWebsite   String?
+  workLocation     String?
+  workDescription  String?
+  portfolioPhotos  Json?
+}
+
+model MemberInvite {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  roleHints  Role[]
+  memberType MemberType?
+  token      String   @unique
+  expiresAt  DateTime
+  acceptedBy String?
+  createdAt  DateTime @default(now())
+}
+
+model Event {
+  id                String     @id @default(cuid())
+  type              EventType
+  title             String
+  startAt           DateTime
+  endAt             DateTime
+  location          String?
+  agenda            String?
+  cutoffAt          DateTime?
+  announcementTitle String?
+  allowSpeakers     Boolean
+  allowGuests       Boolean
+  speakerQuota      Int?
+  pricingMode       PricingMode @default(DEFAULT)
+
+  guestPriceCents     Int?
+  bodMemberPriceCents Int?
+  bodGuestPriceCents  Int?
+  defaultPriceCents   Int?
+
+  registrations     Registration[]
+  speakerBookings   SpeakerBooking[]
+  guestInvites      GuestInvite[]
+  financeLineItems  FinanceLineItem[]
+  transactions      FinanceTransaction[]
+
+  createdAt         DateTime @default(now())
+}
+
+model Menu {
+  id        String    @id @default(cuid())
+  month     String    @unique // YYYY-MM
+  items     MenuItem[]
+  published Boolean    @default(false)
+}
+
+model MenuItem {
+  id           String @id @default(cuid())
+  menuId       String
+  menu         Menu   @relation(fields: [menuId], references: [id])
+  code         String // 'A' | 'B' | 'C'
+  name         String
+  containsBeef Boolean @default(false)
+  containsPork Boolean @default(false)
+  isVegetarian Boolean @default(false)
+}
+
+model SpeakerBooking {
+  id               String   @id @default(cuid())
+  eventId          String
+  event            Event    @relation(fields: [eventId], references: [id])
+  name             String
+  phone            String
+  editPasswordHash String
+  diet             String   // 'veg'|'meat'
+  noBeef           Boolean  @default(false)
+  noPork           Boolean  @default(false)
+  mealCode         String?
+  pptUrl           String?
+  paymentMethod    String?
+  companyName      String?
+  industry         String?
+  bniChapter       String?
+  invitedBy        String?
+  createdAt        DateTime @default(now())
+
+  @@unique([eventId, phone])
+}
+
+model GuestInvite {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id])
+  token      String   @unique
+  invitedBy  String?
+  maxUses    Int?
+  usedCount  Int      @default(0)
+  expiresAt  DateTime?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model Registration {
+  id            String   @id @default(cuid())
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id])
+  role          RegRole
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+
+  name          String?
+  phone         String?
+  companyName   String?
+  industry      String?
+  bniChapter    String?
+  invitedBy     String?
+
+  diet          String?
+  noBeef        Boolean  @default(false)
+  noPork        Boolean  @default(false)
+  mealCode      String?
+
+  checkedInAt   DateTime?
+  billingType   BillingType @default(NONE)
+  priceCents    Int?
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentMethod PaymentMethod?
+  paymentPreference PaymentPreference?
+  paymentNote   String?
+
+  status        String   @default("confirmed")
+  createdAt     DateTime @default(now())
+
+  @@unique([eventId, phone])
+}
+
+model FinanceInvoice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  month     String   // 'YYYY-MM'
+  type      String   // 'fixed' | 'single'
+  count     Int
+  amount    Int      // cents
+  status    String   // 'pending'|'paid'
+  paidTxnId String?
+  lines     FinanceLineItem[]
+  createdAt DateTime @default(now())
+
+  @@unique([userId, month, type])
+}
+
+model FinanceLineItem {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   FinanceInvoice @relation(fields: [invoiceId], references: [id])
+  eventId   String
+  event     Event?   @relation(fields: [eventId], references: [id])
+  price     Int
+  note      String?
+}
+
+model FinanceCategory {
+  id       String        @id @default(cuid())
+  name     String
+  type     FinanceTxnType
+  system   Boolean       @default(false)
+  txns     FinanceTransaction[]
+}
+
+model FinanceTransaction {
+  id            String         @id @default(cuid())
+  date          DateTime
+  type          FinanceTxnType
+  categoryId    String?
+  category      FinanceCategory? @relation(fields: [categoryId], references: [id])
+  eventId       String?
+  event         Event?         @relation(fields: [eventId], references: [id])
+  amountCents   Int
+  counterparty  String?
+  note          String?
+  paymentMethod PaymentMethod?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+}
+
+model OrgSettings {
+  id          String @id @default("singleton")
+  bankInfo    String
+  linePayInfo String?
+} 
+
+model BusinessCard {
+  id        String        @id @default(cuid())
+  ownerId   String
+  owner     User          @relation(fields: [ownerId], references: [id])
+  name      String
+  company   String?
+  title     String?
+  email     String?
+  phone     String?
+  address   String?
+  website   String?
+  notes     String?
+  imageUrl  String?
+  category  CardCategory
+  subcategories String[]   @default([])
+  createdAt DateTime      @default(now())
+
+  @@index([ownerId, category])
+  @@index([name])
+}

@@ -1,0 +1,69 @@
+"use client"
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import Button from '@/components/ui/Button'
+
+export default function SpeakerPhoneLoginPage() {
+	const router = useRouter()
+  const sp = useSearchParams()
+  const eventId = sp.get('event') || ''
+	const [phone, setPhone] = useState('')
+	const [err, setErr] = useState<string | null>(null)
+
+	function onSubmit(e: React.FormEvent) {
+		e.preventDefault()
+		const v = phone.trim()
+		if (!/^\d{10}$/.test(v)) {
+			setErr('請輸入10碼手機號碼')
+			return
+		}
+		// 查詢既有預約
+		fetch(`/api/speaker/booking?phone=${encodeURIComponent(v)}${eventId ? `&eventId=${encodeURIComponent(eventId)}` : ''}`)
+			.then(res => res.json())
+			.then(data => {
+				const d = data?.data
+				let targetEventId = ''
+				if (d) {
+					if (Array.isArray(d)) {
+						targetEventId = d[0]?.eventId || ''
+					} else {
+						targetEventId = d.eventId || ''
+					}
+				}
+				if (eventId) targetEventId = eventId
+				if (targetEventId) {
+					router.push(`/speaker/book?event=${encodeURIComponent(targetEventId)}&phone=${encodeURIComponent(v)}&mode=edit`)
+				} else {
+					router.push('/calendar')
+				}
+			})
+			.catch(() => router.push('/calendar'))
+	}
+
+	return (
+		<div className="max-w-sm mx-auto p-4 space-y-4">
+			<h1 className="text-xl font-semibold">講師預約修改</h1>
+			{err && <div className="text-sm text-red-600">{err}</div>}
+			<form onSubmit={onSubmit} className="space-y-3">
+				<label className="text-sm block">手機號碼
+					<input
+						className="mt-1 border rounded w-full px-3 py-2"
+						inputMode="numeric"
+						maxLength={10}
+						pattern="\d{10}"
+						placeholder="請輸入10碼手機號碼"
+						value={phone}
+						onChange={(e) => setPhone(e.target.value)}
+					/>
+				</label>
+				<div className="flex items-center gap-3">
+					<Button type="submit">送出</Button>
+					<Button as={Link} href="/calendar" variant="ghost">取消</Button>
+				</div>
+			</form>
+		</div>
+	)
+}
+
+

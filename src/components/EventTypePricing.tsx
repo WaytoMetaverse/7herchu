@@ -1,0 +1,90 @@
+"use client"
+import { useEffect, useMemo, useState } from 'react'
+
+export type TypeOption = { value: string; label: string }
+
+export default function EventTypePricing({
+	options,
+	initialType,
+	initialTitle,
+	initialGuestPrice,
+	initialBodMemberPrice,
+	initialBodGuestPrice,
+	initialDefaultPrice,
+	typeName = 'type',
+	titleName = 'title',
+}: {
+	options: TypeOption[]
+	initialType: string
+	initialTitle?: string
+	initialGuestPrice?: number | null
+	initialBodMemberPrice?: number | null
+	initialBodGuestPrice?: number | null
+	initialDefaultPrice?: number | null
+	typeName?: string
+	titleName?: string
+}) {
+	const labelMap = useMemo(() => Object.fromEntries(options.map(o => [o.value, o.label])), [options])
+	const [selectedType, setSelectedType] = useState<string>(initialType || options[0]?.value)
+	const [title, setTitle] = useState<string>(initialTitle || '')
+
+	useEffect(() => {
+		const def = labelMap[selectedType] || ''
+		if (!title || options.some(o => o.label === title)) {
+			setTitle(def)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedType])
+
+	const isBod = selectedType === 'BOD'
+	const isDinner = selectedType === 'DINNER'
+	const showGuestSingle = !isBod && !isDinner && selectedType !== 'CLOSED'
+
+	return (
+		<div className="contents">
+			<label className="text-sm">類型
+				<select
+					name={typeName}
+					className="border rounded w-full px-2 py-1"
+					value={selectedType}
+					onChange={(e) => setSelectedType(e.target.value)}
+				>
+					{options.map((o) => (
+						<option key={o.value} value={o.value}>{o.label}</option>
+					))}
+				</select>
+			</label>
+			<label className="text-sm">標題
+				<input
+					name={titleName}
+					className="border rounded w-full px-2 py-1"
+					placeholder={labelMap[selectedType] || ''}
+					value={title}
+					onChange={(e) => setTitle(e.target.value)}
+				/>
+			</label>
+
+			{/* 金額區塊（依類型顯示） */}
+			{showGuestSingle && (
+				<label className="text-sm col-span-2">來賓金額（元）
+					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''} className="border rounded w-full px-2 py-1" />
+				</label>
+			)}
+			{isBod && (
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+					<label>成員金額（元）
+						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''} className="border rounded w-full px-2 py-1" />
+					</label>
+					<label>來賓金額（元）
+						<input name="bodGuestPrice" type="number" min={0} defaultValue={initialBodGuestPrice ?? ''} className="border rounded w-full px-2 py-1" />
+					</label>
+				</div>
+			)}
+			{isDinner && (
+				<label className="text-sm col-span-2">活動金額（元）
+					<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''} className="border rounded w-full px-2 py-1" />
+				</label>
+			)}
+		</div>
+	)
+}
