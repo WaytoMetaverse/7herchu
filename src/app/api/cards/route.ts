@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
+import { Prisma, CardCategory } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -14,9 +15,9 @@ export async function GET(req: NextRequest) {
   const category = (searchParams.get('category') || '').trim().toUpperCase()
   const subs = (searchParams.get('subs') || '').split(',').map(s => s.trim()).filter(Boolean)
 
-  const where: any = { }
+  const where: Prisma.BusinessCardWhereInput = { }
   // 內部成員共享：回傳所有人的卡片
-  if (category) where.category = category as any
+  if (category) where.category = category as CardCategory
   if (q) {
     where.OR = [
       { name: { contains: q } },
