@@ -2,6 +2,7 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
 
 export default function SignInPage() {
 	const [email, setEmail] = useState('')
@@ -32,13 +33,13 @@ export default function SignInPage() {
 					<label className="text-sm block">密碼
 						<input type="password" className="mt-1 border rounded w-full px-3 py-2" value={password} onChange={(e)=>setPassword(e.target.value)} />
 					</label>
-					<button disabled={loading} onClick={doCredentials} className="w-full px-4 py-2 bg-gray-900 text-white rounded">{loading?'登入中…':'Email 登入'}</button>
+					<Button disabled={loading} onClick={doCredentials} className="w-full">{loading?'登入中…':'Email 登入'}</Button>
 				</div>
 				<div className="relative">
 					<div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"/></div>
 					<div className="relative flex justify-center text-xs"><span className="px-2 bg-white text-gray-500">或</span></div>
 				</div>
-				<button onClick={()=>signIn('google',{callbackUrl:'/'})} className="w-full px-4 py-2 border border-gray-300 rounded bg-white hover:bg-gray-50">使用 Google 登入</button>
+				<Button onClick={()=>signIn('google',{callbackUrl:'/'})} variant="outline" className="w-full">使用 Google 登入</Button>
 				<div className="text-center text-sm text-gray-600">還沒有帳號？<Link href="/auth/signup" className="text-blue-600 underline ml-1">建立帳號</Link></div>
 			</div>
 		</div>

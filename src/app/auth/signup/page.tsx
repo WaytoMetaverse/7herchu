@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
 
 export default function SignUpPage() {
 	const [email, setEmail] = useState('')
@@ -43,7 +44,7 @@ export default function SignUpPage() {
 					<label className="text-sm block">密碼
 						<input type="password" className="mt-1 border rounded w-full px-3 py-2" value={password} onChange={(e)=>setPassword(e.target.value)} />
 					</label>
-					<button disabled={loading} onClick={submit} className="w-full px-4 py-2 bg-gray-900 text-white rounded">{loading?'建立中…':'建立帳號'}</button>
+					<Button disabled={loading} onClick={submit} className="w-full">{loading?'建立中…':'建立帳號'}</Button>
 				</div>
 				<div className="text-center text-sm text-gray-600">已經有帳號了？<Link href="/auth/signin" className="text-blue-600 underline ml-1">前往登入</Link></div>
 			</div>

@@ -1,5 +1,6 @@
 "use client"
 import React from 'react'
+import Button from '@/components/ui/Button'
 
 export default function ConfirmDelete({
 	eventId,
@@ -33,7 +34,7 @@ export default function ConfirmDelete({
 	return (
 		<form action={action} onSubmit={onSubmit}>
 			<input type="hidden" name="id" value={eventId} />
-			<button type="submit" className="px-3 py-1 bg-red-600 text-white rounded">{label}</button>
+			<Button type="submit" variant="danger">{label}</Button>
 		</form>
 	)
 }

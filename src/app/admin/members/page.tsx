@@ -191,7 +191,7 @@ export default async function MembersPage({ searchParams }: { searchParams?: Pro
 									</label>
 								))}
 							</div>
-							<button className="px-3 py-1 bg-blue-600 text-white rounded" type="submit">儲存</button>
+							<Button type="submit">儲存</Button>
 						</form>
 
 						{u.memberProfile?.memberType === 'FIXED' && (

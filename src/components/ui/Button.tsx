@@ -22,9 +22,9 @@ export default function Button({
 	const Comp = as || 'button'
 	const base = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 	const sizes: Record<Size, string> = {
-		sm: 'text-sm h-8 px-3',
+		sm: 'text-sm h-10 px-4',
 		md: 'text-sm h-10 px-4',
-		lg: 'text-base h-12 px-6',
+		lg: 'text-sm h-10 px-4',
 	}
 	// 中性、耐看的配色（不使用品牌色）
 	const styles: Record<Variant, string> = {

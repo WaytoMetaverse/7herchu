@@ -5,6 +5,7 @@ import "./globals.css";
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import UserNav from '@/components/auth/UserNav'
+import PWARegister from '@/components/PWARegister'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,6 +23,8 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  manifest: "/manifest.webmanifest",
+  themeColor: "#0e4c5c",
 };
 
 
@@ -41,6 +44,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
           </nav>
         </div>
         {children}
+        <PWARegister />
       </body>
     </html>
   );

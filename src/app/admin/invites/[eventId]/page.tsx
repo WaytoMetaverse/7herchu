@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import crypto from 'crypto'
+import Button from '@/components/ui/Button'
 
 async function createInvite(formData: FormData) {
 	'use server'
@@ -34,7 +35,7 @@ export default async function InvitesPage({ params }: { params: Promise<{ eventI
 					<input name="maxUses" type="number" min={1} defaultValue={50} className="border rounded w-full px-2 py-1" />
 				</label>
 				<div className="col-span-1 md:col-span-3">
-					<button className="px-3 py-1 bg-blue-600 text-white rounded" type="submit">建立邀請連結</button>
+					<Button type="submit">建立邀請連結</Button>
 				</div>
 			</form>
 			<div className="space-y-2">
