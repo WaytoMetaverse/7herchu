@@ -4,7 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { CardCategory } from '@prisma/client'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: { id: string } }) {
+  const { params } = context
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return NextResponse.json({ error: '未登入' }, { status: 401 })
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
@@ -25,7 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({ error: '不支援的方法' }, { status: 405 })
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+  const { params } = context
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return NextResponse.json({ error: '未登入' }, { status: 401 })
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
