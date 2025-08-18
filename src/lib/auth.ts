@@ -2,14 +2,14 @@ import type { NextAuthOptions, DefaultSession } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import type { Adapter } from 'next-auth/adapters'
+import { PrismaUserAdapter } from '@/lib/adapter'
 import type { JWT } from 'next-auth/jwt'
 import type { Role } from '@prisma/client'
 
 export const authOptions: NextAuthOptions = {
-	adapter: PrismaAdapter(prisma) as Adapter,
+	adapter: PrismaUserAdapter(prisma) as Adapter,
 	session: { strategy: 'jwt' },
 	providers: [
 		GoogleProvider({
