@@ -176,7 +176,7 @@ export default async function ProfilePage() {
 
 			<section className="space-y-3">
 				<h2 className="font-medium">作品照片</h2>
-				{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as any[]).length > 0 ? (
+				{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as string[]).length > 0 ? (
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 						{(mp!.portfolioPhotos as string[]).map((url) => (
 							<div key={url} className="border rounded overflow-hidden">

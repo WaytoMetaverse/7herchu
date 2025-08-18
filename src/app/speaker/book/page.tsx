@@ -62,7 +62,7 @@ export default function SpeakerBookPage() {
             .then(res => res.json())
             .then((list: unknown) => {
                 if (!Array.isArray(list)) { setEventDateLabel(''); return }
-                const e = list.find((x): x is { id: string; startAt?: string | Date } => typeof (x as any)?.id === 'string' && (x as any).id === eventId)
+                const e = list.find((x): x is { id: string; startAt?: string | Date } => typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId)
                 if (e?.startAt) {
                     setEventDateLabel(format(new Date(e.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }))
                 } else {
