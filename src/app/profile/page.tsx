@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import Button from '@/components/ui/Button'
+import Image from 'next/image'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -180,7 +181,7 @@ export default async function ProfilePage() {
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 						{(mp!.portfolioPhotos as string[]).map((url) => (
 							<div key={url} className="border rounded overflow-hidden">
-								<img src={url} alt="作品" className="w-full h-32 object-cover" />
+								<Image src={url} alt="作品" width={640} height={240} className="w-full h-32 object-cover" />
 								<form action={deletePhoto} className="p-2 text-right">
 									<input type="hidden" name="url" value={url} />
 									<Button type="submit" variant="destructive" size="sm">刪除</Button>

@@ -7,7 +7,7 @@ import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import OpenOnlyToggle from '@/components/calendar/OpenOnlyToggle'
 import { revalidatePath } from 'next/cache'
 
