@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { format } from 'date-fns'
-import zhTW from 'date-fns/locale/zh-TW'
+import { zhTW } from 'date-fns/locale'
 import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 
 const TYPE_LABEL: Record<EventType, string> = {

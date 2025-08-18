@@ -184,7 +184,7 @@ export default async function ProfilePage() {
 								<Image src={url} alt="作品" width={640} height={240} className="w-full h-32 object-cover" />
 								<form action={deletePhoto} className="p-2 text-right">
 									<input type="hidden" name="url" value={url} />
-									<Button type="submit" variant="destructive" size="sm">刪除</Button>
+									<Button type="submit" variant="danger" size="sm">刪除</Button>
 								</form>
 							</div>
 						))}

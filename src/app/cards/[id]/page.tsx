@@ -2,8 +2,9 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
-export default async function CardDetailPage({ params }: { params: { id: string } }) {
-  const card = await prisma.businessCard.findUnique({ where: { id: params.id } })
+export default async function CardDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const card = await prisma.businessCard.findUnique({ where: { id } })
   if (!card) return <div className="max-w-3xl mx-auto p-4">找不到名片</div>
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">

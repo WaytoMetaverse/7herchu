@@ -41,7 +41,15 @@ async function createEvent(formData: FormData) {
 	if (!dateStr || !startTime || !endTime || !title) return
 	const startAt = buildDate(dateStr, startTime)
 	const endAt = buildDate(dateStr, endTime)
-	const data: Prisma.EventCreateInput = { type, title, startAt, endAt, location }
+	const data: Prisma.EventCreateInput = {
+		type,
+		title,
+		startAt,
+		endAt,
+		location,
+		allowSpeakers: type === 'GENERAL',
+		allowGuests: type !== 'CLOSED',
+	}
 	if (type === 'GENERAL') {
 		data.allowSpeakers = true
 		data.allowGuests = true

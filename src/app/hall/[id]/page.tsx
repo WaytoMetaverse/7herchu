@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { EventType } from '@prisma/client'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import zhTW from 'date-fns/locale/zh-TW'
+import { zhTW } from 'date-fns/locale'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { revalidatePath } from 'next/cache'
@@ -19,14 +19,14 @@ const TYPE_LABEL: Record<EventType, string> = {
 	SOFT: '軟性活動',
 }
 
-export default async function HallEventDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
-	const id = params.id
+export default async function HallEventDetailPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
+	const { id } = await params
 	const sp = searchParams ? await searchParams : undefined
 	const event = await prisma.event.findUnique({ where: { id } })
 	if (!event) return <div className="max-w-3xl mx-auto p-4">找不到活動</div>
 
 	const [regs, speakers] = await Promise.all([
-		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
+		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
 	])
 

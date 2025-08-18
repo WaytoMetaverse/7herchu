@@ -3,13 +3,14 @@ import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import SubcategoryPicker from '@/components/cards/SubcategoryPicker'
 
-export default async function CardEditPage({ params }: { params: { id: string } }) {
-  const card = await prisma.businessCard.findUnique({ where: { id: params.id } })
+export default async function CardEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const card = await prisma.businessCard.findUnique({ where: { id } })
   if (!card) return <div className="max-w-3xl mx-auto p-4">找不到名片</div>
 
   async function update(formData: FormData) {
     'use server'
-    const id = params.id
+    const cardId = id
     const payload = {
       name: String(formData.get('name') || ''),
       company: String(formData.get('company') || ''),
@@ -22,10 +23,10 @@ export default async function CardEditPage({ params }: { params: { id: string } 
       category: String(formData.get('category') || ''),
       subcategories: String(formData.get('subs') || '').split(',').filter(Boolean),
     }
-    await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/cards/${id}`, {
+    await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/cards/${cardId}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
     })
-    return { ok: true }
+    // no return value needed
   }
 
   return (

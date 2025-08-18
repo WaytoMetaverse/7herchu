@@ -144,7 +144,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 							</div>
 							<form action={deleteTxn}>
 								<input type="hidden" name="id" value={t.id} />
-								<Button variant="destructive" size="sm">刪除</Button>
+								<Button variant="danger" size="sm">刪除</Button>
 							</form>
 						</div>
 					))}
