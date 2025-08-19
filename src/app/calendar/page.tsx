@@ -9,7 +9,6 @@ import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import OpenOnlyToggle from '@/components/calendar/OpenOnlyToggle'
-import { revalidatePath } from 'next/cache'
 
 function statusLabel(allowSpeakers: boolean, quota?: number | null, count?: number) {
 	if (!allowSpeakers) return '額滿'

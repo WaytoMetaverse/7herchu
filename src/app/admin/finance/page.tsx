@@ -23,11 +23,11 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		where.date = { gte: start, lt: end }
 	}
 
-	const txns = await prisma.financeTransaction.findMany({ where, orderBy: { date: 'desc' }, take: 1000, include: { category: true } })
+	const txns = await prisma.financeTransaction.findMany({ where, orderBy: { date: 'asc' }, take: 1000, include: { category: true } })
 
 	function toCsv(rows: typeof txns) {
 		const headers = ['日期','類型','金額(元)','項目','對象','備註']
-		const lines = rows.map(r => [
+		const lines = rows.map((r) => [
 			new Date(r.date).toLocaleDateString('zh-TW'),
 			r.type,
 			(r.amountCents/100).toString(),
@@ -150,9 +150,6 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 							<option value="EXPENSE">支出</option>
 						</select>
 					</label>
-					<label className="text-sm">金額（元）
-						<input name="amount" type="number" step="1" min={0} className="mt-1 border rounded w-full px-2 py-1" required />
-					</label>
 					<label className="text-sm">項目
 						<select name="category" className="mt-1 border rounded w-full px-2 py-1">
 							<option value="">—</option>
@@ -160,10 +157,13 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 							{CATEGORY_EXPENSE.map(o => <option key={o} value={o}>{o}</option>)}
 						</select>
 					</label>
-					<label className="text-sm">對象（選填）
+					<label className="text-sm">對象
 						<input name="counterparty" className="mt-1 border rounded w-full px-2 py-1" placeholder="付款人/收款人" />
 					</label>
-					<label className="text-sm md:col-span-3">備註（選填）
+					<label className="text-sm">金額（元）
+						<input name="amount" type="number" step="1" min={0} className="mt-1 border rounded w-full px-2 py-1" required />
+					</label>
+					<label className="text-sm md:col-span-3">摘要
 						<input name="note" className="mt-1 border rounded w-full px-2 py-1" />
 					</label>
 					<div className="md:col-span-3">
@@ -189,29 +189,51 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					</form>
 					<a href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`} download={`finance-${month || 'all'}.csv`} className="ml-auto text-blue-600 underline">匯出 CSV</a>
 				</div>
-				<div className="divide-y rounded border">
-					{txns.map(t => (
-						<div key={t.id} className="p-3 text-sm flex items-center justify-between">
-							<div>
-								<div className="font-medium">{new Date(t.date).toLocaleDateString('zh-TW')} · {t.type === 'INCOME' ? '收入' : '支出'} · ${(t.amountCents/100).toLocaleString()} 元</div>
-								<div className="text-gray-600">
-									{t.category?.name ? `項目：${t.category.name} · ` : ''}
-									{t.counterparty ? `對象：${t.counterparty}` : ''}
-								</div>
-								{t.note ? <div className="text-gray-500">備註：{t.note}</div> : null}
+				{(() => {
+					let running = 0
+					const rows = txns.map((t) => {
+						const income = t.type === 'INCOME' ? t.amountCents / 100 : 0
+						const expense = t.type === 'EXPENSE' ? t.amountCents / 100 : 0
+						running += income - expense
+						return { t, income, expense, balance: running }
+					})
+					return (
+						<div className="rounded border overflow-hidden">
+							<div className="grid grid-cols-8 gap-2 px-3 py-2 text-xs bg-slate-50 text-gray-600">
+								<div>日期</div>
+								<div>項目</div>
+								<div>對象</div>
+								<div>摘要</div>
+								<div className="text-right">收入</div>
+								<div className="text-right">支出</div>
+								<div className="text-right">餘額</div>
+								<div>操作</div>
 							</div>
-							{canManage ? (
-								<form action={deleteTxn}>
-									<input type="hidden" name="id" value={t.id} />
-									<Button variant="danger" size="sm">刪除</Button>
-								</form>
-							) : null}
+							{rows.map(({ t, income, expense, balance }) => (
+								<div key={t.id} className="grid grid-cols-8 gap-2 px-3 py-2 text-sm border-t items-center">
+									<div>{new Date(t.date).toLocaleDateString('zh-TW')}</div>
+									<div>{t.category?.name || '-'}</div>
+									<div>{t.counterparty || '-'}</div>
+									<div className="truncate" title={t.note || ''}>{t.note || '-'}</div>
+									<div className="text-right">{income ? income.toLocaleString() : ''}</div>
+									<div className="text-right">{expense ? expense.toLocaleString() : ''}</div>
+									<div className="text-right">{balance.toLocaleString()}</div>
+									<div>
+										{canManage ? (
+											<form action={deleteTxn}>
+												<input type="hidden" name="id" value={t.id} />
+												<Button variant="danger" size="sm">刪除</Button>
+											</form>
+										) : null}
+									</div>
+								</div>
+							))}
+							{txns.length === 0 && (
+								<div className="p-3 text-sm text-gray-500">尚無資料</div>
+							)}
 						</div>
-					))}
-					{txns.length === 0 && (
-						<div className="p-3 text-sm text-gray-500">尚無資料</div>
-					)}
-				</div>
+					)
+				})()}
 			</section>
 		</div>
 	)

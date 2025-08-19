@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import Button from '@/components/ui/Button'
-import Image from 'next/image'
 import ImageThumb from '@/components/ImageThumb'
 
 async function saveProfile(formData: FormData) {

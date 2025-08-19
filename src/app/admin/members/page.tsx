@@ -25,13 +25,14 @@ async function saveRoleSet(formData: FormData) {
 
 	const selectedIds = new Set((formData.getAll('users') as string[]).filter(Boolean))
 	const users = await prisma.user.findMany({ select: { id: true, roles: true } })
-	const ops = users.map(u => {
+	const opsRaw = users.map((u) => {
 		const has = u.roles.includes(role)
 		const shouldHave = selectedIds.has(u.id)
 		if (has === shouldHave) return null
 		const nextRoles = shouldHave ? Array.from(new Set([...u.roles, role])) : u.roles.filter(r => r !== role)
 		return prisma.user.update({ where: { id: u.id }, data: { roles: { set: nextRoles } } })
-	}).filter(Boolean) as any[]
+	})
+	const ops = opsRaw.filter((v): v is ReturnType<typeof prisma.user.update> => v !== null)
 	if (ops.length) await prisma.$transaction(ops)
 	revalidatePath('/admin/members')
 }
