@@ -8,9 +8,8 @@ export default function PWARegister() {
     const swUrl = '/sw.js'
     const register = async () => {
       try {
-        const reg = await navigator.serviceWorker.register(swUrl)
-        return reg
-      } catch (e) {
+        await navigator.serviceWorker.register(swUrl)
+      } catch {
         // ignore
       }
     }

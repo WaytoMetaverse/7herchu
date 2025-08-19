@@ -126,7 +126,7 @@ export default async function ProfilePage() {
 							<input name="name" defaultValue={user.name ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
 						<label className="text-sm">暱稱
-							<input name="nickname" defaultValue={(user as any).nickname ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="nickname" defaultValue={(user as unknown as { nickname?: string }).nickname ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
 						<label className="text-sm">Email
 							<input defaultValue={user.email} disabled className="border rounded w-full px-2 py-1 bg-gray-50" />

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { del, list } from '@vercel/blob'
+import { del, list, type ListBlobResult } from '@vercel/blob'
 
 // 每日排程：刪除 90 天前的上傳檔案
 export async function GET() {
@@ -14,14 +14,18 @@ export async function GET() {
   const cutoff = cutoffDate.getTime()
   const prefix = 'uploads/'
   let removed = 0
-  for await (const item of list({ token: process.env.BLOB_READ_WRITE_TOKEN, prefix })) {
-    // item.uploadedAt 為 ISO 字串
-    const uploadedAt = new Date(item.uploadedAt).getTime()
-    if (uploadedAt && uploadedAt < cutoff) {
-      await del(item.url, { token: process.env.BLOB_READ_WRITE_TOKEN })
-      removed += 1
+  let cursor: string | undefined = undefined
+  do {
+    const res: ListBlobResult = await list({ token: process.env.BLOB_READ_WRITE_TOKEN, prefix, cursor })
+    for (const item of res.blobs) {
+      const uploadedAt = new Date(item.uploadedAt).getTime()
+      if (uploadedAt && uploadedAt < cutoff) {
+        await del(item.url, { token: process.env.BLOB_READ_WRITE_TOKEN })
+        removed += 1
+      }
     }
-  }
+    cursor = res.cursor
+  } while (cursor)
   return NextResponse.json({ ok: true, removed })
 }
 
