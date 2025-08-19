@@ -5,6 +5,8 @@ import { notFound, redirect } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 
 export default async function CalendarSpeakersPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = await params
@@ -34,6 +36,7 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
         <h1 className="text-2xl lg:text-3xl font-semibold">講師名單 · {event.title}</h1>
         <Link href="/calendar"><Button variant="outline" size="sm">返回</Button></Link>
       </div>
+      <div className="text-sm text-gray-600">日期：{format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })}</div>
 
       <Card>
         <CardContent>
@@ -44,9 +47,9 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
               {speakers.map(s => (
                 <li key={s.id} className="py-3 text-sm flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <div className="font-medium">{s.name} · {s.companyName || '-'} · {s.industry || '-'}</div>
-                    <div className="text-gray-600">手機：{s.phone} · 邀請人：{s.invitedBy || '-'}</div>
-                    <div className="text-gray-600">PPT：{s.pptUrl ? <a href={s.pptUrl} target="_blank" className="text-blue-600 underline">連結</a> : '—'}</div>
+                    <div className="font-medium">{s.name}　{s.phone}　邀請人：{s.invitedBy || '-'}</div>
+                    <div className="text-gray-600">{[s.companyName, s.industry].filter(Boolean).join('/') || '-'}</div>
+                    <div className="text-gray-600">分會：{s.bniChapter || '-'}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     {canManage ? (

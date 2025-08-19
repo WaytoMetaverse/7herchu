@@ -111,6 +111,7 @@ model MemberProfile {
   workLocation     String?
   workDescription  String?
   portfolioPhotos  Json?
+  businessCards    Json?
 }
 
 model MemberInvite {

@@ -3,7 +3,7 @@ import { signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
-export default function UserNav({ user }: { user?: { name?: string | null } | null }) {
+export default function UserNav({ user }: { user?: { name?: string | null; nickname?: string | null } | null }) {
   if (!user) {
     return (
       <div className="ml-auto flex items-center gap-2">
@@ -12,9 +12,15 @@ export default function UserNav({ user }: { user?: { name?: string | null } | nu
       </div>
     )
   }
+  const display = (() => {
+    if (user?.nickname && user.nickname.trim()) return user.nickname
+    const n = user?.name?.trim() || ''
+    if (!n) return '會員'
+    return n.length <= 2 ? n : n.slice(-2)
+  })()
   return (
     <div className="ml-auto flex items-center gap-3 text-sm">
-      <span className="text-gray-600">Hi，{user.name || '會員'}</span>
+      <Link href="/profile" className="text-gray-600 hover:text-black">{display}</Link>
       <Button onClick={() => signOut({ callbackUrl: '/' })} variant="ghost" size="sm">登出</Button>
     </div>
   )

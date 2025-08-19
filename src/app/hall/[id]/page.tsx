@@ -5,6 +5,9 @@ import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { Role } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import ConfirmDelete from '@/components/ConfirmDelete'
@@ -24,6 +27,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const sp = searchParams ? await searchParams : undefined
 	const event = await prisma.event.findUnique({ where: { id } })
 	if (!event) return <div className="max-w-3xl mx-auto p-4">找不到活動</div>
+
+	const session = await getServerSession(authOptions)
+	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
+	const canEditDelete = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
+	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)
 
 	const [regs, speakers] = await Promise.all([
 		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true } } } }),
@@ -93,9 +101,9 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
 				<div className="flex items-center gap-2">
-					<Button as={Link} href={`/admin/events/${event.id}`} variant="outline">編輯活動</Button>
-					<Button as={Link} href={`/admin/checkin/${event.id}`}>簽到管理</Button>
-					<ConfirmDelete eventId={event.id} action={deleteEvent} hasLocks={hasLocks} members={memberNames} guests={guestNames} speakers={speakerNames} />
+					{canEditDelete ? <Button as={Link} href={`/admin/events/${event.id}`} variant="outline">編輯活動</Button> : null}
+					{canCheckin ? <Button as={Link} href={`/admin/checkin/${event.id}`}>簽到管理</Button> : null}
+					{canEditDelete ? <ConfirmDelete eventId={event.id} action={deleteEvent} hasLocks={hasLocks} members={memberNames} guests={guestNames} speakers={speakerNames} /> : null}
 				</div>
 			</div>
 

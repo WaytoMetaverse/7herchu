@@ -3,6 +3,9 @@ import { EventType } from '@prisma/client'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { Role } from '@prisma/client'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
@@ -20,6 +23,10 @@ function ym(d: Date) { return format(d, 'yyyy-MM') }
 
 export default async function HallPage() {
 	const events = await prisma.event.findMany({ orderBy: { startAt: 'asc' } })
+
+	const session = await getServerSession(authOptions)
+	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
+	const canManage = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 
 	const counts = Object.fromEntries(
 		(
@@ -53,7 +60,7 @@ export default async function HallPage() {
 		<div className="max-w-3xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">活動大廳</h1>
-				<Button as={Link} href="/admin/events/new" variant="brand">新增活動</Button>
+				{canManage ? <Button as={Link} href="/admin/events/new" variant="brand">新增活動</Button> : null}
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (
 				<section key={key} className="space-y-3">

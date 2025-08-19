@@ -6,6 +6,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import Button from '@/components/ui/Button'
 import Image from 'next/image'
+import ImageThumb from '@/components/ImageThumb'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -95,6 +96,37 @@ export default async function ProfilePage() {
 		redirect('/profile')
 	}
 
+	async function uploadCards(formData: FormData) {
+		'use server'
+		const session = await getServerSession(authOptions)
+		if (!session?.user?.email) redirect('/auth/signin')
+		const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+		if (!user) redirect('/auth/signin')
+
+		const files = formData.getAll('cards') as File[]
+		if (!files || files.length === 0) return
+		const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+		await fs.mkdir(uploadDir, { recursive: true })
+		const urls: string[] = []
+		for (const file of files) {
+			if (!file || typeof file.arrayBuffer !== 'function') continue
+			const buf = Buffer.from(await file.arrayBuffer())
+			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+			const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+			await fs.writeFile(path.join(uploadDir, filename), buf)
+			urls.push(`/uploads/${filename}`)
+		}
+
+		const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
+		const list = Array.isArray(current?.businessCards) ? (current?.businessCards as string[]) : []
+		await prisma.memberProfile.upsert({
+			where: { userId: user.id },
+			create: { userId: user.id, memberType: 'SINGLE', businessCards: [...list, ...urls] },
+			update: { businessCards: [...list, ...urls] },
+		})
+		redirect('/profile')
+	}
+
 	async function deletePhoto(formData: FormData) {
 		'use server'
 		const session = await getServerSession(authOptions)
@@ -156,7 +188,7 @@ export default async function ProfilePage() {
 				<section className="space-y-3">
 					<h2 className="font-medium">工作資訊</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<label className="text-sm">職業
+						<label className="text-sm">職業/代表
 							<input name="occupation" defaultValue={mp?.occupation ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
 						<label className="text-sm">公司
@@ -168,10 +200,39 @@ export default async function ProfilePage() {
 						<label className="text-sm">工作地點
 							<input name="workLocation" defaultValue={mp?.workLocation ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
-						<label className="text-sm col-span-2">工作簡介
+						<label className="text-sm col-span-2">服務項目
 							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
 					</div>
+				</section>
+
+				<section className="space-y-3">
+					<h2 className="font-medium">名片上傳（不限制張數）</h2>
+					<form action={uploadCards} className="flex items-center gap-2">
+						<input name="cards" type="file" multiple accept="image/*,application/pdf" className="text-sm" />
+						<Button type="submit" variant="outline">上傳</Button>
+					</form>
+					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+							{(mp!.businessCards as string[]).map((url) => (
+								<ImageThumb key={url} url={url} variant="card" deleteForm={(
+									<form action={async (fd: FormData) => {
+										'use server'
+										const session = await getServerSession(authOptions)
+										if (!session?.user?.email) return
+										const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+										if (!user) return
+										const mp = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
+										const list = Array.isArray(mp?.businessCards) ? (mp?.businessCards as string[]) : []
+										const next = list.filter((u) => u !== url)
+										await prisma.memberProfile.update({ where: { userId: user.id }, data: { businessCards: next } })
+									}}>
+										<Button type="submit" size="sm" variant="danger" className="btn-compact">刪除</Button>
+									</form>
+								)} />
+							))}
+						</div>
+					) : null}
 				</section>
 
 				<div>
@@ -184,13 +245,12 @@ export default async function ProfilePage() {
 				{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as string[]).length > 0 ? (
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 						{(mp!.portfolioPhotos as string[]).map((url) => (
-							<div key={url} className="border rounded overflow-hidden">
-								<Image src={url} alt="作品" width={640} height={240} className="w-full h-32 object-cover" />
-								<form action={deletePhoto} className="p-2 text-right">
+							<ImageThumb key={url} url={url} variant="photo" deleteForm={(
+								<form action={deletePhoto}>
 									<input type="hidden" name="url" value={url} />
-									<Button type="submit" variant="danger" size="sm">刪除</Button>
+									<Button type="submit" variant="danger" size="sm" className="btn-compact">刪除</Button>
 								</form>
-							</div>
+							)} />
 						))}
 					</div>
 				) : (
