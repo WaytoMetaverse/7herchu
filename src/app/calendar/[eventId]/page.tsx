@@ -49,7 +49,9 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
                     <div className="text-gray-600">PPT：{s.pptUrl ? <a href={s.pptUrl} target="_blank" className="text-blue-600 underline">連結</a> : '—'}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm">編輯</Button></Link>
+                    {canManage ? (
+                      <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm">編輯</Button></Link>
+                    ) : null}
                     {canManage ? (
                       <form action={deleteBooking}>
                         <input type="hidden" name="id" value={s.id} />

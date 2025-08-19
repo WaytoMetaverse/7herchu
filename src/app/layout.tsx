@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "磐石砌好厝",
+  title: "活動管理",
   description: "活動與講師預約系統",
   icons: {
     icon: "/favicon.ico",
@@ -59,7 +59,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
             <UserNav user={session?.user ?? null} />
           </nav>
         </header>
-        <main className="pt-12 pb-[calc(var(--mobile-tabbar-h)+16px)] lg:pt-0 lg:pb-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
+        <main className="page-wrap lg:pt-0 lg:pb-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
           {children}
         </main>
         <PWARegister />

@@ -76,7 +76,7 @@ export default async function HallPage() {
 													<span className="text-[var(--brand-700)]">· {TYPE_LABEL[e.type as EventType]}</span>
 												</div>
 											</div>
-											<div className="text-sm text-gray-500">簽到 {checked[e.id] ?? 0} / {counts[e.id] ?? 0}</div>
+											<div className="text-sm text-gray-500">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0</div>
 										</div>
 									</CardContent>
 								</Link>

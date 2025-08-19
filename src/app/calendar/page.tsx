@@ -71,17 +71,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
-					{canManage ? <Link href="/admin/events"><Button variant="outline" size="sm">管理</Button></Link> : null}
 					<Link href="/speaker/login"><Button variant="outline" size="sm">手機登入修改</Button></Link>
-					{canManage ? (
-						<form action={async () => {
-							'use server'
-							await prisma.speakerBooking.deleteMany({})
-							revalidatePath('/calendar')
-						}}>
-							<Button variant="danger" size="sm">清除所有講師預約</Button>
-						</form>
-					) : null}
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (

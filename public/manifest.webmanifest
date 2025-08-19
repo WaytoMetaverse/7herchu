@@ -1,16 +1,16 @@
 {
-  "name": "磐石砌好厝",
-  "short_name": "砌好厝",
-  "description": "看起來舒服又有質感的活動與講師預約系統",
+  "name": "活動管理",
+  "short_name": "活動管理",
+  "description": "活動與講師預約系統",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
-    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+    { "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" },
+    { "src": "/logo.jpg", "sizes": "1024x1024", "type": "image/jpeg", "purpose": "any" }
   ]
 }
 
