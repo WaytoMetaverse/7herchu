@@ -14,8 +14,9 @@ const ROLE_LABEL: Record<Role, string> = {
 async function updateRoles(formData: FormData) {
 	'use server'
 	const userId = String(formData.get('userId'))
-	const roles = (formData.getAll('roles') as string[]).filter(Boolean) as Role[]
-	await prisma.user.update({ where: { id: userId }, data: { roles } })
+	const raw = (formData.getAll('roles') as string[]).filter(Boolean)
+	const roles = raw.filter((r): r is Role => (['admin','event_manager','menu_manager','finance_manager','checkin_manager'] as const).includes(r as Role))
+	await prisma.user.update({ where: { id: userId }, data: { roles: { set: roles } } })
 	revalidatePath('/admin/members')
 }
 
