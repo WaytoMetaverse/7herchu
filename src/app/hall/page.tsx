@@ -52,7 +52,7 @@ export default async function HallPage() {
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold tracking-tight">活動大廳</h1>
+				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">活動大廳</h1>
 				<Button as={Link} href="/admin/events/new" variant="brand">新增活動</Button>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (

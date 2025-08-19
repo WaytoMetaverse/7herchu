@@ -15,6 +15,7 @@ async function saveProfile(formData: FormData) {
 	if (!user) redirect('/auth/signin')
 
 	const name = String(formData.get('name') || '')
+	const nickname = String(formData.get('nickname') || '')
 	const phone = String(formData.get('phone') || '')
 	const birthday = String(formData.get('birthday') || '')
 	const diet = String(formData.get('diet') || '')
@@ -25,7 +26,7 @@ async function saveProfile(formData: FormData) {
 	const workLocation = String(formData.get('workLocation') || '')
 	const workDescription = String(formData.get('workDescription') || '')
 
-	await prisma.user.update({ where: { id: user.id }, data: { name, phone } })
+	await prisma.user.update({ where: { id: user.id }, data: { name, nickname, phone } })
 	await prisma.memberProfile.upsert({
 		where: { userId: user.id },
 		create: {
@@ -116,13 +117,16 @@ export default async function ProfilePage() {
 
 	return (
 		<div className="max-w-2xl mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">個人資料</h1>
+			<h1 className="text-2xl lg:text-3xl font-semibold">個人資料</h1>
 			<form action={saveProfile} className="space-y-6">
 				<section className="space-y-3">
 					<h2 className="font-medium">基本資料</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 						<label className="text-sm">姓名
 							<input name="name" defaultValue={user.name ?? ''} className="border rounded w-full px-2 py-1" />
+						</label>
+						<label className="text-sm">暱稱
+							<input name="nickname" defaultValue={(user as any).nickname ?? ''} className="border rounded w-full px-2 py-1" />
 						</label>
 						<label className="text-sm">Email
 							<input defaultValue={user.email} disabled className="border rounded w-full px-2 py-1 bg-gray-50" />

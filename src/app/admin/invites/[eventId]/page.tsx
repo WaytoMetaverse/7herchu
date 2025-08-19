@@ -22,7 +22,7 @@ export default async function InvitesPage({ params }: { params: Promise<{ eventI
 	const invites = await prisma.guestInvite.findMany({ where: { eventId }, orderBy: { createdAt: 'desc' } })
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">來賓邀請：{event.title}</h1>
+			<h1 className="text-2xl lg:text-3xl font-semibold">來賓邀請：{event.title}</h1>
 			<form action={createInvite} className="border rounded p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
 				<input type="hidden" name="eventId" defaultValue={event.id} />
 				<label className="text-sm">邀請人

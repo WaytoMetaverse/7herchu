@@ -7,6 +7,7 @@
   --brand-800: #093a45;
   --background: #ffffff;
   --foreground: #0f172a;
+  --mobile-tabbar-h: 56px;
 }
 
 @theme inline {

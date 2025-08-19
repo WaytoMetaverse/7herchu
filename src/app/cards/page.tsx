@@ -9,7 +9,7 @@ export default async function CardsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">名片庫</h1>
+      <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">名片庫</h1>
       <CardsClient initialQ={q} initialCategory={category || ''} initialSubs={subs} />
     </div>
   )

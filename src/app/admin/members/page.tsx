@@ -164,7 +164,7 @@ export default async function MembersPage({ searchParams }: { searchParams?: Pro
 
 	return (
 		<div className="max-w-5xl mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">成員與權限</h1>
+			<h1 className="text-2xl lg:text-3xl font-semibold">成員與權限</h1>
 
 			<form className="flex items-center gap-2 text-sm">
 				<label>

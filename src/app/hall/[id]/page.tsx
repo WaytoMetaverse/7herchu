@@ -91,7 +91,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</div>
 			)}
 			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-semibold">{event.title}</h1>
+				<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
 				<div className="flex items-center gap-2">
 					<Button as={Link} href={`/admin/events/${event.id}`} variant="outline">編輯活動</Button>
 					<Button as={Link} href={`/admin/checkin/${event.id}`}>簽到管理</Button>

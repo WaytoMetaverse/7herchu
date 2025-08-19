@@ -9,5 +9,11 @@
   },
   "env": {
     "PRISMA_GENERATE_DATAPROXY": "true"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-uploads",
+      "schedule": "0 2 1 * *"
+    }
+  ]
 }

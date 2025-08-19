@@ -14,8 +14,8 @@ const items = [
 export default function MobileTabBar() {
   const pathname = usePathname()
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t" style={{ paddingBottom: 'max(4px, env(safe-area-inset-bottom))' }}>
-      <ul className="grid grid-cols-5 h-[56px] text-[11px]">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t" style={{ paddingBottom: 'max(4px, env(safe-area-inset-bottom))', height: 'var(--mobile-tabbar-h)' }}>
+      <ul className="grid grid-cols-5 h-full text-[11px]">
         {items.map(({ href, label, Icon }) => {
           const active = pathname?.startsWith(href)
           return (

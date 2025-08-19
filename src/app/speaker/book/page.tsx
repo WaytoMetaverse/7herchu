@@ -25,6 +25,7 @@ export default function SpeakerBookPage() {
 		pptUrl: '',
 	})
 	const [loading, setLoading] = useState(false)
+	const [uploading, setUploading] = useState(false)
 	const [err, setErr] = useState<string | null>(null)
 	const [existingId, setExistingId] = useState<string | null>(null)
     const [eventDateLabel, setEventDateLabel] = useState<string>('')
@@ -95,6 +96,38 @@ export default function SpeakerBookPage() {
 
 	const Required = () => <span className="text-red-600">*</span>
 
+	async function uploadPpt(file: File) {
+		setUploading(true)
+		setErr(null)
+		try {
+			const allowed = [
+				'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+				'application/vnd.ms-powerpoint',
+				'application/pdf',
+			]
+			if (!allowed.includes(file.type)) {
+				setErr('請上傳 PPT/PPTX 或 PDF')
+				setUploading(false)
+				return
+			}
+			if (file.size > 50 * 1024 * 1024) {
+				setErr('檔案過大，請小於 50MB')
+				setUploading(false)
+				return
+			}
+			const fd = new FormData()
+			fd.append('file', file)
+			const res = await fetch('/api/upload', { method: 'POST', body: fd })
+			const data = await res.json()
+			if (!res.ok || !data?.url) throw new Error(data?.error || '上傳失敗')
+			setForm(v => ({ ...v, pptUrl: data.url }))
+		} catch (e) {
+			setErr((e as Error).message)
+		} finally {
+			setUploading(false)
+		}
+	}
+
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-3">
 			{eventDateLabel && <div className="text-sm text-gray-600">日期：{eventDateLabel}</div>}
@@ -124,9 +157,18 @@ export default function SpeakerBookPage() {
 				<label className="block text-sm mb-1">邀請人<Required /></label>
 				<input className="border rounded w-full px-3 py-2" required value={form.invitedBy} onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} />
 			</div>
-			<div>
-				<label className="block text-sm mb-1">PPT/連結（可稍後補）</label>
-				<input className="border rounded w-full px-3 py-2" value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} />
+			<div className="space-y-2">
+				<label className="block text-sm">PPT或連結（之後可用手機號碼登入補件）</label>
+				<input className="border rounded w-full px-3 py-2" placeholder="https://..." value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} />
+				<div className="flex items-center gap-2 text-sm">
+					<input
+						type="file"
+						accept=".ppt,.pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint,application/pdf"
+						onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPpt(f) }}
+					/>
+					{uploading ? <span className="text-gray-600">上傳中…</span> : null}
+					{form.pptUrl ? <a href={form.pptUrl} target="_blank" className="text-blue-600 underline">已上傳/連結</a> : null}
+				</div>
 			</div>
 			<div className="flex items-center gap-4">
 				<label className="flex items-center gap-2 text-sm">

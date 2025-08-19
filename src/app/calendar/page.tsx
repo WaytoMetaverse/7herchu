@@ -68,7 +68,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-6">
 			<div className="flex justify-between items-center">
-				<h1 className="text-2xl font-semibold tracking-tight">講師預約</h1>
+				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
 					{canManage ? <Link href="/admin/events"><Button variant="outline" size="sm">管理</Button></Link> : null}
@@ -94,32 +94,34 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 							const label = statusLabel(canBookSpeaker, e.speakerQuota, cnt)
 							return (
 								<Card key={e.id}>
-									<CardContent className="p-4">
-										<div className="flex justify-between">
-											<div>
-												<div className="font-medium flex items-center gap-2">
-													<CalendarIcon className="w-4 h-4 text-gray-500" />
-													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-													<span>{e.title}</span>
-												</div>
-												<div className="text-sm text-gray-600 flex items-center gap-2">
-													<MapPin className="w-4 h-4" />
-													<span>{e.location ?? ''}</span>
-													<span>· {TYPE_LABEL[e.type as EventType]}</span>
-												</div>
+									<Link href={`/calendar/${e.id}`}>
+										<CardContent className="p-4">
+											<div className="flex justify-between">
+												<div>
+													<div className="font-medium flex items-center gap-2">
+														<CalendarIcon className="w-4 h-4 text-gray-500" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span>{e.title}</span>
+													</div>
+													<div className="text-sm text-gray-600 flex items-center gap-2">
+														<MapPin className="w-4 h-4" />
+														<span>{e.location ?? ''}</span>
+														<span>· {TYPE_LABEL[e.type as EventType]}</span>
+													</div>
 											</div>
 											<div className="text-sm">{label}</div>
 										</div>
-										<div className="mt-2">
-											{canBookSpeaker && (e.speakerQuota ?? 0) - cnt > 0 ? (
-												<Link href={`/speaker/book?event=${e.id}`}><Button>預約短講</Button></Link>
-											) : (
-												<Button as="button" variant="outline" aria-disabled>
-													不可預約
-												</Button>
-											)}
-										</div>
-									</CardContent>
+										</CardContent>
+									</Link>
+									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
+										{canBookSpeaker && (e.speakerQuota ?? 0) - cnt > 0 ? (
+											<Link href={`/speaker/book?event=${e.id}`}><Button>預約短講</Button></Link>
+										) : (
+											<Button as="button" variant="outline" aria-disabled>
+												不可預約
+											</Button>
+										)}
+									</div>
 								</Card>
 							)
 						})}
