@@ -32,6 +32,11 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: '磐石砌好厝',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+  },
 };
 
 
@@ -54,7 +59,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
             <UserNav user={session?.user ?? null} />
           </nav>
         </header>
-        <main className="pb-16 md:pb-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
+        <main className="pb-20 md:pb-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
           {children}
         </main>
         <PWARegister />
