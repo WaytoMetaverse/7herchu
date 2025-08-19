@@ -17,7 +17,7 @@ export function CardTitle({ children, className = '' }: { children: React.ReactN
 }
 
 export function CardContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-	return <div className={`px-4 py-3 ${className}`}>{children}</div>
+	return <div className={`px-4 py-4 ${className}`}>{children}</div>
 }
 
 

@@ -90,15 +90,19 @@ export default function AdminEventNewPage() {
 		return `${hh}:${m}`
 	})
 	return (
-		<div className="max-w-3xl mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">新增活動</h1>
-			<form action={createEvent} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+		<div className="max-w-3xl mx-auto p-4 space-y-5">
+			<h1 className="text-2xl font-semibold leading-tight">新增活動</h1>
+			<form action={createEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<EventTypePricing options={options} initialType={options[0]?.value || 'GENERAL'} />
-				<label className="text-sm flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-500" />
-					<DateWithWeekday name="date" />
+				<label className="text-sm col-span-2">
+					<span className="block mb-1">日期</span>
+					<div className="flex items-center gap-2">
+						<CalendarIcon className="w-4 h-4 text-gray-500" />
+						<DateWithWeekday name="date" />
+					</div>
 				</label>
 				<label className="text-sm">開始時間
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="startTime" className="border rounded w-full px-2 py-1">
 							{timeOptions.map((t) => (
@@ -108,7 +112,7 @@ export default function AdminEventNewPage() {
 					</div>
 				</label>
 				<label className="text-sm">結束時間
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="endTime" className="border rounded w-full px-2 py-1">
 							{timeOptions.map((t) => (
@@ -118,12 +122,12 @@ export default function AdminEventNewPage() {
 					</div>
 				</label>
 				<label className="col-span-2 text-sm">地點
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<MapPin className="w-4 h-4" />
 						<input name="location" className="border rounded w-full px-2 py-1" placeholder="富興工廠2F" />
 					</div>
 				</label>
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 					<label>一般：講師名額
 						<input name="speakerQuota" type="number" min={0} className="border rounded w-full px-2 py-1" placeholder="5" />
 					</label>

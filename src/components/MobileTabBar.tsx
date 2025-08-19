@@ -1,14 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Home, Users, IdCard, User } from 'lucide-react'
+import { CalendarCheck, Building2, Wallet2, IdCard, User } from 'lucide-react'
 
 const items = [
-  { href: '/hall', label: '大廳', Icon: Home },
-  { href: '/calendar', label: '預約', Icon: CalendarDays },
-  { href: '/group', label: '小組', Icon: Users },
+  { href: '/calendar', label: '講師', Icon: CalendarCheck },
+  { href: '/hall', label: '活動', Icon: Building2 },
+  { href: '/admin/finance', label: '財務', Icon: Wallet2 },
   { href: '/cards', label: '名片', Icon: IdCard },
-  { href: '/profile', label: '我', Icon: User },
+  { href: '/profile', label: '個人', Icon: User },
 ]
 
 export default function MobileTabBar() {

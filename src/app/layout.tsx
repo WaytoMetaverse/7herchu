@@ -45,11 +45,11 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
   return (
     <html lang="zh-Hant">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <header className="sticky top-0 z-30 bg-transparent">
+        <header className="sticky top-0 z-30 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-[0_1px_0_0_rgba(0,0,0,0.04)]">
           <nav className="max-w-6xl mx-auto px-4 h-12 hidden md:flex items-center gap-5 text-sm text-gray-700">
             <Link href="/" className="flex items-center gap-2 mr-4">
               <img src="/logo.jpg" alt="磐石砌好厝" className="h-6 w-6 object-cover rounded-sm" />
-              <span className="font-semibold tracking-wide">磐石砌好厝</span>
+              <span className="font-semibold tracking-wide text-lg">磐石砌好厝</span>
             </Link>
             <Link href="/calendar" className="hover:text-black">講師預約</Link>
             <Link href="/hall" className="hover:text-black">活動大廳</Link>
@@ -63,6 +63,10 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
           {children}
         </main>
         <PWARegister />
+        <div className="md:hidden fixed top-0 inset-x-0 h-12 z-40 bg-white/70 backdrop-blur flex items-center px-3 gap-2 border-b">
+          <img src="/logo.jpg" alt="磐石砌好厝" className="h-6 w-6 object-cover rounded-sm" />
+          <span className="text-[15px] font-semibold tracking-wide">磐石砌好厝</span>
+        </div>
         <MobileTabBar />
       </body>
     </html>

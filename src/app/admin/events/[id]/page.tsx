@@ -119,9 +119,9 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 		return `${hh}:${m}`
 	})
 	return (
-		<div className="max-w-3xl mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">編輯活動</h1>
-			<form action={updateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+		<div className="max-w-3xl mx-auto p-4 space-y-5">
+			<h1 className="text-2xl font-semibold">編輯活動</h1>
+			<form action={updateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<input type="hidden" name="id" defaultValue={e.id} />
 				<EventTypePricing
 					options={options}
@@ -132,11 +132,15 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 					initialBodGuestPrice={e.bodGuestPriceCents ? e.bodGuestPriceCents / 100 : null}
 					initialDefaultPrice={e.defaultPriceCents ? e.defaultPriceCents / 100 : null}
 				/>
-				<label className="text-sm flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-500" />
-					<DateWithWeekday name="date" defaultValue={dateStr} />
+				<label className="text-sm col-span-2">
+					<span className="block mb-1">日期</span>
+					<div className="flex items-center gap-2">
+						<CalendarIcon className="w-4 h-4 text-gray-500" />
+						<DateWithWeekday name="date" defaultValue={dateStr} />
+					</div>
 				</label>
 				<label className="text-sm">開始時間
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="startTime" defaultValue={startTime} className="border rounded w-full px-2 py-1">
 							{timeOptions.map((t) => (
@@ -146,7 +150,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 					</div>
 				</label>
 				<label className="text-sm">結束時間
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="endTime" defaultValue={endTime} className="border rounded w-full px-2 py-1">
 							{timeOptions.map((t) => (
@@ -156,12 +160,12 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 					</div>
 				</label>
 				<label className="col-span-2 text-sm">地點
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 mt-1">
 						<MapPin className="w-4 h-4" />
 						<input name="location" defaultValue={e.location ?? ''} className="border rounded w-full px-2 py-1" />
 					</div>
 				</label>
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 					<label>一般：講師名額
 						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5} className="border rounded w-full px-2 py-1" />
 					</label>
