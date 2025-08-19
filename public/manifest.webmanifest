@@ -1,7 +1,7 @@
 {
-  "name": "建築組活動",
-  "short_name": "活動系統",
-  "description": "活動與講師預約系統",
+  "name": "磐石砌好厝",
+  "short_name": "砌好厝",
+  "description": "看起來舒服又有質感的活動與講師預約系統",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

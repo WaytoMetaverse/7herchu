@@ -5,6 +5,7 @@ import "./globals.css";
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import UserNav from '@/components/auth/UserNav'
+import MobileTabBar from '@/components/MobileTabBar'
 import PWARegister from '@/components/PWARegister'
 
 const geistSans = Geist({
@@ -18,13 +19,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "建築組活動",
+  title: "磐石砌好厝",
   description: "活動與講師預約系統",
   icons: {
     icon: "/favicon.ico",
+    apple: "/logo.jpg",
   },
   manifest: "/manifest.webmanifest",
   themeColor: "#0e4c5c",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '磐石砌好厝',
+  },
 };
 
 
@@ -33,18 +40,25 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
   return (
     <html lang="zh-Hant">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-          <nav className="max-w-6xl mx-auto px-4 h-12 flex items-center gap-5 text-sm text-gray-700">
+        <header className="sticky top-0 z-30 bg-transparent">
+          <nav className="max-w-6xl mx-auto px-4 h-12 hidden md:flex items-center gap-5 text-sm text-gray-700">
+            <Link href="/" className="flex items-center gap-2 mr-4">
+              <img src="/logo.jpg" alt="磐石砌好厝" className="h-6 w-6 object-cover rounded-sm" />
+              <span className="font-semibold tracking-wide">磐石砌好厝</span>
+            </Link>
             <Link href="/calendar" className="hover:text-black">講師預約</Link>
             <Link href="/hall" className="hover:text-black">活動大廳</Link>
             <Link href="/group" className="hover:text-black">小組管理</Link>
             <Link href="/cards" className="hover:text-black">名片庫</Link>
-            <Link href="/profile" className="hover:text-black">個人資料</Link>
+            <Link href="/profile" className="hover:text-black ml-auto">個人資料</Link>
             <UserNav user={session?.user ?? null} />
           </nav>
-        </div>
-        {children}
+        </header>
+        <main className="pb-16 md:pb-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
+          {children}
+        </main>
         <PWARegister />
+        <MobileTabBar />
       </body>
     </html>
   );
