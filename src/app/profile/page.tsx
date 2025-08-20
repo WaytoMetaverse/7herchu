@@ -6,6 +6,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import Button from '@/components/ui/Button'
 import ImageThumb from '@/components/ImageThumb'
+import { put } from '@vercel/blob'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -31,15 +32,35 @@ async function saveProfile(formData: FormData) {
 	const cardFiles = formData.getAll('cards') as File[]
 	const newCardUrls: string[] = []
 	if (Array.isArray(cardFiles) && cardFiles.length > 0) {
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-		await fs.mkdir(uploadDir, { recursive: true })
-		for (const file of cardFiles) {
-			if (!file || typeof file.arrayBuffer !== 'function') continue
-			const buf = Buffer.from(await file.arrayBuffer())
-			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-			const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
-			await fs.writeFile(path.join(uploadDir, filename), buf)
-			newCardUrls.push(`/uploads/${filename}`)
+		if (process.env.BLOB_READ_WRITE_TOKEN) {
+			for (const file of cardFiles) {
+				if (!file || typeof file.arrayBuffer !== 'function') continue
+				const buf = Buffer.from(await file.arrayBuffer())
+				const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+				const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+				const uploaded = await put(`uploads/${filename}`, buf, {
+					access: 'public',
+					addRandomSuffix: false,
+					token: process.env.BLOB_READ_WRITE_TOKEN,
+					contentType: file.type || 'application/octet-stream',
+				})
+				newCardUrls.push(uploaded.url)
+			}
+		} else if (!process.env.VERCEL) {
+			// 本機/開發環境允許寫入本地硬碟
+			const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+			await fs.mkdir(uploadDir, { recursive: true })
+			for (const file of cardFiles) {
+				if (!file || typeof file.arrayBuffer !== 'function') continue
+				const buf = Buffer.from(await file.arrayBuffer())
+				const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+				const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+				await fs.writeFile(path.join(uploadDir, filename), buf)
+				newCardUrls.push(`/uploads/${filename}`)
+			}
+		} else {
+			// 在 Vercel 且沒有 Blob Token：略過名片新增，避免 500
+			// 之後請於 Vercel 環境變數設定 BLOB_READ_WRITE_TOKEN
 		}
 	}
 	const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
