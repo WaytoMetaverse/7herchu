@@ -3,6 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { put } from '@vercel/blob'
 
+// 單檔上傳端點：避免一次塞入多檔導致 413
 export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null)
   if (!form) return NextResponse.json({ error: 'invalid form' }, { status: 400 })
@@ -10,11 +11,11 @@ export async function POST(req: NextRequest) {
   if (!file || typeof file.arrayBuffer !== 'function') {
     return NextResponse.json({ error: 'no file' }, { status: 400 })
   }
-  // 僅允許 PPT/PPTX/PDF 與常見影像（若要擴充再調整）
   const allowed = new Set([
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/vnd.ms-powerpoint',
     'application/pdf',
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'
   ])
   if (!allowed.has(file.type)) {
     return NextResponse.json({ error: 'unsupported file type' }, { status: 415 })
@@ -22,7 +23,6 @@ export async function POST(req: NextRequest) {
   const buf = Buffer.from(await file.arrayBuffer())
   const ext = (file.name.split('.').pop() || 'dat').toLowerCase()
   const filename = `upload_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
-  // 若有設定 Vercel Blob，則上傳至雲端；否則落地至 public/uploads（開發用）
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const res = await put(`uploads/${filename}`, buf, {
       access: 'public',

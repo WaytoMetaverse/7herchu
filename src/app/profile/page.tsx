@@ -7,6 +7,7 @@ import path from 'node:path'
 import Button from '@/components/ui/Button'
 import ImageThumb from '@/components/ImageThumb'
 import { put } from '@vercel/blob'
+import ProfileUploadClient from '@/components/ProfileUploadClient'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -28,9 +29,13 @@ async function saveProfile(formData: FormData) {
 	const workLocation = String(formData.get('workLocation') || '')
 	const workDescription = String(formData.get('workDescription') || '')
 
+	// 直傳回傳的 URL（優先）
+	const blobCardUrls = formData.getAll('cardUrls').map(String).filter(Boolean)
+	const blobPhotoUrls = formData.getAll('photoUrls').map(String).filter(Boolean)
+
 	// 名片上傳（合併至主表單保存）
 	const cardFiles = formData.getAll('cards') as File[]
-	const newCardUrls: string[] = []
+	const newCardUrls: string[] = [...blobCardUrls]
 	if (Array.isArray(cardFiles) && cardFiles.length > 0) {
 		try {
 			if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -59,7 +64,7 @@ async function saveProfile(formData: FormData) {
 					newCardUrls.push(`/uploads/${filename}`)
 				}
 			} else {
-				// 在 Vercel 且沒有 Blob Token：略過名片新增
+				// 在 Vercel 且沒有 Blob Token：略過名片新增（直傳已處理）
 			}
 		} catch (e) {
 			console.error('saveProfile card upload error:', e)
@@ -68,7 +73,7 @@ async function saveProfile(formData: FormData) {
 
 	// 作品照片上傳（合併至主表單保存）
 	const photoFiles = formData.getAll('photos') as File[]
-	const newPhotoUrls: string[] = []
+	const newPhotoUrls: string[] = [...blobPhotoUrls]
 	if (Array.isArray(photoFiles) && photoFiles.length > 0) {
 		try {
 			if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -97,7 +102,7 @@ async function saveProfile(formData: FormData) {
 					newPhotoUrls.push(`/uploads/${filename}`)
 				}
 			} else {
-				// 在 Vercel 且沒有 Blob Token：略過照片新增
+				// 在 Vercel 且沒有 Blob Token：略過照片新增（直傳已處理）
 			}
 		} catch (e) {
 			console.error('saveProfile photo upload error:', e)
@@ -231,9 +236,7 @@ export default async function ProfilePage() {
 
 				<section className="space-y-3">
 					<h2 className="font-medium">名片上傳</h2>
-					<div className="flex items-center gap-2">
-						<input name="cards" type="file" multiple accept="image/*,application/pdf" className="text-sm" />
-					</div>
+					<ProfileUploadClient />
 					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
@@ -273,9 +276,7 @@ export default async function ProfilePage() {
 					) : (
 						<p className="text-sm text-gray-600">尚未上傳作品照片</p>
 					)}
-					<div className="flex items-center gap-2">
-						<input name="photos" type="file" multiple accept="image/*" className="text-sm" />
-					</div>
+					<div className="hidden"><input name="photos" type="file" multiple accept="image/*" /></div>
 				</section>
 
 				<div>

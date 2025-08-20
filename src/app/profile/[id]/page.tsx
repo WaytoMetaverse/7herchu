@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getDisplayName } from '@/lib/displayName'
+import ImageThumb from '@/components/ImageThumb'
 
 export default async function MemberProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params
@@ -50,8 +51,9 @@ export default async function MemberProfileDetailPage({ params }: { params: Prom
 					<h2 className="font-medium">名片</h2>
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 						{(mp!.businessCards as string[]).map(url => (
-							// eslint-disable-next-line @next/next/no-img-element
-							<img key={url} src={url} alt="名片" className="w-full h-40 object-contain rounded border bg-white" />
+							<div key={url} className="h-40">
+								<ImageThumb url={url} variant="card" />
+							</div>
 						))}
 					</div>
 				</section>
@@ -62,8 +64,9 @@ export default async function MemberProfileDetailPage({ params }: { params: Prom
 					<h2 className="font-medium">作品照片</h2>
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 						{(mp!.portfolioPhotos as string[]).map(url => (
-							// eslint-disable-next-line @next/next/no-img-element
-							<img key={url} src={url} alt="作品" className="w-full h-40 object-cover rounded border" />
+							<div key={url} className="h-40">
+								<ImageThumb url={url} variant="photo" />
+							</div>
 						))}
 					</div>
 				</section>

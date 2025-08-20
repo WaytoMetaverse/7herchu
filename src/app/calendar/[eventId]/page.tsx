@@ -47,18 +47,19 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
               {speakers.map(s => (
                 <li key={s.id} className="py-3 text-sm flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <div className="font-medium">{s.name}　{s.phone}　邀請人：{s.invitedBy || '-'}</div>
+                    <div className="font-medium">{s.name}　{s.phone}</div>
+                    <div className="text-gray-600">邀請人：{s.invitedBy || '-'}</div>
                     <div className="text-gray-600">{[s.companyName, s.industry].filter(Boolean).join('/') || '-'}</div>
                     <div className="text-gray-600">分會：{s.bniChapter || '-'}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     {canManage ? (
-                      <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm">編輯</Button></Link>
+                      <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm" className="whitespace-nowrap">編輯</Button></Link>
                     ) : null}
                     {canManage ? (
                       <form action={deleteBooking}>
                         <input type="hidden" name="id" value={s.id} />
-                        <Button variant="danger" size="sm">刪除</Button>
+                        <Button variant="danger" size="sm" className="whitespace-nowrap">刪除</Button>
                       </form>
                     ) : null}
                   </div>

@@ -24,6 +24,7 @@ export default function CardScanPage() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [aiLoading, setAiLoading] = useState(false)
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] || null
@@ -63,6 +64,44 @@ export default function CardScanPage() {
     }
   }
 
+  async function aiExtract() {
+    if (!imageFile) {
+      setErr('請先選擇名片圖片')
+      return
+    }
+    setAiLoading(true)
+    setErr(null)
+    try {
+      // 先上傳圖片取得 URL
+      const fd = new FormData()
+      fd.append('file', imageFile)
+      const up = await fetch('/api/upload', { method: 'POST', body: fd })
+      const upData = await up.json()
+      if (!up.ok) throw new Error(upData.error || '上傳失敗')
+      const imageUrl: string = upData.url
+      // 呼叫 AI 端點
+      const res = await fetch('/api/cards/ocr', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ imageUrl }) })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'AI 解析失敗')
+      const r = data.result as typeof form
+      setForm(v => ({
+        ...v,
+        name: r.name || v.name,
+        company: r.company || v.company,
+        title: r.title || v.title,
+        email: r.email || v.email,
+        phone: r.phone || v.phone,
+        address: r.address || v.address,
+        website: r.website || v.website,
+        notes: r.notes || v.notes,
+      }))
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : '發生錯誤')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -80,6 +119,9 @@ export default function CardScanPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={imagePreview} alt="預覽" className="mt-2 w-full h-48 object-contain rounded border" />
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={aiExtract} variant="secondary" disabled={!imageFile || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
           </div>
           <label className="text-sm block">主類
             <select className="border rounded w-full px-2 py-2 mt-1" value={category} onChange={(e)=>setCategory(e.target.value)}>
