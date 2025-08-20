@@ -14,12 +14,6 @@ export default async function GroupHomePage() {
 	const canManageFinance = roles.includes('admin' as Role) || roles.includes('finance_manager' as Role)
 	const isLoggedIn = !!session?.user
 	const users = await prisma.user.findMany({ 
-		where: { 
-			OR: [
-				{ memberProfile: { active: true } },
-				{ roles: { hasSome: ['admin', 'event_manager', 'finance_manager', 'checkin_manager', 'menu_manager'] } }
-			]
-		},
 		orderBy: { createdAt: 'asc' }, 
 		include: { memberProfile: true } 
 	})
