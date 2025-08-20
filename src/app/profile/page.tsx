@@ -48,7 +48,6 @@ async function saveProfile(formData: FormData) {
 					newCardUrls.push(uploaded.url)
 				}
 			} else if (!process.env.VERCEL) {
-				// 本機/開發環境允許寫入本地硬碟
 				const uploadDir = path.join(process.cwd(), 'public', 'uploads')
 				await fs.mkdir(uploadDir, { recursive: true })
 				for (const file of cardFiles) {
@@ -60,16 +59,56 @@ async function saveProfile(formData: FormData) {
 					newCardUrls.push(`/uploads/${filename}`)
 				}
 			} else {
-				// 在 Vercel 且沒有 Blob Token：略過名片新增，避免 500
+				// 在 Vercel 且沒有 Blob Token：略過名片新增
 			}
 		} catch (e) {
-			console.error('saveProfile upload error:', e)
-			// 略過名片新增，繼續保存其他表單資料
+			console.error('saveProfile card upload error:', e)
 		}
 	}
-	const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
+
+	// 作品照片上傳（合併至主表單保存）
+	const photoFiles = formData.getAll('photos') as File[]
+	const newPhotoUrls: string[] = []
+	if (Array.isArray(photoFiles) && photoFiles.length > 0) {
+		try {
+			if (process.env.BLOB_READ_WRITE_TOKEN) {
+				for (const file of photoFiles) {
+					if (!file || typeof file.arrayBuffer !== 'function') continue
+					const buf = Buffer.from(await file.arrayBuffer())
+					const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+					const filename = `pf_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+					const uploaded = await put(`uploads/${filename}`, buf, {
+						access: 'public',
+						addRandomSuffix: false,
+						token: process.env.BLOB_READ_WRITE_TOKEN,
+						contentType: file.type || 'application/octet-stream',
+					})
+					newPhotoUrls.push(uploaded.url)
+				}
+			} else if (!process.env.VERCEL) {
+				const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+				await fs.mkdir(uploadDir, { recursive: true })
+				for (const file of photoFiles) {
+					if (!file || typeof file.arrayBuffer !== 'function') continue
+					const buf = Buffer.from(await file.arrayBuffer())
+					const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+					const filename = `pf_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+					await fs.writeFile(path.join(uploadDir, filename), buf)
+					newPhotoUrls.push(`/uploads/${filename}`)
+				}
+			} else {
+				// 在 Vercel 且沒有 Blob Token：略過照片新增
+			}
+		} catch (e) {
+			console.error('saveProfile photo upload error:', e)
+		}
+	}
+
+	const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true, portfolioPhotos: true } })
 	const currentCards = Array.isArray(current?.businessCards) ? (current?.businessCards as string[]) : []
+	const currentPhotos = Array.isArray(current?.portfolioPhotos) ? (current?.portfolioPhotos as string[]) : []
 	const nextCards = newCardUrls.length ? [...currentCards, ...newCardUrls] : currentCards
+	const nextPhotos = newPhotoUrls.length ? [...currentPhotos, ...newPhotoUrls] : currentPhotos
 
 	await prisma.user.update({ where: { id: user.id }, data: { name: name || null, nickname: nickname || null, phone } })
 	await prisma.memberProfile.upsert({
@@ -86,6 +125,7 @@ async function saveProfile(formData: FormData) {
 			workLocation: workLocation || null,
 			workDescription: workDescription || null,
 			...(nextCards.length ? { businessCards: nextCards } : {}),
+			...(nextPhotos.length ? { portfolioPhotos: nextPhotos } : {}),
 		},
 		update: {
 			birthday: birthday ? new Date(birthday) : null,
@@ -97,6 +137,7 @@ async function saveProfile(formData: FormData) {
 			workLocation: workLocation || null,
 			workDescription: workDescription || null,
 			...(newCardUrls.length ? { businessCards: nextCards } : {}),
+			...(newPhotoUrls.length ? { portfolioPhotos: nextPhotos } : {}),
 		},
 	})
 	redirect('/profile')
@@ -109,38 +150,6 @@ export default async function ProfilePage() {
 	if (!user) redirect('/auth/signin')
 
 	const mp = user.memberProfile
-
-	async function uploadPhotos(formData: FormData) {
-		'use server'
-		const session = await getServerSession(authOptions)
-		if (!session?.user?.email) redirect('/auth/signin')
-		const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-		if (!user) redirect('/auth/signin')
-
-		const files = formData.getAll('photos') as File[]
-		if (!files || files.length === 0) return
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-		await fs.mkdir(uploadDir, { recursive: true })
-		const urls: string[] = []
-		for (const file of files) {
-			if (!file || typeof file.arrayBuffer !== 'function') continue
-			const buf = Buffer.from(await file.arrayBuffer())
-			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-			const filename = `pf_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
-			await fs.writeFile(path.join(uploadDir, filename), buf)
-			urls.push(`/uploads/${filename}`)
-		}
-
-		// append to existing list
-		const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { portfolioPhotos: true } })
-		const list = Array.isArray(current?.portfolioPhotos) ? (current?.portfolioPhotos as string[]) : []
-		await prisma.memberProfile.upsert({
-			where: { userId: user.id },
-			create: { userId: user.id, memberType: 'SINGLE', portfolioPhotos: [...list, ...urls] },
-			update: { portfolioPhotos: [...list, ...urls] },
-		})
-		redirect('/profile')
-	}
 
 	async function deletePhoto(formData: FormData) {
 		'use server'
@@ -247,33 +256,32 @@ export default async function ProfilePage() {
 						</div>
 					) : null}
 				</section>
-			</form>
 
-			<section className="space-y-3">
-				<h2 className="font-medium">作品照片</h2>
-				{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as string[]).length > 0 ? (
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-						{(mp!.portfolioPhotos as string[]).map((url) => (
-							<ImageThumb key={url} url={url} variant="photo" deleteForm={(
-								<form action={deletePhoto}>
-									<input type="hidden" name="url" value={url} />
-									<Button type="submit" variant="danger" size="sm" className="btn-compact">刪除</Button>
-								</form>
-							)} />
-						))}
+				<section className="space-y-3">
+					<h2 className="font-medium">作品照片</h2>
+					{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as string[]).length > 0 ? (
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+							{(mp!.portfolioPhotos as string[]).map((url) => (
+								<ImageThumb key={url} url={url} variant="photo" deleteForm={(
+									<form action={deletePhoto}>
+										<input type="hidden" name="url" value={url} />
+										<Button type="submit" variant="danger" size="sm" className="btn-compact">刪除</Button>
+									</form>
+								)} />
+							))}
+						</div>
+					) : (
+						<p className="text-sm text-gray-600">尚未上傳作品照片</p>
+					)}
+					<div className="flex items-center gap-2">
+						<input name="photos" type="file" multiple accept="image/*" className="text-sm" />
 					</div>
-				) : (
-					<p className="text-sm text-gray-600">尚未上傳作品照片</p>
-				)}
-				<form action={uploadPhotos} className="flex items-center gap-2">
-					<input name="photos" type="file" multiple accept="image/*" className="text-sm" />
-					<Button type="submit" variant="outline">上傳</Button>
-				</form>
-			</section>
+				</section>
 
-			<div>
-				<Button type="submit" form="profileForm">儲存</Button>
-			</div>
+				<div>
+					<Button type="submit" form="profileForm">儲存</Button>
+				</div>
+			</form>
 		</div>
 	)
 }

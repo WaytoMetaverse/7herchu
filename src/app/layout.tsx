@@ -8,6 +8,7 @@ import UserNav from '@/components/auth/UserNav'
 import MobileTabBar from '@/components/MobileTabBar'
 import PWARegister from '@/components/PWARegister'
 import MobileLogout from '@/components/auth/MobileLogout'
+import { prisma } from '@/lib/prisma'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children, }: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerSession(authOptions)
+  let navUser: { name?: string | null; nickname?: string | null } | null = null
+  if (session?.user?.email) {
+    const dbUser = await prisma.user.findUnique({ where: { email: session.user.email }, select: { name: true, nickname: true } })
+    if (dbUser) navUser = { name: dbUser.name, nickname: (dbUser as unknown as { nickname?: string | null }).nickname ?? null }
+  }
   return (
     <html lang="zh-Hant">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -58,7 +64,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
               <Link href="/group" className="hover:text-black">小組管理</Link>
               <Link href="/cards" className="hover:text-black">名片庫</Link>
             </div>
-            <UserNav user={session?.user ?? null} />
+            <UserNav user={navUser ?? (session?.user as { name?: string | null; nickname?: string | null } | null)} />
           </nav>
         </header>
         <main className="page-wrap lg:pt-0 lg:pb-0">
