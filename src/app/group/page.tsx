@@ -2,16 +2,16 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { Role } from '@prisma/client'
+// import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Users, DollarSign } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 
 export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
-	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
-	const isAdmin = roles.includes('admin' as Role)
-	const canManageFinance = roles.includes('admin' as Role) || roles.includes('finance_manager' as Role)
+	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const isAdmin = roles.includes('admin')
+	const canManageFinance = roles.includes('admin') || roles.includes('finance_manager')
 	const isLoggedIn = !!session?.user
 	const users = await prisma.user.findMany({ 
 		orderBy: { createdAt: 'asc' }, 
