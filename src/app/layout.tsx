@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth'
 import UserNav from '@/components/auth/UserNav'
 import MobileTabBar from '@/components/MobileTabBar'
 import PWARegister from '@/components/PWARegister'
+import MobileLogout from '@/components/auth/MobileLogout'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,23 +68,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
         <div className="md:hidden fixed top-0 inset-x-0 h-[56px] z-40 bg-white/70 backdrop-blur flex items-center px-3 gap-2 border-b">
           <img src="/brand-mark.png" alt="磐石砌好厝" className="h-6 w-6 object-contain" />
           <span className="text-[15px] font-semibold tracking-wide">磐石砌好厝</span>
-          {session?.user && (
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/auth/signout', { method: 'POST' })
-                  if (res.ok) {
-                    window.location.href = '/'
-                  }
-                } catch (error) {
-                  console.error('登出失敗:', error)
-                }
-              }}
-              className="ml-auto text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded"
-            >
-              登出
-            </button>
-          )}
+          <MobileLogout show={!!session?.user} />
         </div>
         <MobileTabBar />
       </body>

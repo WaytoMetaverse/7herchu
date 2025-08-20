@@ -28,7 +28,6 @@ export default function ConfirmDelete({
 			if (speakers.length) lines.push(`講師：${speakers.join('、')}`)
 			alert(lines.join('\n'))
 		}
-		// 若沒有鎖定名單，直接送出，不彈窗
 	}
 
 	return (

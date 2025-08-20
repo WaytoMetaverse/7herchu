@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'brand'
