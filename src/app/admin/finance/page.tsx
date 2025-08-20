@@ -1,15 +1,16 @@
 import { prisma } from '@/lib/prisma'
-import { EventType, FinanceTxnType, Prisma, Role } from '@prisma/client'
+import { EventType, FinanceTxnType, Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import Button from '@/components/ui/Button'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import Link from 'next/link'
+import { getDisplayName } from '@/lib/displayName'
 
 export default async function FinancePage({ searchParams }: { searchParams?: Promise<{ type?: string; month?: string }> }) {
 	const session = await getServerSession(authOptions)
-	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
-	const canManage = roles.includes('admin' as Role) || roles.includes('finance_manager' as Role)
+	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const canManage = roles.includes('admin') || roles.includes('finance_manager')
 	const sp = searchParams ? await searchParams : undefined
 	const type = (sp?.type || '') as FinanceTxnType | ''
 	const month = (sp?.month || new Date().toISOString().slice(0,7))
@@ -27,7 +28,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 
 	function toCsv(rows: typeof txns) {
 		const headers = ['日期','類型','金額(元)','項目','對象','備註']
-		const lines = rows.map((r) => [
+		const lines = rows.map((r: typeof txns[number]) => [
 			new Date(r.date).toLocaleDateString('zh-TW'),
 			r.type,
 			(r.amountCents/100).toString(),
@@ -52,11 +53,9 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		const note = String(formData.get('note') || '') || undefined
 		if (!date || !amount || !categoryName) return
 
-		// 僅允許固定選單
 		const allowed = type === 'INCOME' ? CATEGORY_INCOME : CATEGORY_EXPENSE
 		if (!allowed.includes(categoryName)) return
 
-		// 使用固定分類名稱查找已存在的分類，不存在就拒絕（不自動建立）
 		const existing = await prisma.financeCategory.findFirst({ where: { name: categoryName, type } })
 		if (!existing) return
 
@@ -81,14 +80,12 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		revalidatePath('/admin/finance')
 	}
 
-	// 固定成員訊息產生：統計本月 GENERAL/JOINT/CLOSED 次數
 	const monthStart = new Date(`${month}-01T00:00:00`)
 	const monthEnd = new Date(monthStart)
 	monthEnd.setMonth(monthEnd.getMonth() + 1)
 	const fixedCount = await prisma.event.count({ where: { startAt: { gte: monthStart, lt: monthEnd }, type: { in: [EventType.GENERAL, EventType.JOINT, EventType.CLOSED] } } })
 	const fixedMsg = `請夥伴們幫忙繳交${month.slice(5,7)}月建築組聚費用\n180乘以${fixedCount}次 = ${fixedCount * 180}`
 
-	// 單次成員（UNPAID）統計訊息（每人：220乘以N次 = 金額）
 	const singleRegs = await prisma.registration.findMany({
 		where: {
 			role: 'MEMBER',
@@ -96,12 +93,12 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			paymentStatus: 'UNPAID',
 			event: { startAt: { gte: monthStart, lt: monthEnd } },
 		},
-		select: { userId: true, name: true, user: { select: { name: true, email: true } } },
+		select: { userId: true, name: true, user: { select: { name: true, nickname: true, email: true } } },
 	})
 	const singleCountByUser = new Map<string, { label: string; count: number }>()
-	singleRegs.forEach((r) => {
+	singleRegs.forEach((r: typeof singleRegs[number]) => {
 		const key = r.userId || r.user?.email || r.name || 'unknown'
-		const label = r.user?.name || r.name || r.user?.email || '未命名'
+		const label = getDisplayName(r.user) || r.name || r.user?.email || '未命名'
 		const prev = singleCountByUser.get(key)
 		if (prev) prev.count += 1
 		else singleCountByUser.set(key, { label, count: 1 })
@@ -161,7 +158,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 						<input name="counterparty" className="mt-1 border rounded w-full px-2 py-1" placeholder="付款人/收款人" />
 					</label>
 					<label className="text-sm">金額（元）
-						<input name="amount" type="number" step="1" min={0} className="mt-1 border rounded w-full px-2 py-1" required />
+						<input name="amount" type="number" step={1} min={0} className="mt-1 border rounded w-full px-2 py-1" required />
 					</label>
 					<label className="text-sm md:col-span-3">摘要
 						<input name="note" className="mt-1 border rounded w-full px-2 py-1" />
@@ -191,7 +188,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				</div>
 				{(() => {
 					let running = 0
-					const rows = txns.map((t) => {
+					const rows = txns.map((t: typeof txns[number]) => {
 						const income = t.type === 'INCOME' ? t.amountCents / 100 : 0
 						const expense = t.type === 'EXPENSE' ? t.amountCents / 100 : 0
 						running += income - expense
@@ -209,7 +206,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 								<div className="text-right">餘額</div>
 								<div>操作</div>
 							</div>
-							{rows.map(({ t, income, expense, balance }) => (
+							{rows.map(({ t, income, expense, balance }: { t: typeof txns[number]; income: number; expense: number; balance: number }) => (
 								<div key={t.id} className="grid grid-cols-8 gap-2 px-3 py-2 text-sm border-t items-center">
 									<div>{new Date(t.date).toLocaleDateString('zh-TW')}</div>
 									<div>{t.category?.name || '-'}</div>

@@ -12,6 +12,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
+import { getDisplayName } from '@/lib/displayName'
 
 const TYPE_LABEL: Record<EventType, string> = {
 	GENERAL: '簡報組聚',
@@ -40,7 +41,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)
 
 	const [regs, speakers] = await Promise.all([
-		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true } } } }),
+		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
 	])
 
@@ -51,7 +52,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const guests = regs.filter(r => r.role === 'GUEST')
 
 	const hasLocks = regs.length > 0 || speakers.length > 0
-	const memberNames = members.map(r => r.user?.name || r.name || '-').slice(0, 30)
+	const memberNames = members.map(r => getDisplayName(r.user) || r.name || '-').slice(0, 30)
 	const guestNames = guests.map(r => r.name || '-').slice(0, 30)
 	const speakerNames = speakers.map(s => s.name).slice(0, 30)
 
@@ -141,7 +142,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						<ul className="list-disc pl-5 text-sm text-gray-800">
 							{members.map(m => (
 								<li key={m.id}>
-									{m.user?.name || m.name || '-'}{m.checkedInAt ? '（已簽到）' : ''}
+									{getDisplayName(m.user) || m.name || '-'}{m.checkedInAt ? '（已簽到）' : ''}
 								</li>
 							))}
 						</ul>

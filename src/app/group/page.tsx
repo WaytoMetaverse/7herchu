@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Users, DollarSign } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
+import { getDisplayName } from '@/lib/displayName'
 
 export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
@@ -41,7 +42,7 @@ export default async function GroupHomePage() {
 											<div className="border rounded p-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer">
 												<div className="flex items-start justify-between">
 													<div className="flex-1">
-														<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
+														<div className="font-medium">{getDisplayName(u)}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
 														<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
 														<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
 													</div>
@@ -69,7 +70,7 @@ export default async function GroupHomePage() {
 										<div className="border rounded p-3 text-sm bg-gray-50">
 											<div className="flex items-start justify-between">
 												<div className="flex-1">
-													<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
+													<div className="font-medium">{getDisplayName(u)}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
 													<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
 													<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
 												</div>

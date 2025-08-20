@@ -27,6 +27,25 @@ async function saveProfile(formData: FormData) {
 	const workLocation = String(formData.get('workLocation') || '')
 	const workDescription = String(formData.get('workDescription') || '')
 
+	// 名片上傳（合併至主表單保存）
+	const cardFiles = formData.getAll('cards') as File[]
+	const newCardUrls: string[] = []
+	if (Array.isArray(cardFiles) && cardFiles.length > 0) {
+		const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+		await fs.mkdir(uploadDir, { recursive: true })
+		for (const file of cardFiles) {
+			if (!file || typeof file.arrayBuffer !== 'function') continue
+			const buf = Buffer.from(await file.arrayBuffer())
+			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+			const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+			await fs.writeFile(path.join(uploadDir, filename), buf)
+			newCardUrls.push(`/uploads/${filename}`)
+		}
+	}
+	const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
+	const currentCards = Array.isArray(current?.businessCards) ? (current?.businessCards as string[]) : []
+	const nextCards = newCardUrls.length ? [...currentCards, ...newCardUrls] : currentCards
+
 	await prisma.user.update({ where: { id: user.id }, data: { name: name || null, nickname: nickname || null, phone } })
 	await prisma.memberProfile.upsert({
 		where: { userId: user.id },
@@ -41,6 +60,7 @@ async function saveProfile(formData: FormData) {
 			companyWebsite: companyWebsite || null,
 			workLocation: workLocation || null,
 			workDescription: workDescription || null,
+			...(nextCards.length ? { businessCards: nextCards } : {}),
 		},
 		update: {
 			birthday: birthday ? new Date(birthday) : null,
@@ -51,6 +71,7 @@ async function saveProfile(formData: FormData) {
 			companyWebsite: companyWebsite || null,
 			workLocation: workLocation || null,
 			workDescription: workDescription || null,
+			...(newCardUrls.length ? { businessCards: nextCards } : {}),
 		},
 	})
 	redirect('/profile')
@@ -96,37 +117,6 @@ export default async function ProfilePage() {
 		redirect('/profile')
 	}
 
-	async function uploadCards(formData: FormData) {
-		'use server'
-		const session = await getServerSession(authOptions)
-		if (!session?.user?.email) redirect('/auth/signin')
-		const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-		if (!user) redirect('/auth/signin')
-
-		const files = formData.getAll('cards') as File[]
-		if (!files || files.length === 0) return
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-		await fs.mkdir(uploadDir, { recursive: true })
-		const urls: string[] = []
-		for (const file of files) {
-			if (!file || typeof file.arrayBuffer !== 'function') continue
-			const buf = Buffer.from(await file.arrayBuffer())
-			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-			const filename = `cardup_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
-			await fs.writeFile(path.join(uploadDir, filename), buf)
-			urls.push(`/uploads/${filename}`)
-		}
-
-		const current = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
-		const list = Array.isArray(current?.businessCards) ? (current?.businessCards as string[]) : []
-		await prisma.memberProfile.upsert({
-			where: { userId: user.id },
-			create: { userId: user.id, memberType: 'SINGLE', businessCards: [...list, ...urls] },
-			update: { businessCards: [...list, ...urls] },
-		})
-		redirect('/profile')
-	}
-
 	async function deletePhoto(formData: FormData) {
 		'use server'
 		const session = await getServerSession(authOptions)
@@ -139,7 +129,6 @@ export default async function ProfilePage() {
 		const list = Array.isArray(mp?.portfolioPhotos) ? (mp?.portfolioPhotos as string[]) : []
 		const next = list.filter((u) => u !== url)
 		await prisma.memberProfile.update({ where: { userId: user.id }, data: { portfolioPhotos: next } })
-		// 嘗試刪除檔案（忽略錯誤）
 		try {
 			const filePath = path.join(process.cwd(), 'public', url.replace(/^\/+/, ''))
 			await fs.unlink(filePath)
@@ -150,7 +139,7 @@ export default async function ProfilePage() {
 	return (
 		<div className="max-w-2xl mx-auto p-4 space-y-4">
 			<h1 className="text-2xl lg:text-3xl font-semibold">個人資料</h1>
-			<form action={saveProfile} className="space-y-6">
+			<form id="profileForm" action={saveProfile} className="space-y-6">
 				<section className="space-y-3">
 					<h2 className="font-medium">基本資料</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -207,16 +196,15 @@ export default async function ProfilePage() {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className="font-medium">名片上傳（不限制張數）</h2>
-					<form action={uploadCards} className="flex items-center gap-2">
+					<h2 className="font-medium">名片上傳</h2>
+					<div className="flex items-center gap-2">
 						<input name="cards" type="file" multiple accept="image/*,application/pdf" className="text-sm" />
-						<Button type="submit" variant="outline">上傳</Button>
-					</form>
+					</div>
 					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
 								<ImageThumb key={url} url={url} variant="card" deleteForm={(
-									<form action={async (fd: FormData) => {
+									<form action={async (formData: FormData) => {
 										'use server'
 										const session = await getServerSession(authOptions)
 										if (!session?.user?.email) return
@@ -234,10 +222,6 @@ export default async function ProfilePage() {
 						</div>
 					) : null}
 				</section>
-
-				<div>
-					<Button type="submit">儲存</Button>
-				</div>
 			</form>
 
 			<section className="space-y-3">
@@ -261,6 +245,10 @@ export default async function ProfilePage() {
 					<Button type="submit" variant="outline">上傳</Button>
 				</form>
 			</section>
+
+			<div>
+				<Button type="submit" form="profileForm">儲存</Button>
+			</div>
 		</div>
 	)
 }
