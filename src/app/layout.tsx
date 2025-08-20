@@ -60,13 +60,30 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
             <UserNav user={session?.user ?? null} />
           </nav>
         </header>
-        <main className="page-wrap lg:pt-0 lg:pb-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'calc(env(safe-area-inset-bottom))' }}>
+        <main className="page-wrap lg:pt-0 lg:pb-0">
           {children}
         </main>
         <PWARegister />
         <div className="md:hidden fixed top-0 inset-x-0 h-[56px] z-40 bg-white/70 backdrop-blur flex items-center px-3 gap-2 border-b">
           <img src="/brand-mark.png" alt="磐石砌好厝" className="h-6 w-6 object-contain" />
           <span className="text-[15px] font-semibold tracking-wide">磐石砌好厝</span>
+          {session?.user && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/auth/signout', { method: 'POST' })
+                  if (res.ok) {
+                    window.location.href = '/'
+                  }
+                } catch (error) {
+                  console.error('登出失敗:', error)
+                }
+              }}
+              className="ml-auto text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded"
+            >
+              登出
+            </button>
+          )}
         </div>
         <MobileTabBar />
       </body>

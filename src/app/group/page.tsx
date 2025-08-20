@@ -3,26 +3,123 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { Role } from '@prisma/client'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Users, DollarSign } from 'lucide-react'
 
 export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const isAdmin = roles.includes('admin' as Role)
-	const users = await prisma.user.findMany({ orderBy: { createdAt: 'asc' }, include: { memberProfile: true } })
+	const canManageFinance = roles.includes('admin' as Role) || roles.includes('finance_manager' as Role)
+	const users = await prisma.user.findMany({ 
+		where: { 
+			OR: [
+				{ memberProfile: { active: true } },
+				{ memberProfile: null, roles: { isEmpty: false } } // 有角色但沒有 profile 的用戶也顯示
+			]
+		},
+		orderBy: { createdAt: 'asc' }, 
+		include: { memberProfile: true } 
+	})
+
 	return (
-		<div className="max-w-4xl mx-auto p-4 space-y-4">
-			<div className="flex items-center justify-between">
-				<h1 className="text-2xl lg:text-3xl font-semibold">成員名單</h1>
-				{isAdmin ? <Link href="/admin/members" className="text-sm text-blue-600 underline">權限管理</Link> : null}
-			</div>
-			<div className="space-y-2">
-				{users.map(u => (
-					<div key={u.id} className="border rounded p-3 text-sm">
-						<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
-						<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
-						<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
-					</div>
-				))}
+		<div className="max-w-4xl mx-auto p-4 space-y-6">
+			<h1 className="text-2xl lg:text-3xl font-semibold">小組管理</h1>
+			
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{/* 成員名單卡片 */}
+				<Card>
+					<CardContent className="p-6">
+						<div className="flex items-center justify-between mb-4">
+							<div className="flex items-center gap-3">
+								<Users className="w-6 h-6 text-blue-600" />
+								<h2 className="text-lg font-semibold">成員名單</h2>
+							</div>
+							{isAdmin ? <Link href="/admin/members" className="text-sm text-blue-600 underline">權限管理</Link> : null}
+						</div>
+						<div className="space-y-2 max-h-96 overflow-y-auto">
+							{users.slice(0, 10).map(u => (
+								<div key={u.id} className="border rounded p-3 text-sm">
+									<div className="flex items-start justify-between">
+										<div className="flex-1">
+											<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
+											<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
+											<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
+										</div>
+										{isAdmin && (
+											<form action={async (formData: FormData) => {
+												'use server'
+												const userId = String(formData.get('userId') || '')
+												if (!userId) return
+												
+												// 只刪除登入權限，保留所有歷史資料
+												// 將用戶設為非活躍狀態，清除登入相關資訊
+												await prisma.$transaction([
+													// 更新 User 表：清除登入資訊，保留用戶資料
+													prisma.user.update({
+														where: { id: userId },
+														data: {
+															googleId: null,
+															passwordHash: null,
+															roles: { set: [] }, // 清空角色
+														}
+													}),
+													// 更新 MemberProfile：設為非活躍
+													prisma.memberProfile.updateMany({
+														where: { userId },
+														data: { active: false }
+													})
+												])
+												
+												// 重新導向以更新頁面
+												window.location.reload()
+											}}>
+												<input type="hidden" name="userId" value={u.id} />
+												<button
+													type="submit"
+													className="ml-2 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+													onClick={(e) => {
+														if (!confirm(`確定要移除成員「${u.name || '未命名'}」的登入權限嗎？\n\n注意：此操作會清除該成員的登入權限和角色，但保留所有歷史資料（報名記錄、財務記錄等）。`)) {
+															e.preventDefault()
+														}
+													}}
+												>
+													刪除
+												</button>
+											</form>
+										)}
+									</div>
+								</div>
+							))}
+							{users.length > 10 && (
+								<div className="text-sm text-gray-500 text-center py-2">
+									還有 {users.length - 10} 位成員...
+								</div>
+							)}
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* 財務管理卡片 */}
+				<Card>
+					<CardContent className="p-6">
+						<div className="flex items-center gap-3 mb-4">
+							<DollarSign className="w-6 h-6 text-green-600" />
+							<h2 className="text-lg font-semibold">財務管理</h2>
+						</div>
+						<div className="space-y-4">
+							<p className="text-gray-600 text-sm">
+								管理組織的收支記錄、成員繳費狀況等財務相關事務。
+							</p>
+							<Link
+								href="/admin/finance"
+								className="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded transition-colors"
+							>
+								財務管理
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	)

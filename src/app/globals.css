@@ -32,8 +32,8 @@ body {
 
 /* 行動版全域排版：統一上下安全距，避免被頭尾固定列遮擋 */
 .page-wrap {
-  padding-top: calc(12px + env(safe-area-inset-top));
-  padding-bottom: calc(var(--mobile-tabbar-h) + 16px + env(safe-area-inset-bottom));
+  padding-top: calc(56px + 12px + env(safe-area-inset-top));
+  padding-bottom: calc(var(--mobile-tabbar-h) + 20px + env(safe-area-inset-bottom));
 }
 
 /* 行動版標題與按鈕微調：字級控制避免換行 */
