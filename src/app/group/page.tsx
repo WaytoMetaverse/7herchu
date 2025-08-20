@@ -17,12 +17,7 @@ export default async function GroupHomePage() {
 		where: { 
 			OR: [
 				{ memberProfile: { active: true } },
-				{ 
-					AND: [
-						{ memberProfile: null },
-						{ roles: { hasSome: ['admin', 'event_manager', 'finance_manager', 'checkin_manager', 'menu_manager'] } }
-					]
-				}
+				{ roles: { hasSome: ['admin', 'event_manager', 'finance_manager', 'checkin_manager', 'menu_manager'] } }
 			]
 		},
 		orderBy: { createdAt: 'asc' }, 
