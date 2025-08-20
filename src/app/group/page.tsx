@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Users, DollarSign } from 'lucide-react'
+import { revalidatePath } from 'next/cache'
 
 export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
@@ -45,60 +46,74 @@ export default async function GroupHomePage() {
 						</div>
 						<div className="space-y-2 max-h-96 overflow-y-auto">
 							{users.slice(0, 10).map(u => (
-								<Link key={u.id} href={`/profile/${u.id}`} className="block">
-									<div className="border rounded p-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer">
-										<div className="flex items-start justify-between">
-											<div className="flex-1">
-												<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
-												<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
-												<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
+								<div key={u.id}>
+									{isLoggedIn ? (
+										<Link href={`/profile/${u.id}`} className="block">
+											<div className="border rounded p-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer">
+												<div className="flex items-start justify-between">
+													<div className="flex-1">
+														<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
+														<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
+														<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
+													</div>
+													{isAdmin && (
+														<form action={async (formData: FormData) => {
+															'use server'
+															const userId = String(formData.get('userId') || '')
+															if (!userId) return
+															
+															// 只刪除登入權限，保留所有歷史資料
+															// 將用戶設為非活躍狀態，清除登入相關資訊
+															await prisma.$transaction([
+																// 更新 User 表：清除登入資訊，保留用戶資料
+																prisma.user.update({
+																	where: { id: userId },
+																	data: {
+																		googleId: null,
+																		passwordHash: null,
+																		roles: { set: [] }, // 清空角色
+																	}
+																}),
+																// 更新 MemberProfile：設為非活躍
+																prisma.memberProfile.updateMany({
+																	where: { userId },
+																	data: { active: false }
+																})
+															])
+															
+															// 重新導向以更新頁面
+															revalidatePath('/group')
+														}}>
+															<input type="hidden" name="userId" value={u.id} />
+															<button
+																type="submit"
+																className="ml-2 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+																onClick={(e) => {
+																	e.stopPropagation() // 防止觸發卡片的點擊事件
+																	if (!confirm(`確定要移除成員「${u.name || '未命名'}」的登入權限嗎？\n\n注意：此操作會清除該成員的登入權限和角色，但保留所有歷史資料（報名記錄、財務記錄等）。`)) {
+																		e.preventDefault()
+																	}
+																}}
+															>
+																刪除
+															</button>
+														</form>
+													)}
+												</div>
 											</div>
-											{isAdmin && (
-												<form action={async (formData: FormData) => {
-													'use server'
-													const userId = String(formData.get('userId') || '')
-													if (!userId) return
-													
-													// 只刪除登入權限，保留所有歷史資料
-													// 將用戶設為非活躍狀態，清除登入相關資訊
-													await prisma.$transaction([
-														// 更新 User 表：清除登入資訊，保留用戶資料
-														prisma.user.update({
-															where: { id: userId },
-															data: {
-																googleId: null,
-																passwordHash: null,
-																roles: { set: [] }, // 清空角色
-															}
-														}),
-														// 更新 MemberProfile：設為非活躍
-														prisma.memberProfile.updateMany({
-															where: { userId },
-															data: { active: false }
-														})
-													])
-													
-													// 重新導向以更新頁面
-													window.location.reload()
-												}}>
-													<input type="hidden" name="userId" value={u.id} />
-													<button
-														type="submit"
-														className="ml-2 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-														onClick={(e) => {
-															e.stopPropagation() // 防止觸發卡片的點擊事件
-															if (!confirm(`確定要移除成員「${u.name || '未命名'}」的登入權限嗎？\n\n注意：此操作會清除該成員的登入權限和角色，但保留所有歷史資料（報名記錄、財務記錄等）。`)) {
-																e.preventDefault()
-															}
-														}}
-													>
-														刪除
-													</button>
-												</form>
-											)}
+										</Link>
+									) : (
+										<div className="border rounded p-3 text-sm bg-gray-50">
+											<div className="flex items-start justify-between">
+												<div className="flex-1">
+													<div className="font-medium">{u.name ?? '(未命名)'}{u.memberProfile?.occupation ? ` · ${u.memberProfile.occupation}` : ''}</div>
+													<div className="text-gray-700">{u.memberProfile?.companyName ?? '-'}</div>
+													<div className="text-gray-600">{u.memberProfile?.workDescription ?? '-'}</div>
+												</div>
+											</div>
 										</div>
-									</div>
-								</Link>
+									)}
+								</div>
 							))}
 							{users.length > 10 && (
 								<div className="text-sm text-gray-500 text-center py-2">
