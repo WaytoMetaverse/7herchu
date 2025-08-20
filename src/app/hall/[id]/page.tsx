@@ -29,6 +29,12 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	if (!event) return <div className="max-w-3xl mx-auto p-4">找不到活動</div>
 
 	const session = await getServerSession(authOptions)
+	if (!session?.user) {
+		// 未登入導向登入頁，並帶回跳轉
+		const q = new URLSearchParams()
+		q.set('callbackUrl', `/hall/${id}`)
+		redirect(`/auth/signin?${q.toString()}`)
+	}
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const canEditDelete = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)

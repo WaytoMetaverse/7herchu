@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: '磐石砌好厝',
+    title: '活動管理',
   },
   viewport: {
     width: 'device-width',
@@ -51,11 +51,12 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
               <img src="/brand-mark.png" alt="磐石砌好厝" className="h-7 w-7 object-contain" />
               <span className="font-semibold tracking-wide text-xl leading-none">磐石砌好厝</span>
             </Link>
-            <Link href="/calendar" className="hover:text-black">講師預約</Link>
-            <Link href="/hall" className="hover:text-black">活動大廳</Link>
-            <Link href="/group" className="hover:text-black">小組管理</Link>
-            <Link href="/cards" className="hover:text-black">名片庫</Link>
-            <Link href="/profile" className="hover:text-black ml-auto">個人資料</Link>
+            <div className="flex items-center gap-6 ml-10">
+              <Link href="/calendar" className="hover:text-black">講師預約</Link>
+              <Link href="/hall" className="hover:text-black">活動大廳</Link>
+              <Link href="/group" className="hover:text-black">小組管理</Link>
+              <Link href="/cards" className="hover:text-black">名片庫</Link>
+            </div>
             <UserNav user={session?.user ?? null} />
           </nav>
         </header>

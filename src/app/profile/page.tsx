@@ -16,7 +16,8 @@ async function saveProfile(formData: FormData) {
 
 	const name = String(formData.get('name') || '')
 	const nickname = String(formData.get('nickname') || '')
-	const phone = String(formData.get('phone') || '')
+	const phoneRaw = String(formData.get('phone') ?? '').trim()
+	const phone = phoneRaw ? phoneRaw : null
 	const birthday = String(formData.get('birthday') || '')
 	const diet = String(formData.get('diet') || '')
 	const bio = String(formData.get('bio') || '')
@@ -26,7 +27,7 @@ async function saveProfile(formData: FormData) {
 	const workLocation = String(formData.get('workLocation') || '')
 	const workDescription = String(formData.get('workDescription') || '')
 
-	await prisma.user.update({ where: { id: user.id }, data: { name, nickname, phone } })
+	await prisma.user.update({ where: { id: user.id }, data: { name: name || null, nickname: nickname || null, phone } })
 	await prisma.memberProfile.upsert({
 		where: { userId: user.id },
 		create: {
@@ -57,7 +58,7 @@ async function saveProfile(formData: FormData) {
 
 export default async function ProfilePage() {
 	const session = await getServerSession(authOptions)
-	if (!session?.user?.email) redirect('/auth/signin')
+	if (!session?.user?.email) redirect('/auth/signin?callbackUrl=%2Fprofile')
 	const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { memberProfile: true } })
 	if (!user) redirect('/auth/signin')
 

@@ -20,7 +20,7 @@ export default function UserNav({ user }: { user?: { name?: string | null; nickn
   })()
   return (
     <div className="ml-auto flex items-center gap-3 text-sm">
-      <Link href="/profile" className="text-gray-600 hover:text-black">{display}</Link>
+      <Link href="/profile" className="text-gray-900 hover:text-black font-medium">{display}</Link>
       <Button onClick={() => signOut({ callbackUrl: '/' })} variant="ghost" size="sm">登出</Button>
     </div>
   )
