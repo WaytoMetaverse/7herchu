@@ -1,19 +1,26 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export default async function CardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const card = await prisma.businessCard.findUnique({ where: { id } })
   if (!card) return <div className="max-w-3xl mx-auto p-4">找不到名片</div>
+  async function deleteCard() {
+    'use server'
+    await prisma.businessCard.delete({ where: { id } })
+    revalidatePath('/cards')
+    redirect('/cards')
+  }
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{card.name}</h1>
         <div className="flex items-center gap-2">
           <Button as={Link} href={`/cards/${card.id}/edit`} variant="outline">編輯</Button>
-          <form action={`/api/cards/${card.id}`} method="POST" onSubmit={(e)=>{ if(!confirm('確定要刪除嗎？')) e.preventDefault() }}>
-            <input type="hidden" name="_method" value="DELETE" />
+          <form action={deleteCard} onSubmit={(e)=>{ if(!confirm('確定要刪除嗎？')) e.preventDefault() }}>
             <Button type="submit" variant="danger">刪除</Button>
           </form>
         </div>

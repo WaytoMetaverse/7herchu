@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { revalidatePath } from 'next/cache'
 
 export default async function CalendarSpeakersPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = await params
@@ -28,6 +29,8 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
     const id = String(formData.get('id') || '')
     if (!id) return
     await prisma.speakerBooking.delete({ where: { id } })
+    revalidatePath(`/calendar/${eventId}`)
+    redirect(`/calendar/${eventId}`)
   }
 
   return (
