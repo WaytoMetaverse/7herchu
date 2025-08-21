@@ -183,19 +183,19 @@ export default async function ProfilePage() {
 					<h2 className="font-medium">基本資料</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 						<label className="text-sm">姓名
-							<input name="name" defaultValue={user.name ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="name" defaultValue={user.name ?? ''} />
 						</label>
 						<label className="text-sm">暱稱
-							<input name="nickname" defaultValue={(user as unknown as { nickname?: string }).nickname ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="nickname" defaultValue={(user as unknown as { nickname?: string }).nickname ?? ''}  />
 						</label>
 						<label className="text-sm">Email
 							<input defaultValue={user.email} disabled className="border rounded w-full px-2 py-1 bg-gray-50" />
 						</label>
 						<label className="text-sm">電話
-							<input name="phone" defaultValue={user.phone ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="phone" defaultValue={user.phone ?? ''}  />
 						</label>
 						<label className="text-sm">生日
-							<input name="birthday" type="date" defaultValue={mp?.birthday ? new Date(mp.birthday).toISOString().slice(0,10) : ''} className="border rounded w-full px-2 py-1" />
+							<input name="birthday" type="date" defaultValue={mp?.birthday ? new Date(mp.birthday).toISOString().slice(0,10) : ''}  />
 						</label>
 						<label className="text-sm col-span-2">用餐偏好
 							<div className="flex items-center gap-4 py-1">
@@ -208,7 +208,7 @@ export default async function ProfilePage() {
 							</div>
 						</label>
 						<label className="text-sm col-span-2">個人簡介
-							<textarea name="bio" rows={4} defaultValue={mp?.bio ?? ''} className="border rounded w-full px-2 py-1" />
+							<textarea name="bio" rows={4} defaultValue={mp?.bio ?? ''}  />
 						</label>
 					</div>
 				</section>
@@ -217,19 +217,19 @@ export default async function ProfilePage() {
 					<h2 className="font-medium">工作資訊</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 						<label className="text-sm">職業/代表
-							<input name="occupation" defaultValue={mp?.occupation ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="occupation" defaultValue={mp?.occupation ?? ''}  />
 						</label>
 						<label className="text-sm">公司
-							<input name="companyName" defaultValue={mp?.companyName ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="companyName" defaultValue={mp?.companyName ?? ''}  />
 						</label>
 						<label className="text-sm">公司網址
-							<input name="companyWebsite" defaultValue={mp?.companyWebsite ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="companyWebsite" defaultValue={mp?.companyWebsite ?? ''}  />
 						</label>
 						<label className="text-sm">工作地點
-							<input name="workLocation" defaultValue={mp?.workLocation ?? ''} className="border rounded w-full px-2 py-1" />
+							<input name="workLocation" defaultValue={mp?.workLocation ?? ''}  />
 						</label>
 						<label className="text-sm col-span-2">服務項目
-							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''} className="border rounded w-full px-2 py-1" />
+							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''}  />
 						</label>
 					</div>
 				</section>

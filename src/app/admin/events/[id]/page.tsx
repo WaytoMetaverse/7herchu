@@ -142,7 +142,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 				<label className="text-sm">開始時間
 					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="startTime" defaultValue={startTime} className="border rounded w-full px-2 py-1">
+						<select name="startTime" defaultValue={startTime} >
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}
@@ -152,7 +152,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 				<label className="text-sm">結束時間
 					<div className="flex items-center gap-2 mt-1">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="endTime" defaultValue={endTime} className="border rounded w-full px-2 py-1">
+						<select name="endTime" defaultValue={endTime} >
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}
@@ -162,12 +162,12 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 				<label className="col-span-2 text-sm">地點
 					<div className="flex items-center gap-2 mt-1">
 						<MapPin className="w-4 h-4" />
-						<input name="location" defaultValue={e.location ?? ''} className="border rounded w-full px-2 py-1" />
+						<input name="location" defaultValue={e.location ?? ''}  />
 					</div>
 				</label>
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 					<label>一般：講師名額
-						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5} className="border rounded w-full px-2 py-1" />
+						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5}  />
 					</label>
 				</div>
 				<div className="col-span-2 flex items-center gap-3">

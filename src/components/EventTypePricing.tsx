@@ -45,7 +45,7 @@ export default function EventTypePricing({
 			<label className="text-sm">類型
 				<select
 					name={typeName}
-					className="border rounded w-full px-2 py-1"
+					
 					value={selectedType}
 					onChange={(e) => setSelectedType(e.target.value)}
 				>
@@ -57,7 +57,7 @@ export default function EventTypePricing({
 			<label className="text-sm">標題
 				<input
 					name={titleName}
-					className="border rounded w-full px-2 py-1"
+					
 					placeholder={labelMap[selectedType] || ''}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
@@ -67,22 +67,22 @@ export default function EventTypePricing({
 			{/* 金額區塊（依類型顯示） */}
 			{showGuestSingle && (
 				<label className="text-sm col-span-2">來賓金額（元）
-					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''} className="border rounded w-full px-2 py-1" />
+					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''}  />
 				</label>
 			)}
 			{isBod && (
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
 					<label>成員金額（元）
-						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''} className="border rounded w-full px-2 py-1" />
+						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''}  />
 					</label>
 					<label>來賓金額（元）
-						<input name="bodGuestPrice" type="number" min={0} defaultValue={initialBodGuestPrice ?? ''} className="border rounded w-full px-2 py-1" />
+						<input name="bodGuestPrice" type="number" min={0} defaultValue={initialBodGuestPrice ?? ''}  />
 					</label>
 				</div>
 			)}
 			{isDinner && (
 				<label className="text-sm col-span-2">活動金額（元）
-					<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''} className="border rounded w-full px-2 py-1" />
+					<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''}  />
 				</label>
 			)}
 		</div>

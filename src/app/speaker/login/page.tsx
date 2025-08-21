@@ -45,10 +45,9 @@ export default function SpeakerPhoneLoginPage() {
 		<div className="max-w-sm mx-auto p-4 space-y-4">
 			<h1 className="text-xl font-semibold">講師預約修改</h1>
 			{err && <div className="text-sm text-red-600">{err}</div>}
-			<form onSubmit={onSubmit} className="space-y-3">
-				<label className="text-sm block">手機號碼
+			<form onSubmit={onSubmit} className="space-y-4">
+				<label>手機號碼
 					<input
-						className="mt-1 border rounded w-full px-3 py-2"
 						inputMode="numeric"
 						maxLength={10}
 						pattern="\d{10}"

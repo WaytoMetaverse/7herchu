@@ -134,32 +134,32 @@ export default function SpeakerBookPage() {
 			<h1 className="text-xl font-semibold">講師預約</h1>
 			{err && <div className="text-red-600 text-sm">{err}</div>}
 			<div>
-				<label className="block text-sm mb-1">姓名<Required /></label>
-				<input className="border rounded w-full px-3 py-2" required value={form.name} onChange={(e) => setForm(v => ({...v, name: e.target.value}))} />
+				<label>姓名<Required /></label>
+				<input required value={form.name} onChange={(e) => setForm(v => ({...v, name: e.target.value}))} />
 			</div>
 			<div>
-				<label className="block text-sm mb-1">手機<Required /></label>
-				<input className="border rounded w-full px-3 py-2" required value={form.phone} onChange={(e) => setForm(v => ({...v, phone: e.target.value}))} disabled={Boolean(existingId)} maxLength={10} pattern="\d{10}" />
+				<label>手機<Required /></label>
+				<input required value={form.phone} onChange={(e) => setForm(v => ({...v, phone: e.target.value}))} disabled={Boolean(existingId)} maxLength={10} pattern="\d{10}" />
 			</div>
 			<div>
-				<label className="block text-sm mb-1">公司名稱<Required /></label>
-				<input className="border rounded w-full px-3 py-2" required value={form.companyName} onChange={(e) => setForm(v => ({...v, companyName: e.target.value}))} />
+				<label>公司名稱<Required /></label>
+				<input required value={form.companyName} onChange={(e) => setForm(v => ({...v, companyName: e.target.value}))} />
 			</div>
 			<div>
-				<label className="block text-sm mb-1">產業<Required /></label>
-				<input className="border rounded w-full px-3 py-2" required value={form.industry} onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} />
+				<label>產業<Required /></label>
+				<input required value={form.industry} onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} />
 			</div>
 			<div>
-				<label className="block text-sm mb-1">BNI 分會（選填）</label>
-				<input className="border rounded w-full px-3 py-2" value={form.bniChapter} onChange={(e) => setForm(v => ({...v, bniChapter: e.target.value}))} />
+				<label>BNI 分會（選填）</label>
+				<input value={form.bniChapter} onChange={(e) => setForm(v => ({...v, bniChapter: e.target.value}))} />
 			</div>
 			<div>
-				<label className="block text-sm mb-1">邀請人<Required /></label>
-				<input className="border rounded w-full px-3 py-2" required value={form.invitedBy} onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} />
+				<label>邀請人<Required /></label>
+				<input required value={form.invitedBy} onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} />
 			</div>
 			<div className="space-y-2">
-				<label className="block text-sm">PPT或連結（之後可用手機號碼登入補件）</label>
-				<input className="border rounded w-full px-3 py-2" placeholder="https://..." value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} />
+				<label>PPT或連結（之後可用手機號碼登入補件）</label>
+				<input placeholder="https://..." value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} />
 				<div className="flex items-center gap-2 text-sm">
 					<input
 						type="file"

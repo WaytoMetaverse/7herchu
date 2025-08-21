@@ -26,13 +26,13 @@ export default async function InvitesPage({ params }: { params: Promise<{ eventI
 			<form action={createInvite} className="border rounded p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
 				<input type="hidden" name="eventId" defaultValue={event.id} />
 				<label className="text-sm">邀請人
-					<input name="invitedBy" className="border rounded w-full px-2 py-1" placeholder="您的姓名" />
+					<input name="invitedBy"  placeholder="您的姓名" />
 				</label>
 				<label className="text-sm">有效天數
-					<input name="days" type="number" min={1} defaultValue={14} className="border rounded w-full px-2 py-1" />
+					<input name="days" type="number" min={1} defaultValue={14}  />
 				</label>
 				<label className="text-sm">最大使用次數
-					<input name="maxUses" type="number" min={1} defaultValue={50} className="border rounded w-full px-2 py-1" />
+					<input name="maxUses" type="number" min={1} defaultValue={50}  />
 				</label>
 				<div className="col-span-1 md:col-span-3">
 					<Button type="submit">建立邀請連結</Button>

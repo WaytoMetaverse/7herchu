@@ -65,14 +65,14 @@ export default async function CardEditPage({ params }: { params: Promise<{ id: s
           <div className="mb-1">子類</div>
           <SubcategoryPicker category={card.category} initialSubs={card.subcategories || []} inputName="subs" />
         </div>
-        <label className="text-sm md:col-span-2">地址
-          <input name="address" defaultValue={card.address || ''} className="mt-1" />
+        <label className="md:col-span-2">地址
+          <input name="address" defaultValue={card.address || ''} />
         </label>
-        <label className="text-sm md:col-span-2">網站
-          <input name="website" defaultValue={card.website || ''} className="mt-1" />
+        <label className="md:col-span-2">網站
+          <input name="website" defaultValue={card.website || ''} />
         </label>
-        <label className="text-sm md:col-span-2">備註
-          <textarea name="notes" defaultValue={card.notes || ''} rows={3} className="mt-1" />
+        <label className="md:col-span-2">備註
+          <textarea name="notes" defaultValue={card.notes || ''} rows={3} />
         </label>
         <div className="md:col-span-2"><Button type="submit">儲存</Button></div>
       </form>

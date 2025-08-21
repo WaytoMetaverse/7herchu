@@ -30,12 +30,12 @@ export default function SignInPage() {
 					<p className="text-sm text-gray-600">可使用受邀信箱登入，或以 Google 快速登入</p>
 				</div>
 				{err && <div className="text-sm text-red-600 text-center">{err}</div>}
-				<div className="space-y-3">
-					<label className="text-sm block">Email
-						<input type="email" inputMode="email" className="mt-1 border rounded w-full px-3 py-2" value={email} onChange={(e)=>setEmail(e.target.value)} />
+				<div className="space-y-4">
+					<label>Email
+						<input type="email" inputMode="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
 					</label>
-					<label className="text-sm block">密碼
-						<input type="password" className="mt-1 border rounded w-full px-3 py-2" value={password} onChange={(e)=>setPassword(e.target.value)} />
+					<label>密碼
+						<input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
 					</label>
 					<Button disabled={loading} onClick={doCredentials} className="w-full">{loading?'登入中…':'Email 登入'}</Button>
 				</div>

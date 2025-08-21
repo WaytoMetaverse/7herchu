@@ -34,7 +34,7 @@ export default function DateWithWeekday({
 					type="date"
 					defaultValue={defaultValue}
 					onChange={(e) => setValue(e.target.value)}
-					className="border rounded w-full px-2 py-1"
+					
 				/>
 				<span className="text-gray-600 text-sm min-w-[2rem]">{weekday}</span>
 			</div>

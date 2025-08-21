@@ -119,7 +119,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			<section className="space-y-2">
 				<h2 className="text-lg font-medium">月份</h2>
 				<form className="flex items-center gap-2 text-sm">
-					<input type="month" name="month" defaultValue={month} className="border rounded px-2 py-1" />
+					<input type="month" name="month" defaultValue={month}  />
 					<Button type="submit" variant="outline">切換月份</Button>
 				</form>
 			</section>
@@ -139,29 +139,29 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				{canManage ? (
 				<form action={createTxn} className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
 					<label className="text-sm">日期
-						<input name="date" type="date" className="mt-1 border rounded w-full px-2 py-1" required />
+						<input name="date" type="date"  required />
 					</label>
 					<label className="text-sm">類型
-						<select name="type" className="mt-1 border rounded w-full px-2 py-1">
+						<select name="type" >
 							<option value="INCOME">收入</option>
 							<option value="EXPENSE">支出</option>
 						</select>
 					</label>
 					<label className="text-sm">項目
-						<select name="category" className="mt-1 border rounded w-full px-2 py-1">
+						<select name="category" >
 							<option value="">—</option>
 							{CATEGORY_INCOME.map(o => <option key={o} value={o}>{o}</option>)}
 							{CATEGORY_EXPENSE.map(o => <option key={o} value={o}>{o}</option>)}
 						</select>
 					</label>
 					<label className="text-sm">對象
-						<input name="counterparty" className="mt-1 border rounded w-full px-2 py-1" placeholder="付款人/收款人" />
+						<input name="counterparty"  placeholder="付款人/收款人" />
 					</label>
 					<label className="text-sm">金額（元）
-						<input name="amount" type="number" step={1} min={0} className="mt-1 border rounded w-full px-2 py-1" required />
+						<input name="amount" type="number" step={1} min={0}  required />
 					</label>
 					<label className="text-sm md:col-span-3">摘要
-						<input name="note" className="mt-1 border rounded w-full px-2 py-1" />
+						<input name="note"  />
 					</label>
 					<div className="md:col-span-3">
 						<Button type="submit">新增</Button>
@@ -176,7 +176,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				<h2 className="text-lg font-medium">交易清單</h2>
 				<div className="flex flex-wrap items-center gap-2 text-sm">
 					<form>
-						<select name="type" defaultValue={type} className="border rounded px-2 py-1">
+						<select name="type" defaultValue={type} >
 							<option value="">全部類型</option>
 							<option value="INCOME">收入</option>
 							<option value="EXPENSE">支出</option>

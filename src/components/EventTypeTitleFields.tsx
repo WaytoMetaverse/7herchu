@@ -34,7 +34,7 @@ export default function EventTypeTitleFields({
 			<label className="text-sm">類型
 				<select
 					name={typeName}
-					className="border rounded w-full px-2 py-1"
+					
 					value={selectedType}
 					onChange={(e) => setSelectedType(e.target.value)}
 				>
@@ -46,7 +46,7 @@ export default function EventTypeTitleFields({
 			<label className="text-sm">標題
 				<input
 					name={titleName}
-					className="border rounded w-full px-2 py-1"
+					
 					placeholder={map[selectedType] || ''}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}

@@ -112,8 +112,8 @@ export default function CardScanPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <div>
-            <label className="text-sm block">名片圖片
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onPick} className="mt-1" />
+            <label>名片圖片
+              <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onPick} />
             </label>
             {imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -123,8 +123,8 @@ export default function CardScanPage() {
           <div className="flex items-center gap-2">
             <Button onClick={aiExtract} variant="secondary" disabled={!imageFile || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
           </div>
-          <label className="text-sm block">主類
-            <select className="border rounded w-full px-2 py-2 mt-1" value={category} onChange={(e)=>setCategory(e.target.value)}>
+          <label>主類
+            <select value={category} onChange={(e)=>setCategory(e.target.value)}>
               <option value="">請選擇</option>
               {PRESET.map(p=> <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
@@ -134,31 +134,31 @@ export default function CardScanPage() {
           </div>
         </div>
         <div className="space-y-3">
-          <label className="text-sm block">姓名
-            <input className="mt-1 w-full" value={form.name} onChange={(e)=>setForm(v=>({ ...v, name: e.target.value }))} />
+          <label>姓名
+            <input value={form.name} onChange={(e)=>setForm(v=>({ ...v, name: e.target.value }))} />
           </label>
-          <label className="text-sm block">公司
-            <input className="mt-1 w-full" value={form.company} onChange={(e)=>setForm(v=>({ ...v, company: e.target.value }))} />
+          <label>公司
+            <input value={form.company} onChange={(e)=>setForm(v=>({ ...v, company: e.target.value }))} />
           </label>
-          <label className="text-sm block">職稱
-            <input className="mt-1 w-full" value={form.title} onChange={(e)=>setForm(v=>({ ...v, title: e.target.value }))} />
+          <label>職稱
+            <input value={form.title} onChange={(e)=>setForm(v=>({ ...v, title: e.target.value }))} />
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <label className="text-sm block">電話
-              <input className="mt-1 w-full" value={form.phone} onChange={(e)=>setForm(v=>({ ...v, phone: e.target.value }))} />
+            <label>電話
+              <input value={form.phone} onChange={(e)=>setForm(v=>({ ...v, phone: e.target.value }))} />
             </label>
-            <label className="text-sm block">Email
-              <input className="mt-1 w-full" value={form.email} onChange={(e)=>setForm(v=>({ ...v, email: e.target.value }))} />
+            <label>Email
+              <input value={form.email} onChange={(e)=>setForm(v=>({ ...v, email: e.target.value }))} />
             </label>
           </div>
-          <label className="text-sm block">地址
-            <input className="mt-1 w-full" value={form.address} onChange={(e)=>setForm(v=>({ ...v, address: e.target.value }))} />
+          <label>地址
+            <input value={form.address} onChange={(e)=>setForm(v=>({ ...v, address: e.target.value }))} />
           </label>
-          <label className="text-sm block">網站
-            <input className="mt-1 w-full" value={form.website} onChange={(e)=>setForm(v=>({ ...v, website: e.target.value }))} />
+          <label>網站
+            <input value={form.website} onChange={(e)=>setForm(v=>({ ...v, website: e.target.value }))} />
           </label>
-          <label className="text-sm block">備註
-            <textarea className="mt-1 w-full" rows={3} value={form.notes} onChange={(e)=>setForm(v=>({ ...v, notes: e.target.value }))} />
+          <label>備註
+            <textarea rows={3} value={form.notes} onChange={(e)=>setForm(v=>({ ...v, notes: e.target.value }))} />
           </label>
         </div>
       </div>

@@ -50,22 +50,56 @@ body {
 .link-brand { color: var(--brand-600); }
 .link-brand:hover { color: var(--brand-700); }
 
-/* --- Global form controls (neutral, clean) --- */
+/* --- Global form controls (neutral, clean, mobile-optimized) --- */
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+input[type="number"],
+input[type="month"],
+input[type="file"],
 input:not([type]),
 select,
 textarea {
-  @apply border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 outline-none;
+  @apply border border-gray-300 rounded-lg px-3 py-3 bg-white text-gray-900 outline-none w-full;
+  font-size: 16px; /* 防止手機版縮放 */
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+/* 手機版優化：更大的觸控區域和更好的視覺回饋 */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="number"],
+  input[type="month"],
+  input[type="file"],
+  input:not([type]),
+  select,
+  textarea {
+    @apply px-4 py-4;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  
+  label {
+    @apply text-base font-medium text-gray-800 mb-2 block;
+  }
 }
 
 input:focus, select:focus, textarea:focus {
-  @apply ring-2 ring-gray-300 border-gray-400;
+  @apply ring-2 ring-blue-500 border-blue-500 shadow-sm;
 }
 
-label { @apply text-sm text-gray-800; }
+input:disabled {
+  @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+}
+
+label { 
+  @apply text-sm font-medium text-gray-800 mb-1 block;
+}
 
 /* Card polish */
 .card { @apply rounded-xl border border-gray-200 bg-white shadow-sm; }
