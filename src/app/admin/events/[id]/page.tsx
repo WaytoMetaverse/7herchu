@@ -90,11 +90,11 @@ async function updateEvent(formData: FormData) {
 	} else if (type === 'SOFT') {
 		data.allowSpeakers = false
 		data.allowGuests = true
+		data.defaultPriceCents = cents(formData.get('defaultPrice'))
+		data.guestPriceCents = cents(formData.get('guestPrice'))
 		data.speakerQuota = null
-		data.guestPriceCents = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
-		data.defaultPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	}
 	await prisma.event.update({ where: { id }, data })
@@ -132,15 +132,14 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 					initialBodGuestPrice={e.bodGuestPriceCents ? e.bodGuestPriceCents / 100 : null}
 					initialDefaultPrice={e.defaultPriceCents ? e.defaultPriceCents / 100 : null}
 				/>
-				<label className="text-sm col-span-2">
-					<span className="block mb-1">日期</span>
+				<label className="col-span-2">日期
 					<div className="flex items-center gap-2">
 						<CalendarIcon className="w-4 h-4 text-gray-500" />
 						<DateWithWeekday name="date" defaultValue={dateStr} />
 					</div>
 				</label>
-				<label className="text-sm">開始時間
-					<div className="flex items-center gap-2 mt-1">
+				<label>開始時間
+					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="startTime" defaultValue={startTime} >
 							{timeOptions.map((t) => (
@@ -149,8 +148,8 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						</select>
 					</div>
 				</label>
-				<label className="text-sm">結束時間
-					<div className="flex items-center gap-2 mt-1">
+				<label>結束時間
+					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="endTime" defaultValue={endTime} >
 							{timeOptions.map((t) => (
@@ -159,20 +158,20 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						</select>
 					</div>
 				</label>
-				<label className="col-span-2 text-sm">地點
-					<div className="flex items-center gap-2 mt-1">
+				<label className="col-span-2">地點
+					<div className="flex items-center gap-2">
 						<MapPin className="w-4 h-4" />
 						<input name="location" defaultValue={e.location ?? ''}  />
 					</div>
 				</label>
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
 					<label>一般：講師名額
 						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5}  />
 					</label>
 				</div>
 				<div className="col-span-2 flex items-center gap-3">
 					<Button type="submit">儲存</Button>
-					<Button as={Link} href="/admin/events" variant="ghost">取消</Button>
+					<Button as={Link} href="/hall" variant="ghost">取消</Button>
 				</div>
 			</form>
 		</div>

@@ -1,81 +1,219 @@
 import { prisma } from '@/lib/prisma'
-import { Role } from '@prisma/client'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { MemberType } from '@prisma/client'
 import Button from '@/components/ui/Button'
+import Link from 'next/link'
+import { revalidatePath } from 'next/cache'
 
-const ROLE_LABEL: Record<Role, string> = {
-	admin: '管理者',
-	event_manager: '活動',
-	menu_manager: '菜單',
-	finance_manager: '財務',
-	checkin_manager: '簽到',
-}
-
-async function saveRoleSet(formData: FormData) {
-	'use server'
-	const role = String(formData.get('role') || '') as Role
-	if (!(['admin','event_manager','menu_manager','finance_manager','checkin_manager'] as const).includes(role)) return
-
+export default async function MembersManagePage() {
 	const session = await getServerSession(authOptions)
-	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
-	if (!roles.includes('admin' as Role)) return
+	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const canManage = roles.includes('admin') || roles.includes('finance_manager')
+	if (!canManage) redirect('/hall')
 
-	const selectedIds = new Set((formData.getAll('users') as string[]).filter(Boolean))
-	const users = await prisma.user.findMany({ select: { id: true, roles: true } })
-	const opsRaw = users.map((u) => {
-		const has = u.roles.includes(role)
-		const shouldHave = selectedIds.has(u.id)
-		if (has === shouldHave) return null
-		const nextRoles = shouldHave ? Array.from(new Set([...u.roles, role])) : u.roles.filter(r => r !== role)
-		return prisma.user.update({ where: { id: u.id }, data: { roles: { set: nextRoles } } })
+	// 取得所有成員及其類型
+	const members = await prisma.user.findMany({
+		where: {
+			memberProfile: { isNot: null }
+		},
+		include: {
+			memberProfile: true,
+			monthlyPayments: {
+				where: {
+					month: {
+						// 取得最近6個月的記錄
+						gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 7)
+					}
+				},
+				orderBy: { month: 'desc' }
+			}
+		},
+		orderBy: { name: 'asc' }
 	})
-	const ops = opsRaw.filter((v): v is ReturnType<typeof prisma.user.update> => v !== null)
-	if (ops.length) await prisma.$transaction(ops)
-	revalidatePath('/admin/members')
-}
 
-export default async function MembersPage() {
-	const session = await getServerSession(authOptions)
-	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
-	if (!roles.includes('admin' as Role)) redirect('/group')
+	// 生成最近6個月的月份列表
+	const months = Array.from({ length: 6 }, (_, i) => {
+		const date = new Date()
+		date.setMonth(date.getMonth() - i)
+		return date.toISOString().slice(0, 7)
+	})
 
-	const users = await prisma.user.findMany({ orderBy: { createdAt: 'asc' } })
+	// 計算當月活動數量（簡報組聚 + 聯合組聚 + 封閉組聚）
+	async function getMonthlyEventCount(month: string) {
+		const startDate = new Date(`${month}-01`)
+		const endDate = new Date(startDate)
+		endDate.setMonth(endDate.getMonth() + 1)
 
-	const roleToUserIds: Record<Role, Set<string>> = {
-		admin: new Set(),
-		event_manager: new Set(),
-		menu_manager: new Set(),
-		finance_manager: new Set(),
-		checkin_manager: new Set(),
+		const count = await prisma.event.count({
+			where: {
+				type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
+				startAt: { gte: startDate, lt: endDate }
+			}
+		})
+		return count
 	}
-	users.forEach(u => u.roles.forEach(r => roleToUserIds[r]?.add(u.id)))
 
-	const pickList = users.map(u => ({ id: u.id, label: `${u.name ?? '(未命名)'} · ${u.email}` }))
+	const currentMonth = new Date().toISOString().slice(0, 7)
+	const currentMonthEventCount = await getMonthlyEventCount(currentMonth)
 
-	const roleOrder: Role[] = ['admin','event_manager','menu_manager','finance_manager','checkin_manager']
+	// 更新成員類型
+	async function updateMemberType(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		const memberType = String(formData.get('memberType')) as MemberType
+		if (!userId || !memberType) return
+
+		await prisma.memberProfile.update({
+			where: { userId },
+			data: { memberType }
+		})
+		revalidatePath('/admin/members')
+	}
+
+	// 標記月費已繳
+	async function markPaid(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		const month = String(formData.get('month'))
+		if (!userId || !month) return
+
+		const amount = 180 * currentMonthEventCount // 固定成員月費計算
+		await prisma.memberMonthlyPayment.upsert({
+			where: { userId_month: { userId, month } },
+			create: {
+				userId,
+				month,
+				isPaid: true,
+				amount: amount * 100, // 轉換為分
+				paidAt: new Date()
+			},
+			update: {
+				isPaid: true,
+				paidAt: new Date()
+			}
+		})
+		revalidatePath('/admin/members')
+	}
+
+	// 生成繳費訊息
+	const fixedMembers = members.filter(m => m.memberProfile?.memberType === 'FIXED')
+	const unpaidFixedMembers = fixedMembers.filter(m => {
+		const payment = m.monthlyPayments.find(p => p.month === currentMonth)
+		return !payment?.isPaid
+	})
+
+	const paymentMessage = `請夥伴們幫忙繳交${new Date().getMonth() + 1}月建築組聚費用
+180乘以${currentMonthEventCount}=${180 * currentMonthEventCount}
+未繳交:${unpaidFixedMembers.map(m => m.name).join('、')}`
 
 	return (
-		<div className="max-w-4xl mx-auto p-4 space-y-6">
-			<h1 className="text-2xl lg:text-3xl font-semibold">權限管理</h1>
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{roleOrder.map((role) => (
-					<form key={role} action={saveRoleSet} className="border rounded p-3 text-sm space-y-3">
-						<input type="hidden" name="role" value={role} />
-						<div className="font-medium">{ROLE_LABEL[role]}</div>
-						<div className="grid grid-cols-1 gap-2 max-h-64 overflow-auto pr-1">
-							{pickList.map(p => (
-								<label key={p.id} className="inline-flex items-center gap-2">
-									<input type="checkbox" name="users" value={p.id} defaultChecked={roleToUserIds[role].has(p.id)} />
-									<span>{p.label}</span>
-								</label>
+		<div className="max-w-6xl mx-auto p-4 space-y-6">
+			<div className="flex items-center justify-between">
+				<h1 className="text-2xl font-semibold">成員管理</h1>
+				<Button as={Link} href="/admin/finance" variant="outline">返回財務管理</Button>
+			</div>
+
+			{/* 繳費訊息產生器 */}
+			<div className="bg-blue-50 p-4 rounded-lg">
+				<h2 className="font-medium mb-2">繳費訊息（固定成員）</h2>
+				<div className="bg-white p-3 rounded border text-sm font-mono whitespace-pre-line">
+					{paymentMessage}
+				</div>
+				<div className="mt-2">
+					<Button 
+						onClick={() => {
+							navigator.clipboard.writeText(paymentMessage)
+							const btn = event?.target as HTMLButtonElement
+							if (btn) {
+								const original = btn.textContent
+								btn.textContent = '已複製！'
+								setTimeout(() => { btn.textContent = original }, 2000)
+							}
+						}}
+						variant="secondary" 
+						size="sm"
+					>
+						複製訊息
+					</Button>
+				</div>
+			</div>
+
+			{/* 成員列表 */}
+			<div className="bg-white rounded-lg border overflow-hidden">
+				<div className="overflow-x-auto">
+					<table className="w-full text-sm">
+						<thead className="bg-gray-50">
+							<tr>
+								<th className="px-4 py-3 text-left font-medium">姓名</th>
+								<th className="px-4 py-3 text-left font-medium">類型</th>
+								{months.map(month => (
+									<th key={month} className="px-3 py-3 text-center font-medium min-w-20">
+										{month.slice(5)}月
+									</th>
+								))}
+								<th className="px-4 py-3 text-center font-medium">操作</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-200">
+							{members.map(member => (
+								<tr key={member.id}>
+									<td className="px-4 py-3 font-medium">{member.name}</td>
+									<td className="px-4 py-3">
+										<form action={updateMemberType} className="inline">
+											<input type="hidden" name="userId" value={member.id} />
+											<select 
+												name="memberType" 
+												defaultValue={member.memberProfile?.memberType || 'SINGLE'}
+												onChange={(e) => e.target.form?.requestSubmit()}
+												className="text-sm border-0 bg-transparent"
+											>
+												<option value="FIXED">固定</option>
+												<option value="SINGLE">單次</option>
+											</select>
+										</form>
+									</td>
+									{months.map(month => {
+										const payment = member.monthlyPayments.find(p => p.month === month)
+										const isFixed = member.memberProfile?.memberType === 'FIXED'
+										
+										if (isFixed) {
+											return (
+												<td key={month} className="px-3 py-3 text-center">
+													{payment?.isPaid ? (
+														<span className="text-green-600 font-medium">已繳費</span>
+													) : (
+														<form action={markPaid} className="inline">
+															<input type="hidden" name="userId" value={member.id} />
+															<input type="hidden" name="month" value={month} />
+															<button 
+																type="submit"
+																className="text-red-600 hover:text-red-800 text-xs"
+															>
+																未繳費
+															</button>
+														</form>
+													)}
+												</td>
+											)
+										} else {
+											// 單次成員顯示參加次數
+											return (
+												<td key={month} className="px-3 py-3 text-center text-gray-600">
+													0
+												</td>
+											)
+										}
+									})}
+									<td className="px-4 py-3 text-center">
+										<Button size="sm" variant="outline">編輯</Button>
+									</td>
+								</tr>
 							))}
-						</div>
-						<Button type="submit">儲存</Button>
-					</form>
-				))}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	)

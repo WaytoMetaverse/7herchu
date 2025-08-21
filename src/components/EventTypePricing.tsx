@@ -38,14 +38,15 @@ export default function EventTypePricing({
 
 	const isBod = selectedType === 'BOD'
 	const isDinner = selectedType === 'DINNER'
-	const showGuestSingle = !isBod && !isDinner && selectedType !== 'CLOSED'
+	const isSoft = selectedType === 'SOFT'
+	const showGuestSingle = !isBod && !isDinner && !isSoft && selectedType !== 'CLOSED'
+	const showVariablePricing = isBod || isDinner || isSoft
 
 	return (
 		<div className="contents">
-			<label className="text-sm">類型
+			<label>類型
 				<select
 					name={typeName}
-					
 					value={selectedType}
 					onChange={(e) => setSelectedType(e.target.value)}
 				>
@@ -54,10 +55,9 @@ export default function EventTypePricing({
 					))}
 				</select>
 			</label>
-			<label className="text-sm">標題
+			<label>標題
 				<input
 					name={titleName}
-					
 					placeholder={labelMap[selectedType] || ''}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
@@ -66,12 +66,12 @@ export default function EventTypePricing({
 
 			{/* 金額區塊（依類型顯示） */}
 			{showGuestSingle && (
-				<label className="text-sm col-span-2">來賓金額（元）
-					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''}  />
+				<label className="col-span-2">來賓金額（元）
+					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? 250}  />
 				</label>
 			)}
 			{isBod && (
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
 					<label>成員金額（元）
 						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''}  />
 					</label>
@@ -80,10 +80,15 @@ export default function EventTypePricing({
 					</label>
 				</div>
 			)}
-			{isDinner && (
-				<label className="text-sm col-span-2">活動金額（元）
-					<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''}  />
-				</label>
+			{(isDinner || isSoft) && (
+				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+					<label>成員金額（元）
+						<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''}  />
+					</label>
+					<label>來賓金額（元）
+						<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''}  />
+					</label>
+				</div>
 			)}
 		</div>
 	)

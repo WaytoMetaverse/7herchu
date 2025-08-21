@@ -39,6 +39,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const canEditDelete = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)
+	const isLoggedIn = !!session?.user
 
 	const [regs, speakers] = await Promise.all([
 		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
@@ -107,9 +108,17 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			)}
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
-				<div className="flex items-center gap-2">
-					{canEditDelete ? <Button as={Link} href={`/admin/events/${event.id}`} variant="outline">編輯活動</Button> : null}
-					{canCheckin ? <Button as={Link} href={`/admin/checkin/${event.id}`}>簽到管理</Button> : null}
+				<div className="flex items-center gap-2 flex-wrap">
+					{canEditDelete ? <Button as={Link} href={`/admin/events/${event.id}`} variant="outline" size="sm">編輯活動</Button> : null}
+					{canCheckin ? <Button as={Link} href={`/admin/checkin/${event.id}`} size="sm">簽到管理</Button> : null}
+					{/* 內部成員功能按鈕 */}
+					{isLoggedIn && (
+						<>
+							<Button as={Link} href={`/events/${event.id}/register`} variant="primary" size="sm">報名</Button>
+							<Button as={Link} href={`/events/${event.id}/leave`} variant="outline" size="sm">請假</Button>
+							<Button as={Link} href={`/events/${event.id}/invite`} variant="secondary" size="sm">來賓邀請</Button>
+						</>
+					)}
 					{canEditDelete ? <ConfirmDelete eventId={event.id} action={deleteEvent} hasLocks={hasLocks} members={memberNames} guests={guestNames} speakers={speakerNames} /> : null}
 				</div>
 			</div>

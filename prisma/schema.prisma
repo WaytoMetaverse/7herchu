@@ -89,6 +89,7 @@ model User {
   memberProfile MemberProfile?
   registrations Registration[]
   invoices      FinanceInvoice[]
+  monthlyPayments MemberMonthlyPayment[]
   cards         BusinessCard[]
   createdAt     DateTime @default(now())
 }
@@ -288,13 +289,30 @@ model FinanceTransaction {
   note          String?
   paymentMethod PaymentMethod?
   createdBy     String?
+  monthlyPaymentId String?
+  monthlyPayment   MemberMonthlyPayment? @relation(fields: [monthlyPaymentId], references: [id])
   createdAt     DateTime @default(now())
+}
+
+model MemberMonthlyPayment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  month     String   // 'YYYY-MM'
+  isPaid    Boolean  @default(false)
+  amount    Int?     // 應繳金額(分)
+  paidAt    DateTime?
+  transactions FinanceTransaction[]
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, month])
 }
 
 model OrgSettings {
   id          String @id @default("singleton")
   bankInfo    String
   linePayInfo String?
+  invitationCardUrl String?
 } 
 
 model BusinessCard {
