@@ -118,11 +118,11 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 						<Button 
 							onClick={() => {
 								const editElements = document.querySelectorAll('.edit-mode-only')
-								const isVisible = editElements[0]?.style?.display !== 'none'
+								const isVisible = (editElements[0] as HTMLElement)?.style?.display !== 'none'
 								editElements.forEach(el => {
 									(el as HTMLElement).style.display = isVisible ? 'none' : 'table-cell'
 								})
-								const btn = event?.target as HTMLButtonElement
+								const btn = (window.event?.target || window.event?.currentTarget) as HTMLButtonElement
 								if (btn) btn.textContent = isVisible ? '編輯' : '取消編輯'
 							}}
 							variant="outline"

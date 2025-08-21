@@ -47,7 +47,7 @@ export default function MobileQueryPage() {
 			if (!data.data || data.data.length === 0) {
 				setErr('找不到相關報名記錄')
 			}
-		} catch (error) {
+		} catch {
 			setErr('查詢失敗，請稍後再試')
 		}
 
@@ -116,7 +116,7 @@ export default function MobileQueryPage() {
 								>
 									<div className="font-medium">{reg.event?.title}</div>
 									<div className="text-sm text-gray-600">
-										{format(new Date(reg.event?.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW })}
+										{reg.event?.startAt ? format(new Date(reg.event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
 									</div>
 									<div className="text-xs text-gray-500">
 										狀態：{reg.paymentStatus === 'PAID' ? '已繳費' : '未繳費'}

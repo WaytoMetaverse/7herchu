@@ -17,16 +17,23 @@ export async function GET(req: NextRequest) {
 		}
 
 		// 查詢條件
-		const where = { 
-			phone,
-			event: {
-				startAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // 最近30天內的活動
+		const where: {
+			phone: string
+			eventId?: string
+			event?: {
+				startAt: { gte: Date }
 			}
+		} = { 
+			phone
 		}
 
 		// 如果指定了 eventId，只查詢該活動
 		if (eventId) {
-			(where as any).eventId = eventId
+			where.eventId = eventId
+		} else {
+			where.event = {
+				startAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // 最近30天內的活動
+			}
 		}
 
 		// 查詢報名記錄（只查詢活動報名，不含講師預約）

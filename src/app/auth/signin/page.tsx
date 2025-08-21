@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function SignInPage() {
-	const router = useRouter()
+
 	const sp = useSearchParams()
 	const callbackUrl = sp.get('callbackUrl') || '/hall'
 	const [email, setEmail] = useState('')

@@ -241,7 +241,7 @@ export default async function ProfilePage() {
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
 								<ImageThumb key={url} url={url} variant="card" deleteForm={(
-									<form action={async (formData: FormData) => {
+																			<form action={async () => {
 										'use server'
 										const session = await getServerSession(authOptions)
 										if (!session?.user?.email) return

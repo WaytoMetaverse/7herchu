@@ -66,9 +66,9 @@ ${inviteUrl}
 				</div>
 				<div className="mt-3 flex gap-2">
 					<Button 
-						onClick={() => {
+						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
 							navigator.clipboard.writeText(inviteMessage)
-							const btn = event?.target as HTMLButtonElement
+							const btn = e.target as HTMLButtonElement
 							if (btn) {
 								const original = btn.textContent
 								btn.textContent = '已複製！'
@@ -81,9 +81,9 @@ ${inviteUrl}
 						複製訊息
 					</Button>
 					<Button 
-						onClick={() => {
+						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
 							navigator.clipboard.writeText(inviteUrl)
-							const btn = event?.target as HTMLButtonElement
+							const btn = e.target as HTMLButtonElement
 							if (btn) {
 								const original = btn.textContent
 								btn.textContent = '已複製！'

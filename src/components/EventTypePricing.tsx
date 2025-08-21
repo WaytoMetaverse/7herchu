@@ -40,7 +40,7 @@ export default function EventTypePricing({
 	const isDinner = selectedType === 'DINNER'
 	const isSoft = selectedType === 'SOFT'
 	const showGuestSingle = !isBod && !isDinner && !isSoft && selectedType !== 'CLOSED'
-	const showVariablePricing = isBod || isDinner || isSoft
+
 
 	return (
 		<div className="contents">

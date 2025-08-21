@@ -25,8 +25,9 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 	})
 
 	// 處理請假
-	async function submitLeave(formData: FormData) {
+	async function submitLeave() {
 		'use server'
+		if (!user) return
 		
 		// 如果已有報名記錄，則刪除
 		if (existingReg) {

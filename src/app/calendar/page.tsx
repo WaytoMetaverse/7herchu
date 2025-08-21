@@ -62,7 +62,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
-	const canManage = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
+
 
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-6">

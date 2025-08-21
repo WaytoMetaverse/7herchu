@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Users, DollarSign, UtensilsCrossed, Image } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
-import { getDisplayName } from '@/lib/displayName'
+
 
 export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
@@ -36,7 +36,7 @@ export default async function GroupHomePage() {
 							{isAdmin ? <Link href="/admin/members" className="text-sm text-blue-600 underline">權限管理</Link> : null}
 						</div>
 						<div className="space-y-2 max-h-96 overflow-y-auto">
-							{users.slice(0, 10).map((u: any) => (
+							{users.slice(0, 10).map((u) => (
 								<div key={u.id}>
 									{isLoggedIn ? (
 										<Link href={`/profile/${u.id}`} className="block">

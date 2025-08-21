@@ -37,6 +37,8 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 	// 處理報名
 	async function submitRegistration(formData: FormData) {
 		'use server'
+		if (!user) return
+		
 		const mealCode = String(formData.get('mealCode') || '')
 		const noBeef = formData.get('noBeef') === 'on'
 		const noPork = formData.get('noPork') === 'on'

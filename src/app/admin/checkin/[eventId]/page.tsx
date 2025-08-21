@@ -28,7 +28,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	// 計算活動價格
 	function getPrice(registration: typeof registrations[0]): number {
 		const isLoggedIn = !!registration.userId
-		const eventType = event.type as EventType
+		const eventType = event?.type as EventType
+		if (!event) return 0
 
 		// 固定價格活動
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
@@ -103,7 +104,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: `${event.title} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
+				note: `${event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
 				categoryId: category.id,
 				eventId: eventId
 			}
