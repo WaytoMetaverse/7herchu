@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { PaymentStatus, EventType } from '@prisma/client'
+import { EventType } from '@prisma/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
@@ -78,13 +78,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		})
 		if (!registration) return
 
-		const price = getPrice(registration as any)
+		const price = getPrice(registration)
 		const isLoggedIn = !!registration.userId
 
 		// 更新繳費狀態
 		await prisma.registration.update({
 			where: { id: registrationId },
-			data: { paymentStatus: 'PAID' as any }
+			data: { paymentStatus: 'PAID' }
 		})
 
 		// 確保財務分類存在
@@ -92,7 +92,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		let category = await prisma.financeCategory.findFirst({ where: { name: categoryName } })
 		if (!category) {
 			category = await prisma.financeCategory.create({
-				data: { name: categoryName, type: 'INCOME' as any, system: true }
+				data: { name: categoryName, type: 'INCOME', system: true }
 			})
 		}
 

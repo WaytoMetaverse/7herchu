@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 		// 如果指定了 eventId，只查詢該活動
 		if (eventId) {
-			where.eventId = eventId
+			(where as any).eventId = eventId
 		}
 
 		// 查詢報名記錄（只查詢活動報名，不含講師預約）
