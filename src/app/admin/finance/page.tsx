@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import Link from 'next/link'
+import FinanceClient from '@/components/admin/FinanceClient'
 
 export default async function FinancePage({ searchParams }: { searchParams?: Promise<{ month?: string; export?: string }> }) {
 	const session = await getServerSession(authOptions)
@@ -109,26 +110,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			<div className="flex items-center gap-3">
 				{canManage && (
 					<>
-						<Button 
-							onClick={() => document.getElementById('add-form')?.scrollIntoView()}
-							variant="primary"
-						>
-							新增交易
-						</Button>
-						<Button 
-							onClick={() => {
-								const editElements = document.querySelectorAll('.edit-mode-only')
-								const isVisible = (editElements[0] as HTMLElement)?.style?.display !== 'none'
-								editElements.forEach(el => {
-									(el as HTMLElement).style.display = isVisible ? 'none' : 'table-cell'
-								})
-								const btn = (window.event?.target || window.event?.currentTarget) as HTMLButtonElement
-								if (btn) btn.textContent = isVisible ? '編輯' : '取消編輯'
-							}}
-							variant="outline"
-						>
-							編輯
-						</Button>
+						<Button as={Link} href="#add-form" variant="primary">新增交易</Button>
 						<Button as={Link} href="/admin/members" variant="outline">成員管理</Button>
 					</>
 				)}
@@ -171,67 +153,19 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			</div>
 
 			{/* 交易清單 */}
-			<div className="bg-white rounded-lg border">
-				<div className="p-4 border-b">
-					<h2 className="font-medium">交易清單</h2>
-				</div>
-				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
-						<thead className="bg-gray-50">
-							<tr>
-								<th className="px-4 py-3 text-left font-medium">日期</th>
-								<th className="px-4 py-3 text-left font-medium">類型</th>
-								<th className="px-4 py-3 text-left font-medium">項目</th>
-								<th className="px-4 py-3 text-left font-medium">對象</th>
-								<th className="px-4 py-3 text-right font-medium">金額</th>
-								<th className="px-4 py-3 text-left font-medium">摘要</th>
-								<th className="px-4 py-3 text-center font-medium edit-mode-only" style={{display: 'none'}}>操作</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-200">
-							{txns.map(txn => (
-								<tr key={txn.id}>
-									<td className="px-4 py-3">
-										{new Date(txn.date).toLocaleDateString('zh-TW')}
-									</td>
-									<td className="px-4 py-3">
-										<span className={`px-2 py-1 rounded text-xs ${
-											txn.type === 'INCOME' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-										}`}>
-											{txn.type === 'INCOME' ? '收入' : '支出'}
-										</span>
-									</td>
-									<td className="px-4 py-3">{txn.category?.name || '-'}</td>
-									<td className="px-4 py-3">{txn.counterparty || '-'}</td>
-									<td className="px-4 py-3 text-right font-medium">
-										<span className={txn.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}>
-											{txn.type === 'INCOME' ? '+' : '-'}NT$ {(txn.amountCents / 100).toLocaleString()}
-										</span>
-									</td>
-									<td className="px-4 py-3 text-gray-600">{txn.note || '-'}</td>
-									<td className="px-4 py-3 text-center edit-mode-only" style={{display: 'none'}}>
-										{canManage && (
-											<form action={deleteTxn} className="inline" onSubmit={(e) => {
-												if (!confirm('確定要刪除這筆交易嗎？')) e.preventDefault()
-											}}>
-												<input type="hidden" name="id" value={txn.id} />
-												<Button type="submit" variant="danger" size="sm">刪除</Button>
-											</form>
-										)}
-									</td>
-								</tr>
-							))}
-							{txns.length === 0 && (
-								<tr>
-									<td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-										暫無交易記錄
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</div>
-			</div>
+			<FinanceClient 
+				transactions={txns.map(t => ({
+					id: t.id,
+					date: t.date.toISOString(),
+					type: t.type,
+					amountCents: t.amountCents,
+					counterparty: t.counterparty,
+					note: t.note,
+					category: t.category
+				}))}
+				canManage={canManage}
+				deleteTxn={deleteTxn}
+			/>
 
 			{/* 新增交易表單 */}
 			{canManage && (
