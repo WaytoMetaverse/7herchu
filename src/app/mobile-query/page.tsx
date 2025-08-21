@@ -8,7 +8,16 @@ import { zhTW } from 'date-fns/locale'
 
 export default function MobileQueryPage() {
 	const [phone, setPhone] = useState('')
-	const [results, setResults] = useState<any[]>([])
+	const [results, setResults] = useState<{
+		id: string
+		eventId: string
+		paymentStatus: string
+		checkedInAt: string | null
+		event?: {
+			title: string
+			startAt: string
+		}
+	}[]>([])
 	const [loading, setLoading] = useState(false)
 	const [err, setErr] = useState<string | null>(null)
 	const router = useRouter()
@@ -99,7 +108,7 @@ export default function MobileQueryPage() {
 						// 多筆記錄，顯示選單
 						<div className="space-y-2">
 							<div className="text-sm text-gray-600">找到 {results.length} 筆報名記錄，請選擇：</div>
-							{results.map((reg: any) => (
+							{results.map((reg) => (
 								<button
 									key={reg.id}
 									onClick={() => selectEvent(reg.eventId)}

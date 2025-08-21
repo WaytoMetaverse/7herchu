@@ -7,8 +7,22 @@ import { zhTW } from 'date-fns/locale'
 
 export default function GuestRegisterPage({ params }: { params: Promise<{ id: string }> }) {
 	const [eventId, setEventId] = useState('')
-	const [event, setEvent] = useState<any>(null)
-	const [menu, setMenu] = useState<any>(null)
+	const [event, setEvent] = useState<{
+		id: string
+		title: string
+		startAt: string
+		location: string
+	} | null>(null)
+	const [menu, setMenu] = useState<{
+		items: {
+			id: string
+			code: string
+			name: string
+			isVegetarian: boolean
+			containsBeef: boolean
+			containsPork: boolean
+		}[]
+	} | null>(null)
 	const [form, setForm] = useState({
 		name: '',
 		phone: '',
@@ -174,7 +188,7 @@ export default function GuestRegisterPage({ params }: { params: Promise<{ id: st
 					<div>
 						<label>菜單選擇<Required /></label>
 						<div className="space-y-2 mt-2">
-							{menu.items.map((item: any) => (
+							{menu.items.map((item) => (
 								<label key={item.id} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
 									<input
 										type="radio"

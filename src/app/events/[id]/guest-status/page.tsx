@@ -8,8 +8,26 @@ import { zhTW } from 'date-fns/locale'
 
 export default function GuestStatusPage({ params }: { params: Promise<{ id: string }> }) {
 	const [eventId, setEventId] = useState('')
-	const [registration, setRegistration] = useState<any>(null)
-	const [event, setEvent] = useState<any>(null)
+	const [registration, setRegistration] = useState<{
+		id: string
+		name: string
+		role: string
+		companyName: string
+		industry: string
+		mealCode: string
+		invitedBy: string
+		diet: string
+		noBeef: boolean
+		noPork: boolean
+		paymentStatus: string
+		checkedInAt: string | null
+	} | null>(null)
+	const [event, setEvent] = useState<{
+		id: string
+		title: string
+		startAt: string
+		location: string
+	} | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [err, setErr] = useState<string | null>(null)
 	const searchParams = useSearchParams()

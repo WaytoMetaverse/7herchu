@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 		}
 
 		// 查詢條件
-		const where: any = { 
+		const where = { 
 			phone,
 			event: {
 				startAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // 最近30天內的活動

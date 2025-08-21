@@ -26,7 +26,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	})
 
 	// 計算活動價格
-	function getPrice(registration: typeof registrations[0]) {
+	function getPrice(registration: typeof registrations[0]): number {
 		const isLoggedIn = !!registration.userId
 		const eventType = event.type as EventType
 
@@ -78,13 +78,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		})
 		if (!registration) return
 
-		const price = getPrice(registration)
+		const price = getPrice(registration as any)
 		const isLoggedIn = !!registration.userId
 
 		// 更新繳費狀態
 		await prisma.registration.update({
 			where: { id: registrationId },
-			data: { paymentStatus: 'PAID' }
+			data: { paymentStatus: 'PAID' as any }
 		})
 
 		// 確保財務分類存在
@@ -92,7 +92,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		let category = await prisma.financeCategory.findFirst({ where: { name: categoryName } })
 		if (!category) {
 			category = await prisma.financeCategory.create({
-				data: { name: categoryName, type: 'INCOME', system: true }
+				data: { name: categoryName, type: 'INCOME' as any, system: true }
 			})
 		}
 
