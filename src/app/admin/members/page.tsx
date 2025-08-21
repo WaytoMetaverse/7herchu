@@ -6,6 +6,7 @@ import { MemberType } from '@prisma/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
+import CopyButton from '@/components/admin/CopyButton'
 
 export default async function MembersManagePage() {
 	const session = await getServerSession(authOptions)
@@ -122,21 +123,7 @@ export default async function MembersManagePage() {
 					{paymentMessage}
 				</div>
 				<div className="mt-2">
-					<Button 
-						onClick={() => {
-							navigator.clipboard.writeText(paymentMessage)
-							const btn = event?.target as HTMLButtonElement
-							if (btn) {
-								const original = btn.textContent
-								btn.textContent = '已複製！'
-								setTimeout(() => { btn.textContent = original }, 2000)
-							}
-						}}
-						variant="secondary" 
-						size="sm"
-					>
-						複製訊息
-					</Button>
+					<CopyButton text={paymentMessage}>複製訊息</CopyButton>
 				</div>
 			</div>
 
@@ -166,7 +153,6 @@ export default async function MembersManagePage() {
 											<select 
 												name="memberType" 
 												defaultValue={member.memberProfile?.memberType || 'SINGLE'}
-												onChange={(e) => e.target.form?.requestSubmit()}
 												className="text-sm border-0 bg-transparent"
 											>
 												<option value="FIXED">固定</option>
