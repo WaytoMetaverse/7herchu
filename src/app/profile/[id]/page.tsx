@@ -41,7 +41,7 @@ export default async function MemberProfileDetailPage({ params }: { params: Prom
 					<div><div className="text-gray-500">職業/代表</div><div>{mp?.occupation ?? '-'}</div></div>
 					<div><div className="text-gray-500">公司</div><div>{mp?.companyName ?? '-'}</div></div>
 					<div><div className="text-gray-500">公司網址</div><div>{mp?.companyWebsite ?? '-'}</div></div>
-					<div><div className="text-gray-500">工作地點</div><div>{mp?.workLocation ?? '-'}</div></div>
+					<div><div className="text-gray-500">公司地址</div><div>{mp?.workLocation ?? '-'}</div></div>
 					<div className="md:col-span-2"><div className="text-gray-500">服務項目</div><div className="whitespace-pre-wrap">{mp?.workDescription ?? '-'}</div></div>
 				</div>
 			</section>

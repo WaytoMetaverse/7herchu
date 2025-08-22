@@ -160,66 +160,88 @@ export default async function ProfilePage() {
 
 
 	return (
-		<div className="max-w-2xl mx-auto p-4 space-y-4">
-			<h1 className="text-2xl lg:text-3xl font-semibold">個人資料</h1>
-			<form id="profileForm" action={saveProfile} className="space-y-6">
-				<section className="space-y-3">
-					<h2 className="font-medium">基本資料</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<label className="text-sm">姓名
-							<input name="name" defaultValue={user.name ?? ''} />
+		<div className="max-w-2xl mx-auto p-4 space-y-6">
+			<h1 className="text-xl md:text-2xl font-semibold">個人資料</h1>
+			<form id="profileForm" action={saveProfile} className="space-y-8">
+				<section className="space-y-4">
+					<h2 className="font-medium text-lg">基本資料</h2>
+					<div className="space-y-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">姓名</span>
+								<input name="name" defaultValue={user.name ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">暱稱</span>
+								<input name="nickname" defaultValue={(user as unknown as { nickname?: string }).nickname ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+						</div>
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">Email</span>
+								<input defaultValue={user.email} disabled className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500" />
+							</label>
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">電話</span>
+								<input name="phone" defaultValue={user.phone ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+						</div>
+						<label className="block">
+							<span className="text-sm font-medium text-gray-700 mb-1 block">生日</span>
+							<input name="birthday" type="date" defaultValue={mp?.birthday ? new Date(mp.birthday).toISOString().slice(0,10) : ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 						</label>
-						<label className="text-sm">暱稱
-							<input name="nickname" defaultValue={(user as unknown as { nickname?: string }).nickname ?? ''}  />
-						</label>
-						<label className="text-sm">Email
-							<input defaultValue={user.email} disabled className="border rounded w-full px-2 py-1 bg-gray-50" />
-						</label>
-						<label className="text-sm">電話
-							<input name="phone" defaultValue={user.phone ?? ''}  />
-						</label>
-						<label className="text-sm">生日
-							<input name="birthday" type="date" defaultValue={mp?.birthday ? new Date(mp.birthday).toISOString().slice(0,10) : ''}  />
-						</label>
-						<label className="text-sm col-span-2">用餐偏好
-							<div className="flex items-center gap-4 py-1">
+						<div className="block">
+							<span className="text-sm font-medium text-gray-700 mb-2 block">用餐偏好</span>
+							<div className="flex items-center gap-6">
 								<label className="flex items-center gap-2">
-									<input type="radio" name="diet" value="meat" defaultChecked={mp?.dietPreference !== 'veg'} /> 葷食
+									<input type="radio" name="diet" value="meat" defaultChecked={mp?.dietPreference !== 'veg'} className="text-blue-600" /> 
+									<span className="text-sm">葷食</span>
 								</label>
 								<label className="flex items-center gap-2">
-									<input type="radio" name="diet" value="veg" defaultChecked={mp?.dietPreference === 'veg'} /> 素食
+									<input type="radio" name="diet" value="veg" defaultChecked={mp?.dietPreference === 'veg'} className="text-blue-600" /> 
+									<span className="text-sm">素食</span>
 								</label>
 							</div>
-						</label>
-						<label className="text-sm col-span-2">個人簡介
-							<textarea name="bio" rows={4} defaultValue={mp?.bio ?? ''}  />
-						</label>
-					</div>
-				</section>
-
-				<section className="space-y-3">
-					<h2 className="font-medium">工作資訊</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<label className="text-sm">職業/代表
-							<input name="occupation" defaultValue={mp?.occupation ?? ''}  />
-						</label>
-						<label className="text-sm">公司
-							<input name="companyName" defaultValue={mp?.companyName ?? ''}  />
-						</label>
-						<label className="text-sm">公司網址
-							<input name="companyWebsite" defaultValue={mp?.companyWebsite ?? ''}  />
-						</label>
-						<label className="text-sm">工作地點
-							<input name="workLocation" defaultValue={mp?.workLocation ?? ''}  />
-						</label>
-						<label className="text-sm col-span-2">服務項目
-							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''}  />
+						</div>
+						<label className="block">
+							<span className="text-sm font-medium text-gray-700 mb-1 block">個人簡介</span>
+							<textarea name="bio" rows={4} defaultValue={mp?.bio ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical" />
 						</label>
 					</div>
 				</section>
 
-				<section className="space-y-3">
-					<h2 className="font-medium">名片</h2>
+				<section className="space-y-4">
+					<h2 className="font-medium text-lg">工作資訊</h2>
+					<div className="space-y-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">職業/代表</span>
+								<input name="occupation" defaultValue={mp?.occupation ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">公司</span>
+								<input name="companyName" defaultValue={mp?.companyName ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+						</div>
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">公司網址</span>
+								<input name="companyWebsite" defaultValue={mp?.companyWebsite ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+							<label className="block">
+								<span className="text-sm font-medium text-gray-700 mb-1 block">公司地址</span>
+								<input name="workLocation" defaultValue={mp?.workLocation ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+							</label>
+						</div>
+						<label className="block">
+							<span className="text-sm font-medium text-gray-700 mb-1 block">服務項目</span>
+							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical" />
+						</label>
+					</div>
+				</section>
+
+				<section className="space-y-4">
+					<h2 className="font-medium text-lg">名片</h2>
 					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
@@ -238,8 +260,8 @@ export default async function ProfilePage() {
 					) : null}
 				</section>
 
-				<section className="space-y-3">
-					<h2 className="font-medium">作品照片</h2>
+				<section className="space-y-4">
+					<h2 className="font-medium text-lg">作品照片</h2>
 					{Array.isArray(mp?.portfolioPhotos) && (mp!.portfolioPhotos as string[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{(mp!.portfolioPhotos as string[]).map((url) => (
@@ -260,19 +282,24 @@ export default async function ProfilePage() {
 					)}
 				</section>
 
-				<section className="space-y-4">
-					<div className="space-y-2">
-						<h3 className="font-medium">名片上傳</h3>
-						<ProfileUploadClient type="cards" />
-					</div>
-					<div className="space-y-2">
-						<h3 className="font-medium">作品照片</h3>
-						<ProfileUploadClient type="photos" />
+				<section className="space-y-6">
+					<div className="bg-gray-50 p-4 rounded-lg space-y-4">
+						<h3 className="font-medium text-lg">上傳新檔案</h3>
+						<div className="space-y-4">
+							<div>
+								<h4 className="font-medium text-gray-700 mb-2">名片上傳</h4>
+								<ProfileUploadClient type="cards" />
+							</div>
+							<div>
+								<h4 className="font-medium text-gray-700 mb-2">作品照片</h4>
+								<ProfileUploadClient type="photos" />
+							</div>
+						</div>
 					</div>
 				</section>
 
-				<div>
-					<Button type="submit" form="profileForm">儲存</Button>
+				<div className="pt-4 border-t">
+					<Button type="submit" form="profileForm" className="w-full sm:w-auto">儲存資料</Button>
 				</div>
 			</form>
 		</div>
