@@ -240,16 +240,17 @@ export default async function ProfilePage() {
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
 								<ImageThumb key={url} url={url} variant="card" deleteForm={(
-																			<form action={async () => {
+									<form action={async () => {
 										'use server'
 										const session = await getServerSession(authOptions)
-										if (!session?.user?.email) return
+										if (!session?.user?.email) redirect('/auth/signin')
 										const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-										if (!user) return
+										if (!user) redirect('/auth/signin')
 										const mp = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
 										const list = Array.isArray(mp?.businessCards) ? (mp?.businessCards as string[]) : []
 										const next = list.filter((u) => u !== url)
 										await prisma.memberProfile.update({ where: { userId: user.id }, data: { businessCards: next } })
+										redirect('/profile')
 									}}>
 										<Button type="submit" size="sm" variant="danger" className="btn-compact">刪除</Button>
 									</form>
