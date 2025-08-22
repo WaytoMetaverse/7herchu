@@ -1,0 +1,84 @@
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import MemberListClient from '@/components/admin/MemberListClient'
+import MemberInvitation from '@/components/admin/MemberInvitation'
+import { revalidatePath } from 'next/cache'
+
+export default async function MemberListPage() {
+	const session = await getServerSession(authOptions)
+	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const isAdmin = roles.includes('admin')
+	if (!isAdmin) redirect('/hall')
+
+	// 取得所有成員（包含停用的）
+	const allMembers = await prisma.user.findMany({
+		where: {
+			memberProfile: { isNot: null }
+		},
+		include: {
+			memberProfile: true
+		},
+		orderBy: { createdAt: 'asc' }
+	})
+
+	// 停用成員
+	async function deactivateMember(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		if (!userId) return
+		
+		await prisma.user.update({
+			where: { id: userId },
+			data: { isActive: false }
+		})
+		revalidatePath('/admin/member-list')
+	}
+
+	// 啟用成員
+	async function activateMember(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		if (!userId) return
+		
+		await prisma.user.update({
+			where: { id: userId },
+			data: { isActive: true }
+		})
+		revalidatePath('/admin/member-list')
+	}
+
+	return (
+		<div className="max-w-6xl mx-auto p-4 space-y-6">
+			<div className="flex items-center justify-between">
+				<h1 className="text-2xl font-semibold">成員名單</h1>
+				<div className="flex gap-2">
+					<Button as={Link} href="/admin/permissions" variant="outline">權限管理</Button>
+					<Button as={Link} href="/group" variant="ghost">返回小組管理</Button>
+				</div>
+			</div>
+
+			{/* 成員列表 */}
+			<MemberListClient 
+				members={allMembers.map(m => ({
+					id: m.id,
+					name: m.name || '',
+					nickname: m.nickname || '',
+					email: m.email,
+					phone: m.phone || '',
+					isActive: m.isActive,
+					memberType: m.memberProfile?.memberType || 'SINGLE',
+					roles: [] // 角色信息將在權限管理頁面處理
+				}))}
+				deactivateMember={deactivateMember}
+				activateMember={activateMember}
+			/>
+
+			{/* 邀請成員功能 */}
+			<MemberInvitation />
+		</div>
+	)
+}

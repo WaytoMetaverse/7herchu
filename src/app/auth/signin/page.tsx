@@ -6,9 +6,9 @@ import Button from '@/components/ui/Button'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function SignInPage() {
-
 	const sp = useSearchParams()
 	const callbackUrl = sp.get('callbackUrl') || '/hall'
+	const inviteToken = sp.get('invite')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
@@ -43,8 +43,27 @@ export default function SignInPage() {
 					<div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"/></div>
 					<div className="relative flex justify-center text-xs"><span className="px-2 bg-white text-gray-500">或</span></div>
 				</div>
-				<Button onClick={()=>signIn('google',{callbackUrl:callbackUrl})} variant="outline" className="w-full">使用 Google 登入</Button>
-				<div className="text-center text-sm text-gray-600">還沒有帳號？<Link href="/auth/signup" className="text-blue-600 underline ml-1">建立帳號</Link></div>
+				<Button 
+					onClick={() => {
+						const params = new URLSearchParams()
+						params.set('callbackUrl', callbackUrl)
+						if (inviteToken) params.set('invite', inviteToken)
+						signIn('google', { callbackUrl: `${callbackUrl}?${params.toString()}` })
+					}}
+					variant="outline" 
+					className="w-full"
+				>
+					使用 Google 登入
+				</Button>
+				<div className="text-center text-sm text-gray-600">
+					還沒有帳號？
+					<Link 
+						href={inviteToken ? `/auth/signup?invite=${inviteToken}` : '/auth/signup'} 
+						className="text-blue-600 underline ml-1"
+					>
+						建立帳號
+					</Link>
+				</div>
 			</div>
 		</div>
 	)

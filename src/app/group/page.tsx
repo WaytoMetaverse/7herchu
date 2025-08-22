@@ -16,6 +16,7 @@ export default async function GroupHomePage() {
 	const canManageMenu = isAdmin || roles.includes('menu_manager')
 	const isLoggedIn = !!session?.user
 	const users = await prisma.user.findMany({ 
+		where: { isActive: true },
 		orderBy: { createdAt: 'asc' }, 
 		include: { memberProfile: true } 
 	})
@@ -33,7 +34,7 @@ export default async function GroupHomePage() {
 								<Users className="w-6 h-6 text-blue-600" />
 								<h2 className="text-lg font-semibold">成員名單</h2>
 							</div>
-							{isAdmin ? <Link href="/admin/members" className="text-sm text-blue-600 underline">權限管理</Link> : null}
+							{isAdmin ? <Link href="/admin/member-list" className="text-sm text-blue-600 underline">管理成員</Link> : null}
 						</div>
 						<div className="space-y-2 max-h-96 overflow-y-auto">
 							{users.slice(0, 10).map((u) => (

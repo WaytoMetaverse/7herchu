@@ -1,22 +1,57 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
 export default function SignUpPage() {
+	const searchParams = useSearchParams()
+	const inviteToken = searchParams.get('invite')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [err, setErr] = useState<string | null>(null)
+	const [tokenValid, setTokenValid] = useState<boolean | null>(null)
+
+	// 檢查邀請 token
+	useEffect(() => {
+		if (!inviteToken) {
+			setTokenValid(false)
+			return
+		}
+
+		// 驗證 token
+		fetch('/api/auth/verify-invite', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ token: inviteToken })
+		})
+		.then(res => res.json())
+		.then(data => {
+			setTokenValid(data.valid || false)
+			if (!data.valid) {
+				setErr('邀請連結無效或已過期')
+			}
+		})
+		.catch(() => {
+			setTokenValid(false)
+			setErr('驗證邀請連結時發生錯誤')
+		})
+	}, [inviteToken])
 
 	async function submit() {
+		if (!tokenValid) {
+			setErr('需要有效的邀請連結才能註冊')
+			return
+		}
+
 		setLoading(true)
 		setErr(null)
 		const res = await fetch('/api/auth/signup', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ email, password }),
+			body: JSON.stringify({ email, password, inviteToken }),
 		})
 		const data = await res.json()
 		if (!res.ok) {
@@ -29,12 +64,41 @@ export default function SignUpPage() {
 		setLoading(false)
 	}
 
+	// 如果沒有邀請 token 或 token 無效，顯示錯誤頁面
+	if (tokenValid === false) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-50">
+				<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow text-center">
+					<h1 className="text-2xl font-semibold text-red-600">無法註冊</h1>
+					<p className="text-gray-600">需要有效的邀請連結才能註冊帳號</p>
+					<p className="text-sm text-gray-500">請聯繫管理員獲取邀請連結</p>
+					<Button as={Link} href="/auth/signin" variant="outline" className="w-full">
+						返回登入頁
+					</Button>
+				</div>
+			</div>
+		)
+	}
+
+	// 載入中
+	if (tokenValid === null) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-50">
+				<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow text-center">
+					<h1 className="text-2xl font-semibold">驗證邀請連結</h1>
+					<p className="text-gray-600">正在驗證邀請連結...</p>
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-50">
 			<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow">
 				<div className="text-center space-y-2">
 					<h1 className="text-2xl font-semibold">建立帳號</h1>
 					<p className="text-sm text-gray-600">可使用 Email 註冊，或於登入頁使用 Google</p>
+					<p className="text-xs text-green-600">✓ 邀請連結有效</p>
 				</div>
 				{err && <div className="text-sm text-red-600 text-center">{err}</div>}
 				<div className="space-y-4">

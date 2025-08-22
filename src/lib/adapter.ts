@@ -5,6 +5,8 @@ export function PrismaUserAdapter(prisma: PrismaClient): Adapter {
 	return {
 		// User
 		createUser: async (data: Pick<AdapterUser, 'email' | 'name'>) => {
+			// Google 登入時也需要檢查邀請 token
+			// 這裡暫時允許創建，實際的邀請檢查在 signIn callback 中處理
 			const user = await prisma.user.create({ data: { email: data.email!, name: data.name || null } })
 			return { id: user.id, name: user.name, email: user.email, emailVerified: null, image: null }
 		},

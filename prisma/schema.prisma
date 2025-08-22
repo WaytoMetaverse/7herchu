@@ -85,13 +85,25 @@ model User {
   googleId      String?  @unique
   phone         String?  @unique
   passwordHash  String?
+  isActive      Boolean  @default(true)
   roles         Role[]
   memberProfile MemberProfile?
   registrations Registration[]
   invoices      FinanceInvoice[]
   monthlyPayments MemberMonthlyPayment[]
   cards         BusinessCard[]
+  createdInvites InviteToken[]
   createdAt     DateTime @default(now())
+}
+
+model InviteToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  createdBy String
+  creator   User     @relation(fields: [createdBy], references: [id])
+  usedCount Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 
 model MemberProfile {
