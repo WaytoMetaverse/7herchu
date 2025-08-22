@@ -24,6 +24,7 @@ export default function CardScanPage() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const [aiLoading, setAiLoading] = useState(false)
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -112,9 +113,38 @@ export default function CardScanPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <div>
-            <label>名片圖片
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onPick} />
-            </label>
+            <label className="block text-sm font-medium mb-2">名片圖片</label>
+            <div className="flex gap-2 mb-3">
+              <Button 
+                onClick={() => cameraRef.current?.click()}
+                variant="outline"
+                size="sm"
+              >
+                📷 拍照
+              </Button>
+              <Button 
+                onClick={() => fileRef.current?.click()}
+                variant="outline"
+                size="sm"
+              >
+                📁 上傳檔案
+              </Button>
+            </div>
+            <input 
+              ref={cameraRef} 
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              onChange={onPick}
+              className="hidden"
+            />
+            <input 
+              ref={fileRef} 
+              type="file" 
+              accept="image/*" 
+              onChange={onPick}
+              className="hidden"
+            />
             {imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={imagePreview} alt="預覽" className="mt-2 w-full h-48 object-contain rounded border" />

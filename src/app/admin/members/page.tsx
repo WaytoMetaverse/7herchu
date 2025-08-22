@@ -7,12 +7,21 @@ import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import CopyButton from '@/components/admin/CopyButton'
+import MemberTypeSelect from '@/components/admin/MemberTypeSelect'
+import MonthSelector from '@/components/admin/MonthSelector'
 
-export default async function MembersManagePage() {
+export default async function MembersManagePage({ 
+	searchParams 
+}: { 
+	searchParams?: Promise<{ month?: string }> 
+}) {
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('finance_manager')
 	if (!canManage) redirect('/hall')
+
+	const sp = searchParams ? await searchParams : undefined
+	const selectedMonth = sp?.month || new Date().toISOString().slice(0, 7)
 
 	// 取得所有成員及其類型
 	const members = await prisma.user.findMany({
@@ -56,8 +65,7 @@ export default async function MembersManagePage() {
 		return count
 	}
 
-	const currentMonth = new Date().toISOString().slice(0, 7)
-	const currentMonthEventCount = await getMonthlyEventCount(currentMonth)
+	const currentMonthEventCount = await getMonthlyEventCount(selectedMonth)
 
 	// 更新成員類型
 	async function updateMemberType(formData: FormData) {
@@ -101,13 +109,23 @@ export default async function MembersManagePage() {
 	// 生成繳費訊息
 	const fixedMembers = members.filter(m => m.memberProfile?.memberType === 'FIXED')
 	const unpaidFixedMembers = fixedMembers.filter(m => {
-		const payment = m.monthlyPayments.find(p => p.month === currentMonth)
+		const payment = m.monthlyPayments.find(p => p.month === selectedMonth)
 		return !payment?.isPaid
 	})
 
-	const paymentMessage = `請夥伴們幫忙繳交${new Date().getMonth() + 1}月建築組聚費用
+	const selectedDate = new Date(selectedMonth + '-01')
+	const displayMonth = selectedDate.getMonth() + 1
+	
+	// 顯示暱稱，沒有暱稱則用姓名後兩字
+	const getDisplayName = (member: typeof members[0]) => {
+		if (member.nickname) return member.nickname
+		const name = member.name || ''
+		return name.length >= 2 ? name.slice(-2) : name
+	}
+
+	const paymentMessage = `請夥伴們幫忙繳交${displayMonth}月建築組聚費用
 180乘以${currentMonthEventCount}=${180 * currentMonthEventCount}
-未繳交:${unpaidFixedMembers.map(m => m.name).join('、')}`
+未繳交:${unpaidFixedMembers.map(m => getDisplayName(m)).join('、')}`
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -115,6 +133,9 @@ export default async function MembersManagePage() {
 				<h1 className="text-2xl font-semibold">成員管理</h1>
 				<Button as={Link} href="/admin/finance" variant="outline">返回財務管理</Button>
 			</div>
+
+			{/* 月份選擇器 */}
+			<MonthSelector currentMonth={selectedMonth} />
 
 			{/* 繳費訊息產生器 */}
 			<div className="bg-blue-50 p-4 rounded-lg">
@@ -140,25 +161,19 @@ export default async function MembersManagePage() {
 										{month.slice(5)}月
 									</th>
 								))}
-								<th className="px-4 py-3 text-center font-medium">操作</th>
+
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="px-4 py-3 font-medium">{member.name}</td>
+									<td className="px-4 py-3 font-medium">{getDisplayName(member)}</td>
 									<td className="px-4 py-3">
-										<form action={updateMemberType} className="inline">
-											<input type="hidden" name="userId" value={member.id} />
-											<select 
-												name="memberType" 
-												defaultValue={member.memberProfile?.memberType || 'SINGLE'}
-												className="text-sm border-0 bg-transparent"
-											>
-												<option value="FIXED">固定</option>
-												<option value="SINGLE">單次</option>
-											</select>
-										</form>
+										<MemberTypeSelect
+											userId={member.id}
+											defaultValue={member.memberProfile?.memberType || 'SINGLE'}
+											updateMemberType={updateMemberType}
+										/>
 									</td>
 									{months.map(month => {
 										const payment = member.monthlyPayments.find(p => p.month === month)
@@ -192,9 +207,7 @@ export default async function MembersManagePage() {
 											)
 										}
 									})}
-									<td className="px-4 py-3 text-center">
-										<Button size="sm" variant="outline">編輯</Button>
-									</td>
+
 								</tr>
 							))}
 						</tbody>
