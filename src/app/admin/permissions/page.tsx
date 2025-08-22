@@ -14,10 +14,9 @@ export default async function PermissionsPage() {
 	const isAdmin = roles.includes('admin')
 	if (!isAdmin) redirect('/hall')
 
-	// 取得所有成員及其角色
+	// 取得所有成員及其角色（包含沒有 memberProfile 的用戶）
 	const members = await prisma.user.findMany({
 		where: {
-			memberProfile: { isNot: null },
 			isActive: true
 		},
 		select: {
@@ -25,7 +24,12 @@ export default async function PermissionsPage() {
 			name: true,
 			nickname: true,
 			email: true,
-			roles: true
+			roles: true,
+			memberProfile: {
+				select: {
+					memberType: true
+				}
+			}
 		},
 		orderBy: { name: 'asc' }
 	})

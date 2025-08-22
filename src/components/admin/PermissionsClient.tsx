@@ -10,6 +10,9 @@ type Member = {
 	nickname: string
 	email: string
 	roles: Role[]
+	memberProfile?: {
+		memberType: string
+	} | null
 }
 
 const ROLE_CONFIG = {
