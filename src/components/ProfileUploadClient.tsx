@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import NextImage from 'next/image'
-import { upload } from '@vercel/blob/client'
 
 const TARGET_MAX_BYTES = 500 * 1024
 
@@ -101,11 +100,13 @@ export default function ProfileUploadClient({ type = 'both' }: { type?: 'cards' 
 	const [cardUrls, setCardUrls] = useState<string[]>([])
 	const [photoUrls, setPhotoUrls] = useState<string[]>([])
 	const [busy, setBusy] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
 	async function onSelectCards(e: React.ChangeEvent<HTMLInputElement>) {
 		const files = Array.from(e.target.files || [])
 		if (!files.length) return
 		setBusy(true)
+		setError(null)
 		try {
 			const results = await Promise.all(
 				files.map(async (f) => {
@@ -114,11 +115,17 @@ export default function ProfileUploadClient({ type = 'both' }: { type?: 'cards' 
 						return null
 					}
 					const { blob, filename } = await compressImageToTarget(f, TARGET_MAX_BYTES)
-					const { url } = await upload(filename, new File([blob], filename, { type: blob.type }), { access: 'public', handleUploadUrl: '/api/upload' })
-					return url
+					const formData = new FormData()
+					formData.append('file', new File([blob], filename, { type: blob.type }))
+					const response = await fetch('/api/upload', { method: 'POST', body: formData })
+					const result = await response.json()
+					if (!response.ok) throw new Error(result.error || '上傳失敗')
+					return result.url
 				})
 			)
 			setCardUrls((prev) => [...prev, ...results.filter(Boolean) as string[]])
+		} catch (err) {
+			setError(err instanceof Error ? err.message : '上傳失敗')
 		} finally {
 			setBusy(false)
 		}
@@ -128,24 +135,35 @@ export default function ProfileUploadClient({ type = 'both' }: { type?: 'cards' 
 		const files = Array.from(e.target.files || [])
 		if (!files.length) return
 		setBusy(true)
+		setError(null)
 		try {
 			const results = await Promise.all(
 				files.map(async (f) => {
 					if (f.type.startsWith('image/')) {
 						const { blob, filename } = await compressImageToTarget(f, TARGET_MAX_BYTES)
-						const { url } = await upload(filename, new File([blob], filename, { type: blob.type }), { access: 'public', handleUploadUrl: '/api/upload' })
-						return url
+						const formData = new FormData()
+						formData.append('file', new File([blob], filename, { type: blob.type }))
+						const response = await fetch('/api/upload', { method: 'POST', body: formData })
+						const result = await response.json()
+						if (!response.ok) throw new Error(result.error || '上傳失敗')
+						return result.url
 					} else {
 						if (f.size > TARGET_MAX_BYTES) {
 							alert(`檔案過大（>${Math.round(TARGET_MAX_BYTES/1024)}KB）：${f.name}`)
 							return null
 						}
-						const { url } = await upload(f.name, f, { access: 'public', handleUploadUrl: '/api/upload' })
-						return url
+						const formData = new FormData()
+						formData.append('file', f)
+						const response = await fetch('/api/upload', { method: 'POST', body: formData })
+						const result = await response.json()
+						if (!response.ok) throw new Error(result.error || '上傳失敗')
+						return result.url
 					}
 				})
 			)
 			setPhotoUrls((prev) => [...prev, ...results.filter(Boolean) as string[]])
+		} catch (err) {
+			setError(err instanceof Error ? err.message : '上傳失敗')
 		} finally {
 			setBusy(false)
 		}
@@ -176,6 +194,7 @@ export default function ProfileUploadClient({ type = 'both' }: { type?: 'cards' 
 			)}
 
 			{busy && <div className="text-xs text-gray-500">上傳中…請稍候</div>}
+			{error && <div className="text-xs text-red-600">錯誤：{error}</div>}
 		</div>
 	)
 }
