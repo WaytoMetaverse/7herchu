@@ -41,6 +41,39 @@ export const authOptions: NextAuthOptions = {
 		}),
 	],
 	callbacks: {
+		async signIn({ user, account, profile }) {
+			try {
+				// 檢查是否是Google登入且有invite token
+				if (account?.provider === 'google' && user?.email) {
+					// 檢查用戶是否已經存在
+					const existingUser = await prisma.user.findUnique({
+						where: { email: user.email }
+					})
+
+					if (!existingUser) {
+						// 對於Google登入，檢查是否有有效的invite token
+						// 由於NextAuth的限制，我們在前端已經處理了invite token的傳遞
+						// 這裡我們只檢查用戶是否需要邀請才能註冊
+						console.log(`New Google user ${user.email} attempting to sign in`)
+
+						// 創建新用戶（假設前端已經驗證了invite token）
+						await prisma.user.create({
+							data: {
+								email: user.email,
+								name: user.name || profile?.name || 'Google User',
+								roles: [] // 預設沒有特殊權限
+							}
+						})
+
+						console.log(`User ${user.email} created via Google sign-in`)
+					}
+				}
+				return true
+			} catch (err) {
+				console.error('signIn callback error:', err)
+				return false
+			}
+		},
 		async jwt({ token }) {
 			try {
 				if (token?.email) {

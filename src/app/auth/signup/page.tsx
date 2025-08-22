@@ -97,7 +97,7 @@ export default function SignUpPage() {
 			<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow">
 				<div className="text-center space-y-2">
 					<h1 className="text-2xl font-semibold">建立帳號</h1>
-					<p className="text-sm text-gray-600">可使用 Email 註冊，或於登入頁使用 Google</p>
+					<p className="text-sm text-gray-600">可使用 Email 註冊，或使用 Google 快速建立</p>
 					<p className="text-xs text-green-600">✓ 邀請連結有效</p>
 				</div>
 				{err && <div className="text-sm text-red-600 text-center">{err}</div>}
@@ -110,6 +110,24 @@ export default function SignUpPage() {
 					</label>
 					<Button disabled={loading} onClick={submit} className="w-full">{loading?'建立中…':'建立帳號'}</Button>
 				</div>
+
+				<div className="relative">
+					<div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"/></div>
+					<div className="relative flex justify-center text-xs"><span className="px-2 bg-white text-gray-500">或</span></div>
+				</div>
+
+				<Button
+					onClick={() => {
+						const params = new URLSearchParams()
+						params.set('callbackUrl', '/hall')
+						if (inviteToken) params.set('invite', inviteToken)
+						signIn('google', { callbackUrl: `/hall?${params.toString()}` })
+					}}
+					variant="outline"
+					className="w-full"
+				>
+					使用 Google 建立帳號
+				</Button>
 				<div className="text-center text-sm text-gray-600">已經有帳號了？<Link href="/auth/signin" className="text-blue-600 underline ml-1">前往登入</Link></div>
 			</div>
 		</div>
