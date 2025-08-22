@@ -2,10 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Role } from '@prisma/client'
 
+export async function GET() {
+	return handleSetAdmin()
+}
+
 export async function POST(req: NextRequest) {
+	return handleSetAdmin(req)
+}
+
+async function handleSetAdmin(req?: NextRequest) {
 	try {
-		const { email } = await req.json()
-		const targetEmail = email || 'ai.lexihsu@gmail.com'
+		let targetEmail = 'ai.lexihsu@gmail.com'
+		
+		// 如果是 POST 請求，嘗試從 body 取得 email
+		if (req) {
+			try {
+				const body = await req.json()
+				if (body?.email) targetEmail = body.email
+			} catch {
+				// 忽略 JSON 解析錯誤，使用預設 email
+			}
+		}
 		
 		// 查找用戶
 		let user = await prisma.user.findUnique({ where: { email: targetEmail } })
