@@ -5,14 +5,20 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 	const router = useRouter()
 	const searchParams = useSearchParams()
 
-	// 生成最近12個月的選項
-	const monthOptions = Array.from({ length: 12 }, (_, i) => {
-		const date = new Date()
-		date.setMonth(date.getMonth() - i)
-		const monthStr = date.toISOString().slice(0, 7)
-		const displayName = `${date.getFullYear()}年${date.getMonth() + 1}月`
-		return { value: monthStr, label: displayName }
-	})
+	// 生成月份選項：從2025年7月開始到未來12個月
+	const startDate = new Date('2025-07-01')
+	const endDate = new Date()
+	endDate.setMonth(endDate.getMonth() + 12) // 未來12個月
+	
+	const monthOptions = []
+	const iterDate = new Date(startDate)
+	
+	while (iterDate <= endDate) {
+		const monthStr = iterDate.toISOString().slice(0, 7)
+		const displayName = `${iterDate.getFullYear()}年${iterDate.getMonth() + 1}月`
+		monthOptions.push({ value: monthStr, label: displayName })
+		iterDate.setMonth(iterDate.getMonth() + 1)
+	}
 
 	const handleMonthChange = (month: string) => {
 		const params = new URLSearchParams(searchParams.toString())
@@ -29,11 +35,11 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 
 	return (
 		<div className="flex items-center gap-2">
-			<label className="text-sm font-medium">選擇月份：</label>
+			<label className="text-sm font-medium whitespace-nowrap">選擇月份：</label>
 			<select 
 				value={currentMonth}
 				onChange={(e) => handleMonthChange(e.target.value)}
-				className="px-3 py-1 border rounded text-sm"
+				className="px-2 py-1 border rounded text-sm min-w-0 w-auto"
 			>
 				{monthOptions.map(option => (
 					<option key={option.value} value={option.value}>

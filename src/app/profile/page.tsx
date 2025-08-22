@@ -235,8 +235,7 @@ export default async function ProfilePage() {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className="font-medium">名片上傳</h2>
-					<ProfileUploadClient />
+					<h2 className="font-medium">名片</h2>
 					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
@@ -276,7 +275,17 @@ export default async function ProfilePage() {
 					) : (
 						<p className="text-sm text-gray-600">尚未上傳作品照片</p>
 					)}
-					<div className="hidden"><input name="photos" type="file" multiple accept="image/*" /></div>
+				</section>
+
+				<section className="space-y-4">
+					<div className="space-y-2">
+						<h3 className="font-medium">名片上傳</h3>
+						<ProfileUploadClient type="cards" />
+					</div>
+					<div className="space-y-2">
+						<h3 className="font-medium">作品照片</h3>
+						<ProfileUploadClient type="photos" />
+					</div>
 				</section>
 
 				<div>

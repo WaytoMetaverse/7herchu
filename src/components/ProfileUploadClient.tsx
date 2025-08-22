@@ -97,7 +97,7 @@ function PreviewGrid({ urls }: { urls: string[] }) {
 	)
 }
 
-export default function ProfileUploadClient() {
+export default function ProfileUploadClient({ type = 'both' }: { type?: 'cards' | 'photos' | 'both' }) {
 	const [cardUrls, setCardUrls] = useState<string[]>([])
 	const [photoUrls, setPhotoUrls] = useState<string[]>([])
 	const [busy, setBusy] = useState(false)
@@ -153,21 +153,27 @@ export default function ProfileUploadClient() {
 
 	return (
 		<div className="space-y-4">
-			<div className="space-y-2">
-				<input type="file" multiple accept="image/*" onChange={onSelectCards} className="text-sm" />
-				{cardUrls.map((u) => (
-					<input key={u} type="hidden" name="cardUrls" value={u} />
-				))}
-				<PreviewGrid urls={cardUrls} />
-			</div>
+			{(type === 'cards' || type === 'both') && (
+				<div className="space-y-2">
+					<label className="block text-sm font-medium">選擇名片圖片</label>
+					<input type="file" multiple accept="image/*" onChange={onSelectCards} className="text-sm" />
+					{cardUrls.map((u) => (
+						<input key={u} type="hidden" name="cardUrls" value={u} />
+					))}
+					<PreviewGrid urls={cardUrls} />
+				</div>
+			)}
 
-			<div className="space-y-2">
-				<input type="file" multiple accept="image/*" onChange={onSelectPhotos} className="text-sm" />
-				{photoUrls.map((u) => (
-					<input key={u} type="hidden" name="photoUrls" value={u} />
-				))}
-				<PreviewGrid urls={photoUrls} />
-			</div>
+			{(type === 'photos' || type === 'both') && (
+				<div className="space-y-2">
+					<label className="block text-sm font-medium">選擇作品照片</label>
+					<input type="file" multiple accept="image/*" onChange={onSelectPhotos} className="text-sm" />
+					{photoUrls.map((u) => (
+						<input key={u} type="hidden" name="photoUrls" value={u} />
+					))}
+					<PreviewGrid urls={photoUrls} />
+				</div>
+			)}
 
 			{busy && <div className="text-xs text-gray-500">上傳中…請稍候</div>}
 		</div>
