@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import ImageThumb from '@/components/ImageThumb'
 import { put } from '@vercel/blob'
 import ProfileUploadClient from '@/components/ProfileUploadClient'
+import DeleteButton from '@/components/DeleteButton'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -156,24 +157,7 @@ export default async function ProfilePage() {
 
 	const mp = user.memberProfile
 
-	async function deletePhoto(formData: FormData) {
-		'use server'
-		const session = await getServerSession(authOptions)
-		if (!session?.user?.email) redirect('/auth/signin')
-		const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-		if (!user) redirect('/auth/signin')
-		const url = String(formData.get('url') || '')
-		if (!url) redirect('/profile')
-		const mp = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { portfolioPhotos: true } })
-		const list = Array.isArray(mp?.portfolioPhotos) ? (mp?.portfolioPhotos as string[]) : []
-		const next = list.filter((u) => u !== url)
-		await prisma.memberProfile.update({ where: { userId: user.id }, data: { portfolioPhotos: next } })
-		try {
-			const filePath = path.join(process.cwd(), 'public', url.replace(/^\/+/, ''))
-			await fs.unlink(filePath)
-		} catch {}
-		redirect('/profile')
-	}
+
 
 	return (
 		<div className="max-w-2xl mx-auto p-4 space-y-4">
@@ -240,20 +224,14 @@ export default async function ProfilePage() {
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (
 								<ImageThumb key={url} url={url} variant="card" deleteForm={(
-									<form action={async () => {
-										'use server'
-										const session = await getServerSession(authOptions)
-										if (!session?.user?.email) redirect('/auth/signin')
-										const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-										if (!user) redirect('/auth/signin')
-										const mp = await prisma.memberProfile.findUnique({ where: { userId: user.id }, select: { businessCards: true } })
-										const list = Array.isArray(mp?.businessCards) ? (mp?.businessCards as string[]) : []
-										const next = list.filter((u) => u !== url)
-										await prisma.memberProfile.update({ where: { userId: user.id }, data: { businessCards: next } })
-										redirect('/profile')
-									}}>
-										<Button type="submit" size="sm" variant="danger" className="btn-compact">刪除</Button>
-									</form>
+									<DeleteButton 
+										url={url}
+										type="card"
+										size="sm"
+										className="btn-compact"
+									>
+										刪除
+									</DeleteButton>
 								)} />
 							))}
 						</div>
@@ -266,10 +244,14 @@ export default async function ProfilePage() {
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 							{(mp!.portfolioPhotos as string[]).map((url) => (
 								<ImageThumb key={url} url={url} variant="photo" deleteForm={(
-									<form action={deletePhoto}>
-										<input type="hidden" name="url" value={url} />
-										<Button type="submit" variant="danger" size="sm" className="btn-compact">刪除</Button>
-									</form>
+									<DeleteButton 
+										url={url}
+										type="photo"
+										size="sm"
+										className="btn-compact"
+									>
+										刪除
+									</DeleteButton>
 								)} />
 							))}
 						</div>

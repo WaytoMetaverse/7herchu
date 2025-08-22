@@ -30,7 +30,10 @@ export default function ImageThumb({ url, variant, deleteForm }: Props) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt="thumb" className="w-full h-full object-cover" />
         {deleteForm ? (
-          <div className="absolute bottom-1 right-1" onClick={(e) => e.stopPropagation()}>{deleteForm}</div>
+          <div className="absolute bottom-1 right-1" onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+          }}>{deleteForm}</div>
         ) : null}
       </div>
       {open ? (
