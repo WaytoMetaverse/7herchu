@@ -4,24 +4,23 @@ import { prisma } from '@/lib/prisma'
 export async function GET(req: NextRequest) {
 	try {
 		const { searchParams } = new URL(req.url)
-		const month = searchParams.get('month')
+		const eventId = searchParams.get('eventId')
 
-		if (!month) {
-			return NextResponse.json({ error: '請提供月份參數' }, { status: 400 })
+		if (!eventId) {
+			return NextResponse.json({ error: '請提供活動ID參數' }, { status: 400 })
 		}
 
-		const menu = await prisma.menu.findUnique({
-			where: { month, published: true },
-			include: { items: true }
+		const eventMenu = await prisma.eventMenu.findUnique({
+			where: { eventId }
 		})
 
-		return NextResponse.json({ 
-			ok: true, 
-			data: menu 
+		return NextResponse.json({
+			ok: true,
+			data: eventMenu
 		})
 
 	} catch (error) {
-		console.error('Menu fetch error:', error)
-		return NextResponse.json({ error: '載入菜單失敗' }, { status: 500 })
+		console.error('Event menu fetch error:', error)
+		return NextResponse.json({ error: '載入活動餐點失敗' }, { status: 500 })
 	}
 }

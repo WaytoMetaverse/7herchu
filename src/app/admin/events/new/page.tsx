@@ -77,6 +77,9 @@ async function createEvent(formData: FormData) {
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
 	}
+
+
+
 	await prisma.event.create({ data })
 	revalidatePath('/calendar')
 	revalidatePath('/admin/events')

@@ -158,31 +158,38 @@ model Event {
   bodGuestPriceCents  Int?
   defaultPriceCents   Int?
 
+
+
   registrations     Registration[]
   speakerBookings   SpeakerBooking[]
   guestInvites      GuestInvite[]
   financeLineItems  FinanceLineItem[]
   transactions      FinanceTransaction[]
+  eventMenu         EventMenu?
 
   createdAt         DateTime @default(now())
 }
 
-model Menu {
-  id        String    @id @default(cuid())
-  month     String    @unique // YYYY-MM
-  items     MenuItem[]
-  published Boolean    @default(false)
-}
+model EventMenu {
+  id           String   @id @default(cuid())
+  eventId      String   @unique
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  hasMealService Boolean @default(false) // 是否提供餐點服務
+  allowMealChoice Boolean @default(true) // 是否允許選擇餐點
 
-model MenuItem {
-  id           String @id @default(cuid())
-  menuId       String
-  menu         Menu   @relation(fields: [menuId], references: [id])
-  code         String // 'A' | 'B' | 'C'
-  name         String
-  containsBeef Boolean @default(false)
-  containsPork Boolean @default(false)
-  isVegetarian Boolean @default(false)
+  // 餐點選項
+  mealCodeA    String?  // A餐點名稱
+  mealCodeB    String?  // B餐點名稱
+  mealCodeC    String?  // C餐點名稱 (素食)
+
+  // 牛豬肉標記
+  mealAHasBeef Boolean  @default(false)
+  mealAHasPork Boolean  @default(false)
+  mealBHasBeef Boolean  @default(false)
+  mealBHasPork Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model SpeakerBooking {

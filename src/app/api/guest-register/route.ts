@@ -47,16 +47,15 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ error: '此手機號碼已報名過此活動' }, { status: 400 })
 		}
 
-		// 取得菜單項目資訊
-		const eventMonth = new Date(event.startAt).toISOString().slice(0, 7)
-		const menu = await prisma.menu.findUnique({
-			where: { month: eventMonth },
-			include: { items: true }
+		// 取得活動餐點設定
+		const eventMenu = await prisma.eventMenu.findUnique({
+			where: { eventId: eventId }
 		})
 
-		const menuItem = menu?.items.find(item => item.code === mealCode)
 		let diet = 'meat'
-		if (menuItem?.isVegetarian) diet = 'veg'
+		if (mealCode === 'C' || eventMenu?.mealCodeC) {
+			diet = 'veg' // C餐點預設為素食
+		}
 
 		// 建立來賓報名記錄
 		const registration = await prisma.registration.create({

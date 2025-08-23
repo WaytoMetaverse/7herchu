@@ -27,11 +27,9 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		where: { eventId_phone: { eventId, phone: user.phone || '' } }
 	})
 
-	// 取得當月菜單
-	const eventMonth = new Date(event.startAt).toISOString().slice(0, 7)
-	const menu = await prisma.menu.findUnique({
-		where: { month: eventMonth },
-		include: { items: true }
+	// 取得活動餐點設定
+	const eventMenu = await prisma.eventMenu.findUnique({
+		where: { eventId }
 	})
 
 	// 處理報名
@@ -45,9 +43,11 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 
 		if (!mealCode) return
 
-		const menuItem = menu?.items.find(item => item.code === mealCode)
+		// 根據餐點代碼判斷飲食類型
 		let diet = 'meat'
-		if (menuItem?.isVegetarian) diet = 'veg'
+		if (mealCode === 'C') {
+			diet = 'veg' // C餐點預設為素食
+		}
 
 		// 如果已報名則更新，否則新增
 		if (existingReg) {
@@ -103,46 +103,80 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 			<form action={submitRegistration} className="space-y-6">
 				<div>
 					<h2 className="font-medium mb-4">菜單選擇</h2>
-					{menu?.items ? (
+					{eventMenu?.hasMealService ? (
 						<div className="space-y-3">
-							{menu.items.map(item => {
-								// 如果用戶個人資料設定為素食，預設選擇 C
-								const isVegetarianUser = user.memberProfile?.dietPreference === 'veg'
-								const shouldDefault = existingReg?.mealCode === item.code || 
-									(!existingReg && isVegetarianUser && item.code === 'C')
-								
-								return (
-									<label key={item.id} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-										<input
-											type="radio"
-											name="mealCode"
-											value={item.code}
-											defaultChecked={shouldDefault}
-											required
-											className="mt-1"
-										/>
+							{/* A餐點選項 */}
+							{eventMenu.mealCodeA && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+									<input
+										type="radio"
+										name="mealCode"
+										value="A"
+										defaultChecked={existingReg?.mealCode === 'A'}
+										required
+										className="mt-1"
+									/>
 									<div className="flex-1">
 										<div className="flex items-center gap-2 mb-1">
-											<span className="font-medium">選項 {item.code}</span>
-											{item.isVegetarian && (
-												<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
-											)}
+											<span className="font-medium">選項 A</span>
 										</div>
-										<div className="text-gray-700">{item.name}</div>
-										{!item.isVegetarian && (
-											<div className="text-xs text-gray-500 mt-1 space-x-2">
-												{item.containsBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
-												{item.containsPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
-											</div>
-										)}
+										<div className="text-gray-700">{eventMenu.mealCodeA}</div>
+										<div className="text-xs text-gray-500 mt-1 space-x-2">
+											{eventMenu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
+											{eventMenu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
+										</div>
 									</div>
 								</label>
-								)
-							})}
+							)}
+
+							{/* B餐點選項 */}
+							{eventMenu.mealCodeB && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+									<input
+										type="radio"
+										name="mealCode"
+										value="B"
+										defaultChecked={existingReg?.mealCode === 'B'}
+										required
+										className="mt-1"
+									/>
+									<div className="flex-1">
+										<div className="flex items-center gap-2 mb-1">
+											<span className="font-medium">選項 B</span>
+										</div>
+										<div className="text-gray-700">{eventMenu.mealCodeB}</div>
+										<div className="text-xs text-gray-500 mt-1 space-x-2">
+											{eventMenu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
+											{eventMenu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
+										</div>
+									</div>
+								</label>
+							)}
+
+							{/* C餐點選項 */}
+							{eventMenu.mealCodeC && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+									<input
+										type="radio"
+										name="mealCode"
+										value="C"
+										defaultChecked={existingReg?.mealCode === 'C'}
+										required
+										className="mt-1"
+									/>
+									<div className="flex-1">
+										<div className="flex items-center gap-2 mb-1">
+											<span className="font-medium">選項 C</span>
+											<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
+										</div>
+										<div className="text-gray-700">{eventMenu.mealCodeC}</div>
+									</div>
+								</label>
+							)}
 						</div>
 					) : (
 						<div className="text-gray-500 text-center py-8">
-							本月菜單尚未發布
+							此活動未提供餐點服務
 						</div>
 					)}
 				</div>
@@ -171,7 +205,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				</div>
 
 				<div className="flex items-center gap-3">
-					<Button type="submit" variant="primary" disabled={!menu?.items?.length}>
+					                                     <Button type="submit" variant="primary" disabled={!eventMenu?.hasMealService}>
 						{existingReg ? '更新報名' : '送出報名'}
 					</Button>
 					<Button as={Link} href={`/hall/${eventId}`} variant="ghost">取消</Button>
