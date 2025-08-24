@@ -41,12 +41,39 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		const noBeef = formData.get('noBeef') === 'on'
 		const noPork = formData.get('noPork') === 'on'
 
-		if (!mealCode) return
-
-		// 根據餐點代碼判斷飲食類型
+		// 智能餐點選擇邏輯
 		let diet = 'meat'
-		if (mealCode === 'C') {
+		let finalMealCode = mealCode
+		
+		if (!mealCode && eventMenu?.hasMealService) {
+			// 沒有選擇餐點，但有設定餐點服務，進行智能選擇
+			if (noBeef && noPork) {
+				// 不吃牛也不吃豬 → 選素食 C
+				finalMealCode = 'C'
+				diet = 'veg'
+			} else {
+				// 葷食，需要智能選擇 A 或 B
+				const canEatA = !(noBeef && eventMenu.mealAHasBeef) && !(noPork && eventMenu.mealAHasPork)
+				const canEatB = !(noBeef && eventMenu.mealBHasBeef) && !(noPork && eventMenu.mealBHasPork)
+				
+				if (canEatA && canEatB) {
+					// 兩個都可以吃，選擇人數較少的（這裡先選A，之後可以優化）
+					finalMealCode = 'A'
+				} else if (canEatA) {
+					finalMealCode = 'A'
+				} else if (canEatB) {
+					finalMealCode = 'B'
+				} else {
+					// 都不能吃，選素食 C
+					finalMealCode = 'C'
+					diet = 'veg'
+				}
+			}
+		} else if (mealCode === 'C') {
 			diet = 'veg' // C餐點預設為素食
+		} else if (!mealCode && !eventMenu?.hasMealService) {
+			// 沒有設定餐點時，根據飲食偏好設定
+			diet = noBeef && noPork ? 'veg' : 'meat'
 		}
 
 		// 如果已報名則更新，否則新增
@@ -54,7 +81,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 			await prisma.registration.update({
 				where: { id: existingReg.id },
 				data: {
-					mealCode,
+					mealCode: finalMealCode,
 					diet,
 					noBeef,
 					noPork
@@ -68,7 +95,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					role: 'MEMBER',
 					name: user.name || '',
 					phone: user.phone || '',
-					mealCode,
+					mealCode: finalMealCode,
 					diet,
 					noBeef,
 					noPork,
