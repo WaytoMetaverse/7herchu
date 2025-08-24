@@ -16,10 +16,56 @@ export default async function MenuManagePage() {
 		include: {
 			eventMenu: true,
 			registrations: {
-				select: { id: true }
+				select: { 
+					id: true,
+					mealCode: true,
+					diet: true,
+					noBeef: true,
+					noPork: true
+				}
 			}
 		},
 		orderBy: { startAt: 'desc' }
+	})
+
+	// 計算每個活動的統計
+	const eventsWithStats = events.map(event => {
+		const mealStats = {
+			A: 0,
+			B: 0,
+			C: 0,
+			total: 0
+		}
+
+		const dietStats = {
+			meat: 0,
+			veg: 0,
+			noBeef: 0,
+			noPork: 0,
+			total: 0
+		}
+
+		event.registrations.forEach(reg => {
+			if (reg.mealCode) {
+				// 餐點統計
+				mealStats[reg.mealCode as keyof typeof mealStats]++
+				mealStats.total++
+			}
+			
+			// 飲食偏好統計
+			if (reg.diet) {
+				dietStats[reg.diet as keyof typeof dietStats]++
+				dietStats.total++
+			}
+			if (reg.noBeef) dietStats.noBeef++
+			if (reg.noPork) dietStats.noPork++
+		})
+
+		return {
+			...event,
+			mealStats,
+			dietStats
+		}
 	})
 
 
@@ -37,7 +83,7 @@ export default async function MenuManagePage() {
 
 			{/* 活動列表 */}
 			<div className="space-y-4">
-				{events.map(event => (
+				{eventsWithStats.map(event => (
 					<div key={event.id} className="bg-white border rounded-lg p-6">
 						<div className="flex items-start justify-between mb-4">
 							<div className="flex-1">
@@ -68,7 +114,66 @@ export default async function MenuManagePage() {
 							</div>
 						</div>
 
-
+						{/* 餐點統計 */}
+						{event.eventMenu?.hasMealService ? (
+							<div className="bg-blue-50 p-4 rounded-lg">
+								<h4 className="font-medium text-blue-900 mb-2">餐點統計</h4>
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+									{event.mealStats.A > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-blue-700">{event.mealStats.A}</div>
+											<div className="text-blue-600">A餐點</div>
+										</div>
+									)}
+									{event.mealStats.B > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-blue-700">{event.mealStats.B}</div>
+											<div className="text-blue-600">B餐點</div>
+										</div>
+									)}
+									{event.mealStats.C > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-blue-700">{event.mealStats.C}</div>
+											<div className="text-blue-600">C餐點</div>
+										</div>
+									)}
+									<div className="text-center">
+										<div className="text-lg font-semibold text-blue-900">{event.mealStats.total}</div>
+										<div className="text-blue-800">總計</div>
+									</div>
+								</div>
+							</div>
+						) : (
+							<div className="bg-gray-50 p-4 rounded-lg">
+								<h4 className="font-medium text-gray-900 mb-2">飲食偏好統計</h4>
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+									{event.dietStats.meat > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.meat}</div>
+											<div className="text-gray-600">葷食</div>
+										</div>
+									)}
+									{event.dietStats.veg > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.veg}</div>
+											<div className="text-gray-600">素食</div>
+										</div>
+									)}
+									{event.dietStats.noBeef > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeef}</div>
+											<div className="text-gray-600">不吃牛</div>
+										</div>
+									)}
+									{event.dietStats.noPork > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noPork}</div>
+											<div className="text-gray-600">不吃豬</div>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
 					</div>
 				))}
 			</div>
