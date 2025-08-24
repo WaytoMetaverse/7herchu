@@ -18,6 +18,7 @@ export default function SpeakerBookPage() {
 		diet: 'meat',
 		noBeef: false,
 		noPork: false,
+		mealCode: '',
 		companyName: '',
 		industry: '',
 		bniChapter: '',
@@ -28,7 +29,17 @@ export default function SpeakerBookPage() {
 	const [uploading, setUploading] = useState(false)
 	const [err, setErr] = useState<string | null>(null)
 	const [existingId, setExistingId] = useState<string | null>(null)
-    const [eventDateLabel, setEventDateLabel] = useState<string>('')
+    	const [eventDateLabel, setEventDateLabel] = useState<string>('')
+	const [eventMenu, setEventMenu] = useState<{
+		hasMealService: boolean
+		mealCodeA?: string
+		mealCodeB?: string
+		mealCodeC?: string
+		mealAHasBeef: boolean
+		mealAHasPork: boolean
+		mealBHasBeef: boolean
+		mealBHasPork: boolean
+	} | null>(null)
 
 	useEffect(() => {
 		if (mode !== 'edit') return
@@ -46,6 +57,7 @@ export default function SpeakerBookPage() {
 						diet: d.diet || 'meat',
 						noBeef: !!d.noBeef,
 						noPork: !!d.noPork,
+						mealCode: d.mealCode || '',
 						companyName: d.companyName || '',
 						industry: d.industry || '',
 						bniChapter: d.bniChapter || '',
@@ -59,27 +71,69 @@ export default function SpeakerBookPage() {
 
     useEffect(() => {
         if (!eventId) return
-        fetch('/api/events')
-            .then(res => res.json())
-            .then((list: unknown) => {
-                if (!Array.isArray(list)) { setEventDateLabel(''); return }
-                const e = list.find((x): x is { id: string; startAt?: string | Date } => typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId)
+        Promise.all([
+            fetch('/api/events').then(res => res.json()),
+            fetch(`/api/menus?eventId=${eventId}`).then(res => res.json())
+        ]).then(([eventList, menuData]) => {
+            // 處理活動日期
+            if (Array.isArray(eventList)) {
+                const e = eventList.find((x): x is { id: string; startAt?: string | Date } => 
+                    typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
+                )
                 if (e?.startAt) {
-                    setEventDateLabel(format(new Date(e.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }))
+                    const eventDate = new Date(e.startAt)
+                    if (isNaN(eventDate.getTime())) {
+                        setEventDateLabel('日期格式錯誤')
+                    } else {
+                        setEventDateLabel(format(eventDate, 'yyyy/MM/dd（EEEEE）', { locale: zhTW }))
+                    }
                 } else {
                     setEventDateLabel('')
                 }
-            })
-            .catch(() => setEventDateLabel(''))
+            }
+            
+            // 處理餐點設定
+            if (menuData?.data) {
+                setEventMenu(menuData.data)
+            } else {
+                setEventMenu(null)
+            }
+        }).catch(() => {
+            setEventDateLabel('')
+            setEventMenu(null)
+        })
     }, [eventId])
 
 	async function submit() {
 		setLoading(true)
 		setErr(null)
+		
+		// 驗證必填欄位
+		if (eventMenu?.hasMealService && !form.mealCode) {
+			setErr('請選擇餐點')
+			setLoading(false)
+			return
+		}
+		
 		const isUpdate = Boolean(existingId)
 		const url = isUpdate ? '/api/speaker/booking' : '/api/speaker/book'
 		const method = isUpdate ? 'PUT' : 'POST'
-		const payload = isUpdate ? { id: existingId, ...form } : { eventId, ...form }
+		
+		// 準備提交數據
+		const submitData = { ...form }
+		if (eventMenu?.hasMealService) {
+			// 如果有餐點服務，根據餐點代碼設定飲食類型
+			if (form.mealCode === 'C') {
+				submitData.diet = 'veg'
+			} else {
+				submitData.diet = 'meat'
+			}
+			// 清除傳統的飲食偏好設定
+			submitData.noBeef = false
+			submitData.noPork = false
+		}
+		
+		const payload = isUpdate ? { id: existingId, ...submitData } : { eventId, ...submitData }
 		const res = await fetch(url, {
 			method,
 			headers: { 'content-type': 'application/json' },
@@ -170,26 +224,109 @@ export default function SpeakerBookPage() {
 					{form.pptUrl ? <a href={form.pptUrl} target="_blank" className="text-blue-600 underline">已上傳/連結</a> : null}
 				</div>
 			</div>
-			<div className="flex items-center gap-4">
-				<label className="flex items-center gap-2 text-sm">
-					<input type="radio" name="diet" required checked={form.diet === 'meat'} onChange={() => setForm((v) => ({ ...v, diet: 'meat' }))} />
-					葷食<Required />
-				</label>
-				<label className="flex items-center gap-2 text-sm">
-					<input type="radio" name="diet" required checked={form.diet === 'veg'} onChange={() => setForm((v) => ({ ...v, diet: 'veg' }))} />
-					素食<Required />
-				</label>
-			</div>
-			<div className="flex items-center gap-4 text-sm">
-				<label className="flex items-center gap-2">
-					<input type="checkbox" checked={form.noBeef} onChange={(e) => setForm((v) => ({ ...v, noBeef: e.target.checked }))} />
-					不吃牛
-				</label>
-				<label className="flex items-center gap-2">
-					<input type="checkbox" checked={form.noPork} onChange={(e) => setForm((v) => ({ ...v, noPork: e.target.checked }))} />
-					不吃豬
-				</label>
-			</div>
+			{/* 餐點選擇 - 如果有設定餐點服務 */}
+			{eventMenu?.hasMealService ? (
+				<div>
+					<h3 className="font-medium mb-3">餐點選擇<Required /></h3>
+					<div className="space-y-3">
+						{/* A餐點選項 */}
+						{eventMenu.mealCodeA && (
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+								<input
+									type="radio"
+									name="mealCode"
+									value="A"
+									checked={form.mealCode === 'A'}
+									onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
+									required
+									className="mt-1"
+								/>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 A</span>
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeA}</div>
+									<div className="text-xs text-gray-500 mt-1 space-x-2">
+										{eventMenu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
+										{eventMenu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
+									</div>
+								</div>
+							</label>
+						)}
+
+						{/* B餐點選項 */}
+						{eventMenu.mealCodeB && (
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+								<input
+									type="radio"
+									name="mealCode"
+									value="B"
+									checked={form.mealCode === 'B'}
+									onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
+									required
+									className="mt-1"
+								/>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 B</span>
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeB}</div>
+									<div className="text-xs text-gray-500 mt-1 space-x-2">
+										{eventMenu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
+										{eventMenu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
+									</div>
+								</div>
+							</label>
+						)}
+
+						{/* C餐點選項 */}
+						{eventMenu.mealCodeC && (
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+								<input
+									type="radio"
+									name="mealCode"
+									value="C"
+									checked={form.mealCode === 'C'}
+									onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
+									required
+									className="mt-1"
+								/>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 C</span>
+										<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeC}</div>
+								</div>
+							</label>
+						)}
+					</div>
+				</div>
+			) : (
+				/* 傳統飲食偏好選擇 - 只在沒有餐點服務時顯示 */
+				<>
+					<div className="flex items-center gap-4">
+						<label className="flex items-center gap-2 text-sm">
+							<input type="radio" name="diet" required checked={form.diet === 'meat'} onChange={() => setForm((v) => ({ ...v, diet: 'meat' }))} />
+							葷食<Required />
+						</label>
+						<label className="flex items-center gap-2 text-sm">
+							<input type="radio" name="diet" required checked={form.diet === 'veg'} onChange={() => setForm((v) => ({ ...v, diet: 'veg' }))} />
+							素食<Required />
+						</label>
+					</div>
+					<div className="flex items-center gap-4 text-sm">
+						<label className="flex items-center gap-2">
+							<input type="checkbox" checked={form.noBeef} onChange={(e) => setForm((v) => ({ ...v, noBeef: e.target.checked }))} />
+							不吃牛
+						</label>
+						<label className="flex items-center gap-2">
+							<input type="checkbox" checked={form.noPork} onChange={(e) => setForm((v) => ({ ...v, noPork: e.target.checked }))} />
+							不吃豬
+						</label>
+					</div>
+				</>
+			)}
 			<div className="flex items-center gap-3">
 				<Button disabled={loading} onClick={submit}>{loading ? '送出中…' : '送出預約'}</Button>
 				<Button as={Link} href="/calendar" variant="ghost">取消</Button>

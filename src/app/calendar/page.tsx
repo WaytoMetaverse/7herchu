@@ -80,7 +80,11 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 						{list.map((e) => {
 							const canBookSpeaker = e.allowSpeakers && e.type === EventType.GENERAL
 							const cnt = counts[e.id] ?? 0
-							const label = statusLabel(canBookSpeaker, e.speakerQuota, cnt)
+							const quota = e.speakerQuota ?? 0
+							const hasQuota = quota > 0
+							const availableSlots = quota - cnt
+							const canBook = canBookSpeaker && hasQuota && availableSlots > 0
+							const label = statusLabel(canBookSpeaker, quota, cnt)
 							return (
 								<Card key={e.id}>
 									<Link href={`/calendar/${e.id}`}>
@@ -103,7 +107,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 										</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
-										{canBookSpeaker && (e.speakerQuota ?? 0) - cnt > 0 ? (
+										{canBook ? (
 											<Link href={`/speaker/book?event=${e.id}`}><Button>預約短講</Button></Link>
 										) : (
 											<Button as="button" variant="outline" aria-disabled>
