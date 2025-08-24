@@ -23,6 +23,15 @@ export default async function MenuManagePage() {
 					noBeef: true,
 					noPork: true
 				}
+			},
+			speakerBookings: {
+				select: {
+					id: true,
+					mealCode: true,
+					diet: true,
+					noBeef: true,
+					noPork: true
+				}
 			}
 		},
 		orderBy: { startAt: 'desc' }
@@ -45,6 +54,7 @@ export default async function MenuManagePage() {
 			total: 0
 		}
 
+		// 統計一般報名
 		event.registrations.forEach(reg => {
 			if (reg.mealCode) {
 				// 餐點統計
@@ -59,6 +69,23 @@ export default async function MenuManagePage() {
 			}
 			if (reg.noBeef) dietStats.noBeef++
 			if (reg.noPork) dietStats.noPork++
+		})
+
+		// 統計講師預約
+		event.speakerBookings.forEach(booking => {
+			if (booking.mealCode) {
+				// 餐點統計
+				mealStats[booking.mealCode as keyof typeof mealStats]++
+				mealStats.total++
+			}
+			
+			// 飲食偏好統計
+			if (booking.diet) {
+				dietStats[booking.diet as keyof typeof dietStats]++
+				dietStats.total++
+			}
+			if (booking.noBeef) dietStats.noBeef++
+			if (booking.noPork) dietStats.noPork++
 		})
 
 		return {
