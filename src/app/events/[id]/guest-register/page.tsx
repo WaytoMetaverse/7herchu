@@ -220,28 +220,30 @@ export default function GuestRegisterPage({ params }: { params: Promise<{ id: st
 					</div>
 				)}
 
-				{/* 飲食偏好 */}
-				<div>
-					<h3 className="font-medium mb-3">飲食偏好</h3>
-					<div className="space-y-2">
-						<label className="flex items-center gap-2">
-							<input 
-								type="checkbox" 
-								checked={form.noBeef}
-								onChange={(e) => setForm(v => ({...v, noBeef: e.target.checked}))}
-							/>
-							<span className="text-sm">不吃牛肉</span>
-						</label>
-						<label className="flex items-center gap-2">
-							<input 
-								type="checkbox" 
-								checked={form.noPork}
-								onChange={(e) => setForm(v => ({...v, noPork: e.target.checked}))}
-							/>
-							<span className="text-sm">不吃豬肉</span>
-						</label>
+				{/* 飲食偏好 - 只在沒有餐點服務時顯示 */}
+				{!menu?.items && (
+					<div>
+						<h3 className="font-medium mb-3">飲食偏好</h3>
+						<div className="space-y-2">
+							<label className="flex items-center gap-2">
+								<input 
+									type="checkbox" 
+									checked={form.noBeef}
+									onChange={(e) => setForm(v => ({...v, noBeef: e.target.checked}))}
+								/>
+								<span className="text-sm">不吃牛肉</span>
+							</label>
+							<label className="flex items-center gap-2">
+								<input 
+									type="checkbox" 
+									checked={form.noPork}
+									onChange={(e) => setForm(v => ({...v, noPork: e.target.checked}))}
+								/>
+								<span className="text-sm">不吃豬肉</span>
+							</label>
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 
 			<div className="flex items-center gap-3">
