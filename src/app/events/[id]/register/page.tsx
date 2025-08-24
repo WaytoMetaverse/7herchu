@@ -207,7 +207,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				)}
 
 				<div className="flex items-center gap-3">
-					                                     <Button type="submit" variant="primary" disabled={!eventMenu?.hasMealService}>
+					<Button type="submit" variant="primary">
 						{existingReg ? '更新報名' : '送出報名'}
 					</Button>
 					<Button as={Link} href={`/hall/${eventId}`} variant="ghost">取消</Button>
