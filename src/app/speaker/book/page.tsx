@@ -81,7 +81,17 @@ export default function SpeakerBookPage() {
                     typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
                 )
                 if (e?.startAt) {
-                    const eventDate = new Date(e.startAt)
+                    // 處理時區問題：直接使用原始日期字符串，避免時區轉換
+                    let eventDate: Date
+                    if (typeof e.startAt === 'string') {
+                        // 如果是字符串，直接解析為本地日期
+                        const [year, month, day] = e.startAt.split('T')[0].split('-')
+                        eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                    } else {
+                        // 如果是 Date 對象，直接使用
+                        eventDate = e.startAt
+                    }
+                    
                     if (isNaN(eventDate.getTime())) {
                         setEventDateLabel('日期格式錯誤')
                     } else {
