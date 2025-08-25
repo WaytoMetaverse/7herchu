@@ -11,6 +11,7 @@ import type { Role } from '@prisma/client'
 export const authOptions: NextAuthOptions = {
 	adapter: PrismaUserAdapter(prisma) as Adapter,
 	session: { strategy: 'jwt' },
+	secret: process.env.NEXTAUTH_SECRET,
 	providers: [
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID || '',

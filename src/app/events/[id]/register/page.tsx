@@ -16,6 +16,8 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		console.log('NODE_ENV:', process.env.NODE_ENV)
 		console.log('NEXTAUTH_SECRET exists:', !!process.env.NEXTAUTH_SECRET)
 		console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
+		console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID)
+		console.log('GOOGLE_CLIENT_SECRET exists:', !!process.env.GOOGLE_CLIENT_SECRET)
 		
 		// 2. 解析參數
 		const { id: eventId } = await params
@@ -23,9 +25,15 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		
 		// 3. 檢查會話
 		console.log('Getting session...')
-		const session = await getServerSession(authOptions)
-		console.log('Session:', session ? 'exists' : 'null')
-		if (!session?.user?.email) redirect('/auth/signin')
+		let session
+		try {
+			session = await getServerSession(authOptions)
+			console.log('Session:', session ? 'exists' : 'null')
+			if (!session?.user?.email) redirect('/auth/signin')
+		} catch (sessionError) {
+			console.error('Session error:', sessionError)
+			throw new Error(`Session error: ${sessionError}`)
+		}
 
 		const event = await prisma.event.findUnique({ where: { id: eventId } })
 		console.log('Event:', event ? 'found' : 'not found')
