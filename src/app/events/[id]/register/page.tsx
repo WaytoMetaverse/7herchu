@@ -23,9 +23,9 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 	if (!user) redirect('/auth/signin')
 
 	// 檢查是否已報名
-	const existingReg = await prisma.registration.findUnique({
-		where: { eventId_phone: { eventId, phone: user.phone || '' } }
-	})
+	const existingReg = user.phone ? await prisma.registration.findUnique({
+		where: { eventId_phone: { eventId, phone: user.phone } }
+	}) : null
 
 	// 取得活動餐點設定
 	const eventMenu = await prisma.eventMenu.findUnique({
