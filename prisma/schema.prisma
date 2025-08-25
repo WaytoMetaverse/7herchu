@@ -166,6 +166,7 @@ model Event {
   financeLineItems  FinanceLineItem[]
   transactions      FinanceTransaction[]
   eventMenu         EventMenu?
+  leaveRecords      LeaveRecord[]
 
   createdAt         DateTime @default(now())
 }
@@ -259,6 +260,17 @@ model Registration {
   createdAt     DateTime @default(now())
 
   @@unique([eventId, phone])
+}
+
+model LeaveRecord {
+  id        String   @id @default(cuid())
+  eventId   String
+  userName  String
+  leaveAt   DateTime @default(now())
+  
+  event     Event    @relation(fields: [eventId], references: [id])
+  
+  @@unique([eventId, userName])
 }
 
 model FinanceInvoice {
