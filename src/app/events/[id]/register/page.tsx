@@ -10,9 +10,19 @@ import { zhTW } from 'date-fns/locale'
 
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
 	try {
+		console.log('=== EventRegisterPage Start ===')
+		
+		// 1. 檢查環境變數
+		console.log('NODE_ENV:', process.env.NODE_ENV)
+		console.log('NEXTAUTH_SECRET exists:', !!process.env.NEXTAUTH_SECRET)
+		console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
+		
+		// 2. 解析參數
 		const { id: eventId } = await params
 		console.log('Event ID:', eventId)
 		
+		// 3. 檢查會話
+		console.log('Getting session...')
 		const session = await getServerSession(authOptions)
 		console.log('Session:', session ? 'exists' : 'null')
 		if (!session?.user?.email) redirect('/auth/signin')
