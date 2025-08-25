@@ -11,27 +11,34 @@ import { zhTW } from 'date-fns/locale'
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
 	try {
 		const { id: eventId } = await params
+		console.log('Event ID:', eventId)
+		
 		const session = await getServerSession(authOptions)
+		console.log('Session:', session ? 'exists' : 'null')
 		if (!session?.user?.email) redirect('/auth/signin')
 
 		const event = await prisma.event.findUnique({ where: { id: eventId } })
+		console.log('Event:', event ? 'found' : 'not found')
 		if (!event) notFound()
 
 		const user = await prisma.user.findUnique({ 
 			where: { email: session.user.email },
 			include: { memberProfile: true }
 		})
+		console.log('User:', user ? 'found' : 'not found', 'Phone:', user?.phone)
 		if (!user) redirect('/auth/signin')
 
 		// 檢查是否已報名
 		const existingReg = user.phone ? await prisma.registration.findUnique({
 			where: { eventId_phone: { eventId, phone: user.phone } }
 		}) : null
+		console.log('Existing registration:', existingReg ? 'found' : 'not found')
 
 		// 取得活動餐點設定
 		const eventMenu = await prisma.eventMenu.findUnique({
 			where: { eventId }
 		})
+		console.log('Event menu:', eventMenu ? 'found' : 'not found')
 
 	// 處理報名
 	async function submitRegistration(formData: FormData) {
