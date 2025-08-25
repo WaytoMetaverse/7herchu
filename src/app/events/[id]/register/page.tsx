@@ -247,12 +247,34 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 	)
 	} catch (error) {
 		console.error('EventRegisterPage error:', error)
+		
+		// 在開發環境顯示詳細錯誤信息
+		const isDev = process.env.NODE_ENV === 'development'
+		
 		return (
 			<div className="max-w-lg mx-auto p-4 space-y-6">
 				<div className="text-center space-y-2">
 					<h1 className="text-2xl font-semibold text-red-600">載入錯誤</h1>
 					<p className="text-gray-600">抱歉，載入報名頁面時發生錯誤。</p>
-					<Button as={Link} href="/hall" variant="primary">返回活動大廳</Button>
+					
+					{isDev && (
+						<div className="bg-red-50 p-3 rounded-lg text-left">
+							<p className="text-sm font-medium text-red-800 mb-2">開發環境錯誤詳情：</p>
+							<pre className="text-xs text-red-700 whitespace-pre-wrap">
+								{error instanceof Error ? error.message : String(error)}
+							</pre>
+						</div>
+					)}
+					
+					<div className="space-y-2">
+						<Button as={Link} href="/hall" variant="primary">返回活動大廳</Button>
+						<Button 
+							onClick={() => window.location.reload()} 
+							variant="ghost"
+						>
+							重新載入
+						</Button>
+					</div>
 				</div>
 			</div>
 		)
