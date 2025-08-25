@@ -9,28 +9,29 @@ import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
-	const { id: eventId } = await params
-	const session = await getServerSession(authOptions)
-	if (!session?.user?.email) redirect('/auth/signin')
+	try {
+		const { id: eventId } = await params
+		const session = await getServerSession(authOptions)
+		if (!session?.user?.email) redirect('/auth/signin')
 
-	const event = await prisma.event.findUnique({ where: { id: eventId } })
-	if (!event) notFound()
+		const event = await prisma.event.findUnique({ where: { id: eventId } })
+		if (!event) notFound()
 
-	const user = await prisma.user.findUnique({ 
-		where: { email: session.user.email },
-		include: { memberProfile: true }
-	})
-	if (!user) redirect('/auth/signin')
+		const user = await prisma.user.findUnique({ 
+			where: { email: session.user.email },
+			include: { memberProfile: true }
+		})
+		if (!user) redirect('/auth/signin')
 
-	// 檢查是否已報名
-	const existingReg = user.phone ? await prisma.registration.findUnique({
-		where: { eventId_phone: { eventId, phone: user.phone } }
-	}) : null
+		// 檢查是否已報名
+		const existingReg = user.phone ? await prisma.registration.findUnique({
+			where: { eventId_phone: { eventId, phone: user.phone } }
+		}) : null
 
-	// 取得活動餐點設定
-	const eventMenu = await prisma.eventMenu.findUnique({
-		where: { eventId }
-	})
+		// 取得活動餐點設定
+		const eventMenu = await prisma.eventMenu.findUnique({
+			where: { eventId }
+		})
 
 	// 處理報名
 	async function submitRegistration(formData: FormData) {
@@ -244,4 +245,16 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 
 		</div>
 	)
+	} catch (error) {
+		console.error('EventRegisterPage error:', error)
+		return (
+			<div className="max-w-lg mx-auto p-4 space-y-6">
+				<div className="text-center space-y-2">
+					<h1 className="text-2xl font-semibold text-red-600">載入錯誤</h1>
+					<p className="text-gray-600">抱歉，載入報名頁面時發生錯誤。</p>
+					<Button as={Link} href="/hall" variant="primary">返回活動大廳</Button>
+				</div>
+			</div>
+		)
+	}
 }
