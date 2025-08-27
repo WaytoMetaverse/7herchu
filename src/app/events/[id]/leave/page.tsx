@@ -36,16 +36,11 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 			})
 		}
 
-		// 新增請假記錄（使用特殊狀態）
-		await prisma.registration.create({
+		// 新增請假記錄到 LeaveRecord 表
+		await prisma.leaveRecord.create({
 			data: {
 				eventId,
-				userId: user.id,
-				role: 'MEMBER',
-				name: user.name || '',
-				phone: user.phone || '',
-				status: 'leave', // 請假狀態
-				paymentStatus: 'PAID' // 請假不需繳費
+				userName: user.name || '未知用戶'
 			}
 		})
 
@@ -53,7 +48,11 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 		redirect(`/hall/${eventId}`)
 	}
 
-	const isOnLeave = existingReg?.status === 'leave'
+	// 檢查是否已請假
+	const leaveRecord = await prisma.leaveRecord.findUnique({
+		where: { eventId_userName: { eventId, userName: user.name || '' } }
+	})
+	const isOnLeave = !!leaveRecord
 
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-6">
@@ -87,9 +86,19 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 
 			<div className="flex items-center gap-3 justify-center">
 				{isOnLeave ? (
-					<Button as={Link} href={`/events/${eventId}/register`} variant="primary">
-						改為報名
-					</Button>
+					<form action={async () => {
+						'use server'
+						// 刪除請假記錄
+						await prisma.leaveRecord.delete({
+							where: { eventId_userName: { eventId, userName: user.name || '' } }
+						})
+						revalidatePath(`/hall/${eventId}`)
+						redirect(`/events/${eventId}/register`)
+					}}>
+						<Button type="submit" variant="primary">
+							改為報名
+						</Button>
+					</form>
 				) : (
 					<form action={submitLeave}>
 						<Button type="submit" variant="outline">

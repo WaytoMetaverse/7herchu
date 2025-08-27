@@ -41,9 +41,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)
 	const isLoggedIn = !!session?.user
 
-	const [regs, speakers] = await Promise.all([
+	const [regs, speakers, leaveRecords, eventMenu] = await Promise.all([
 		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
+		prisma.leaveRecord.findMany({ where: { eventId: id }, orderBy: { leaveAt: 'asc' } }),
+		prisma.eventMenu.findUnique({ where: { eventId: id } })
 	])
 
 	const checkedCount = regs.filter(r => r.checkedInAt != null).length
@@ -149,14 +151,52 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<CardContent>
 						<h2 className="font-medium mb-2">內部成員（{members.length}）</h2>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
-							{members.map(m => (
-								<li key={m.id}>
-									{getDisplayName(m.user) || m.name || '-'}{m.checkedInAt ? '（已簽到）' : ''}
-								</li>
-							))}
+							{members.map(m => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService && m.mealCode) {
+									// 有餐點設定：顯示 A/B/C
+									mealInfo = ` - ${m.mealCode}餐`
+								} else if (!eventMenu?.hasMealService) {
+									// 沒有餐點設定：顯示飲食偏好
+									if (m.diet === 'veg') {
+										mealInfo = ' - 素食'
+									} else {
+										const restrictions = []
+										if (m.noBeef) restrictions.push('不吃牛')
+										if (m.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` - 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' - 葷食'
+										}
+									}
+								}
+								
+								return (
+									<li key={m.id}>
+										{getDisplayName(m.user) || m.name || '-'}{mealInfo}{m.checkedInAt ? '（已簽到）' : ''}
+									</li>
+								)
+							})}
 						</ul>
 					</CardContent>
 				</Card>
+
+				{/* 請假名單 */}
+				{leaveRecords.length > 0 && (
+					<Card>
+						<CardContent>
+							<h2 className="font-medium mb-2">請假名單（{leaveRecords.length}）</h2>
+							<div className="text-sm text-gray-600">
+								{leaveRecords.map(record => (
+									<span key={record.id} className="inline-block mr-3 mb-2">
+										{record.userName}
+									</span>
+								))}
+							</div>
+						</CardContent>
+					</Card>
+				)}
 
 				<Card>
 					<CardContent>
@@ -178,5 +218,6 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 		</div>
 	)
 }
+
 
 

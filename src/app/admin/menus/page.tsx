@@ -51,6 +51,7 @@ export default async function MenuManagePage() {
 			veg: 0,
 			noBeef: 0,
 			noPork: 0,
+			noBeefNoPork: 0,
 			total: 0
 		}
 
@@ -67,8 +68,12 @@ export default async function MenuManagePage() {
 				dietStats[reg.diet as keyof typeof dietStats]++
 				dietStats.total++
 			}
-			if (reg.noBeef) dietStats.noBeef++
-			if (reg.noPork) dietStats.noPork++
+			if (reg.noBeef && reg.noPork) {
+				dietStats.noBeefNoPork++
+			} else {
+				if (reg.noBeef) dietStats.noBeef++
+				if (reg.noPork) dietStats.noPork++
+			}
 		})
 
 		// 統計講師預約
@@ -84,8 +89,12 @@ export default async function MenuManagePage() {
 				dietStats[booking.diet as keyof typeof dietStats]++
 				dietStats.total++
 			}
-			if (booking.noBeef) dietStats.noBeef++
-			if (booking.noPork) dietStats.noPork++
+			if (booking.noBeef && booking.noPork) {
+				dietStats.noBeefNoPork++
+			} else {
+				if (booking.noBeef) dietStats.noBeef++
+				if (booking.noPork) dietStats.noPork++
+			}
 		})
 
 		return {
@@ -174,30 +183,51 @@ export default async function MenuManagePage() {
 							<div className="bg-gray-50 p-4 rounded-lg">
 								<h4 className="font-medium text-gray-900 mb-2">飲食偏好統計</h4>
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+									{/* 葷食（無限制） */}
 									{event.dietStats.meat > 0 && (
 										<div className="text-center">
 											<div className="text-lg font-semibold text-gray-700">{event.dietStats.meat}</div>
-											<div className="text-gray-600">葷食</div>
+											<div className="text-gray-600">葷食（無限制）</div>
 										</div>
 									)}
+									
+									{/* 葷食（不吃牛） */}
+									{event.dietStats.noBeef > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeef}</div>
+											<div className="text-gray-600">葷食（不吃牛）</div>
+										</div>
+									)}
+									
+									{/* 葷食（不吃豬） */}
+									{event.dietStats.noPork > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noPork}</div>
+											<div className="text-gray-600">葷食（不吃豬）</div>
+										</div>
+									)}
+									
+									{/* 葷食（不吃牛不吃豬） */}
+									{event.dietStats.noBeefNoPork > 0 && (
+										<div className="text-center">
+											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeefNoPork}</div>
+											<div className="text-gray-600">葷食（不吃牛不吃豬）</div>
+										</div>
+									)}
+									
+									{/* 素食 */}
 									{event.dietStats.veg > 0 && (
 										<div className="text-center">
 											<div className="text-lg font-semibold text-gray-700">{event.dietStats.veg}</div>
 											<div className="text-gray-600">素食</div>
 										</div>
 									)}
-									{event.dietStats.noBeef > 0 && (
-										<div className="text-center">
-											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeef}</div>
-											<div className="text-gray-600">不吃牛</div>
-										</div>
-									)}
-									{event.dietStats.noPork > 0 && (
-										<div className="text-center">
-											<div className="text-lg font-semibold text-gray-700">{event.dietStats.noPork}</div>
-											<div className="text-gray-600">不吃豬</div>
-										</div>
-									)}
+									
+									{/* 總計 */}
+									<div className="text-center">
+										<div className="text-lg font-semibold text-gray-900">{event.dietStats.total}</div>
+										<div className="text-gray-800">共</div>
+									</div>
 								</div>
 							</div>
 						)}
