@@ -48,6 +48,118 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 		prisma.eventMenu.findUnique({ where: { eventId: id } })
 	])
 
+	// 智能選擇：為沒有 mealCode 但活動有餐點設定的報名記錄自動分配餐點
+	if (eventMenu?.hasMealService) {
+		const needsAutoAssignment = regs.filter(reg => !reg.mealCode)
+		
+		if (needsAutoAssignment.length > 0) {
+			// 批量更新所有需要智能選擇的報名記錄
+			const updates = needsAutoAssignment.map(reg => {
+				let finalMealCode = ''
+				let diet = 'meat'
+
+				// 智能選擇邏輯
+				if (reg.noBeef && reg.noPork) {
+					// 不吃牛也不吃豬 → 選素食 C
+					finalMealCode = 'C'
+					diet = 'veg'
+				} else {
+					// 葷食，需要智能選擇 A 或 B
+					const canEatA = !(reg.noBeef && eventMenu.mealAHasBeef) && !(reg.noPork && eventMenu.mealAHasPork)
+					const canEatB = !(reg.noBeef && eventMenu.mealBHasBeef) && !(reg.noPork && eventMenu.mealBHasPork)
+					
+					if (canEatA && canEatB) {
+						// 兩個都可以吃，選擇 A（可以之後優化為選人數較少的）
+						finalMealCode = 'A'
+					} else if (canEatA) {
+						finalMealCode = 'A'
+					} else if (canEatB) {
+						finalMealCode = 'B'
+					} else {
+						// 都不能吃，選素食 C
+						finalMealCode = 'C'
+						diet = 'veg'
+					}
+				}
+
+				return prisma.registration.update({
+					where: { id: reg.id },
+					data: {
+						mealCode: finalMealCode,
+						diet
+					}
+				})
+			})
+
+			// 執行批量更新
+			await Promise.all(updates)
+
+			// 重新查詢更新後的資料
+			const updatedRegs = await prisma.registration.findMany({ 
+				where: { eventId: id }, 
+				orderBy: { createdAt: 'asc' }, 
+				include: { user: { select: { name: true, nickname: true } } } 
+			})
+			
+			// 更新 regs 變數
+			regs.splice(0, regs.length, ...updatedRegs)
+		}
+
+		// 同樣為講師預約進行智能選擇
+		const speakersNeedsAutoAssignment = speakers.filter(speaker => !speaker.mealCode)
+		
+		if (speakersNeedsAutoAssignment.length > 0) {
+			const speakerUpdates = speakersNeedsAutoAssignment.map(speaker => {
+				let finalMealCode = ''
+				let diet = 'meat'
+
+				// 智能選擇邏輯
+				if (speaker.noBeef && speaker.noPork) {
+					// 不吃牛也不吃豬 → 選素食 C
+					finalMealCode = 'C'
+					diet = 'veg'
+				} else {
+					// 葷食，需要智能選擇 A 或 B
+					const canEatA = !(speaker.noBeef && eventMenu.mealAHasBeef) && !(speaker.noPork && eventMenu.mealAHasPork)
+					const canEatB = !(speaker.noBeef && eventMenu.mealBHasBeef) && !(speaker.noPork && eventMenu.mealBHasPork)
+					
+					if (canEatA && canEatB) {
+						// 兩個都可以吃，選擇 A
+						finalMealCode = 'A'
+					} else if (canEatA) {
+						finalMealCode = 'A'
+					} else if (canEatB) {
+						finalMealCode = 'B'
+					} else {
+						// 都不能吃，選素食 C
+						finalMealCode = 'C'
+						diet = 'veg'
+					}
+				}
+
+				return prisma.speakerBooking.update({
+					where: { id: speaker.id },
+					data: {
+						mealCode: finalMealCode,
+						diet
+					}
+				})
+			})
+
+			// 執行批量更新
+			await Promise.all(speakerUpdates)
+
+			// 重新查詢更新後的講師資料
+			const updatedSpeakers = await prisma.speakerBooking.findMany({ 
+				where: { eventId: id }, 
+				orderBy: { createdAt: 'asc' }
+			})
+			
+			// 更新 speakers 變數
+			speakers.splice(0, speakers.length, ...updatedSpeakers)
+		}
+	}
+
 	const checkedCount = regs.filter(r => r.checkedInAt != null).length
 	const totalCount = regs.length
 
@@ -153,10 +265,15 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						<ul className="list-disc pl-5 text-sm text-gray-800">
 							{members.map(m => {
 								let mealInfo = ''
-								if (eventMenu?.hasMealService && m.mealCode) {
-									// 有餐點設定：顯示 A/B/C
-									mealInfo = ` - ${m.mealCode}餐`
-								} else if (!eventMenu?.hasMealService) {
+								if (eventMenu?.hasMealService) {
+									if (m.mealCode) {
+										// 有餐點設定且有 mealCode：顯示 A/B/C
+										mealInfo = ` - ${m.mealCode}餐`
+									} else {
+										// 有餐點設定但沒有 mealCode（理論上不會發生）
+										mealInfo = ' - 待分配'
+									}
+								} else {
 									// 沒有餐點設定：顯示飲食偏好
 									if (m.diet === 'veg') {
 										mealInfo = ' - 素食'
