@@ -50,12 +50,30 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
               {speakers.map(s => (
                 <li key={s.id} className="py-3 text-sm flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <div className="font-medium">{s.name}　{s.phone}</div>
+                    <div className="font-medium flex items-center gap-2">
+                      {s.name}　{s.phone}
+                      {s.pptUrl && (
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                          有PPT
+                        </span>
+                      )}
+                    </div>
                     <div className="text-gray-600">邀請人：{s.invitedBy || '-'}</div>
                     <div className="text-gray-600">{[s.companyName, s.industry].filter(Boolean).join('/') || '-'}</div>
                     <div className="text-gray-600">分會：{s.bniChapter || '-'}</div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {s.pptUrl && (
+                      <Link 
+                        href={s.pptUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                          下載PPT
+                        </Button>
+                      </Link>
+                    )}
                     {canManage ? (
                       <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm" className="whitespace-nowrap">編輯</Button></Link>
                     ) : null}

@@ -13,8 +13,10 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	const { eventId } = await params
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
-	const canManage = roles.includes('admin') || roles.includes('checkin_manager') || roles.includes('finance_manager')
-	if (!canManage) redirect('/hall')
+	// 所有人都可以進入簽到管理查看
+	// 但操作權限在頁面內控制
+	const canCheckin = roles.includes('admin') || roles.includes('event_manager') || roles.includes('checkin_manager') || roles.includes('finance_manager')
+	const canPayment = roles.includes('admin') || roles.includes('event_manager') || roles.includes('finance_manager')
 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) notFound()
@@ -195,13 +197,17 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
 													已簽到
 												</span>
-											) : (
+											) : canCheckin ? (
 												<form action={checkIn} className="inline">
 													<input type="hidden" name="registrationId" value={registration.id} />
 													<Button type="submit" variant="outline" size="sm">
 														未簽到
 													</Button>
 												</form>
+											) : (
+												<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+													未簽到
+												</span>
 											)}
 										</td>
 										<td className="px-4 py-3 text-center">
@@ -209,7 +215,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
 													繳費
 												</span>
-											) : (
+											) : canPayment ? (
 												<form action={markPaid} className="inline">
 													<input type="hidden" name="registrationId" value={registration.id} />
 													<Button 
@@ -221,6 +227,10 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 														未繳費
 													</Button>
 												</form>
+											) : (
+												<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+													未繳費
+												</span>
 											)}
 										</td>
 									</tr>

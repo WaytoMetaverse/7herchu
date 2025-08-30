@@ -38,7 +38,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	}
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const canEditDelete = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
-	const canCheckin = canEditDelete || roles.includes('checkin_manager' as Role) || roles.includes('finance_manager' as Role)
+	const canCheckin = true // 所有人都可以進入簽到管理
 	const isLoggedIn = !!session?.user
 
 	const [regs, speakers, leaveRecords, eventMenu] = await Promise.all([
@@ -247,14 +247,47 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			<div className="space-y-4">
 				<Card>
 					<CardContent>
-						<h2 className="font-medium mb-2">講師（{speakers.length}）</h2>
+						<div className="flex items-center justify-between mb-2">
+							<h2 className="font-medium">講師（{speakers.length}）</h2>
+							{canEditDelete ? (
+								<Button as={Link} href={`/calendar/${event.id}`} variant="outline" size="sm">
+									講師管理
+								</Button>
+							) : null}
+						</div>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
-							{speakers.map(s => (
-								<li key={s.id}>
-									{[s.name, s.companyName].filter(Boolean).join(' · ')}
-									{s.pptUrl ? ' · 有PPT' : ''}
-								</li>
-							))}
+							{speakers.map(s => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService) {
+									if (s.mealCode) {
+										// 有餐點設定且有 mealCode：顯示 A/B/C
+										mealInfo = ` · ${s.mealCode}餐`
+									} else {
+										// 有餐點設定但沒有 mealCode（理論上不會發生）
+										mealInfo = ' · 待分配'
+									}
+								} else {
+									// 沒有餐點設定：顯示飲食偏好
+									if (s.diet === 'veg') {
+										mealInfo = ' · 素食'
+									} else {
+										const restrictions = []
+										if (s.noBeef) restrictions.push('不吃牛')
+										if (s.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` · 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' · 葷食'
+										}
+									}
+								}
+								
+								return (
+									<li key={s.id}>
+										{[s.name, s.companyName, s.industry, s.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
+									</li>
+								)
+							})}
 						</ul>
 					</CardContent>
 				</Card>
@@ -291,7 +324,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								
 								return (
 									<li key={m.id}>
-										{getDisplayName(m.user) || m.name || '-'}{mealInfo}{m.checkedInAt ? '（已簽到）' : ''}
+										{getDisplayName(m.user) || m.name || '-'}{mealInfo}
 									</li>
 								)
 							})}
@@ -319,11 +352,38 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<CardContent>
 						<h2 className="font-medium mb-2">來賓（{guests.length}）</h2>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
-							{guests.map(g => (
-								<li key={g.id}>
-									{[g.name, g.companyName, g.invitedBy].filter(Boolean).join(' · ')}{g.checkedInAt ? '（已簽到）' : ''}
-								</li>
-							))}
+							{guests.map(g => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService) {
+									if (g.mealCode) {
+										// 有餐點設定且有 mealCode：顯示 A/B/C
+										mealInfo = ` · ${g.mealCode}餐`
+									} else {
+										// 有餐點設定但沒有 mealCode（理論上不會發生）
+										mealInfo = ' · 待分配'
+									}
+								} else {
+									// 沒有餐點設定：顯示飲食偏好
+									if (g.diet === 'veg') {
+										mealInfo = ' · 素食'
+									} else {
+										const restrictions = []
+										if (g.noBeef) restrictions.push('不吃牛')
+										if (g.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` · 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' · 葷食'
+										}
+									}
+								}
+								
+								return (
+									<li key={g.id}>
+										{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
+									</li>
+								)
+							})}
 						</ul>
 					</CardContent>
 				</Card>
