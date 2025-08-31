@@ -160,8 +160,8 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 		}
 	}
 
-	const checkedCount = regs.filter(r => r.checkedInAt != null).length
-	const totalCount = regs.length
+	const checkedCount = regs.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length
+	const totalCount = regs.length + speakers.length
 
 	const members = regs.filter(r => r.role === 'MEMBER')
 	const guests = regs.filter(r => r.role === 'GUEST')
