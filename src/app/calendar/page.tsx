@@ -11,10 +11,10 @@ import { authOptions } from '@/lib/auth'
 import OpenOnlyToggle from '@/components/calendar/OpenOnlyToggle'
 
 function statusLabel(allowSpeakers: boolean, quota?: number | null, count?: number) {
-	if (!allowSpeakers) return '額滿'
-	if (!quota) return '可預約'
+	if (!allowSpeakers) return '已額滿'
+	if (!quota || quota <= 0) return '已額滿'
 	const left = Math.max(0, (quota ?? 0) - (count ?? 0))
-	return left > 0 ? `可預約（剩 ${left} 位）` : '額滿'
+	return left > 0 ? `可預約（剩 ${left} 位）` : '已額滿'
 }
 
 const TYPE_LABEL: Record<EventType, string> = {
@@ -70,7 +70,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
-					<Link href="/speaker/login"><Button variant="outline" size="sm">手機登入修改</Button></Link>
+					<Link href="/speaker/login"><Button className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">報名查詢</Button></Link>
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (
@@ -109,10 +109,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
 										{canBook ? (
 											<Link href={`/speaker/book?event=${e.id}`}>
-												<Button className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md">預約短講</Button>
+												<Button className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-3 py-1 rounded-md">預約短講</Button>
 											</Link>
 										) : (
-											<Button as="button" className="border border-gray-300 text-gray-500 text-sm px-3 py-1 rounded-md" aria-disabled>
+											<Button as="button" className="bg-white border border-gray-300 text-gray-500 text-sm px-3 py-1 rounded-md" aria-disabled>
 												不可預約
 											</Button>
 										)}

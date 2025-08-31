@@ -57,8 +57,8 @@ export default function SpeakerPhoneLoginPage() {
 					/>
 				</label>
 				<div className="flex items-center gap-3">
-					<Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md">送出</Button>
-					<Button as={Link} href="/calendar" className="text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">取消</Button>
+					<Button type="submit" className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-3 py-1 rounded-md">送出</Button>
+					<Button as={Link} href="/calendar" className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">取消</Button>
 				</div>
 			</form>
 		</div>
