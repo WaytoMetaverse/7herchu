@@ -436,7 +436,8 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<Button 
 						as={Link} 
 						href={`/events/${event.id}/leave`} 
-						className="bg-white border-2 border-gray-800 text-black hover:bg-gray-50 text-sm px-4 py-1 rounded-md font-medium"
+						variant="outline" 
+						size="sm"
 					>
 						請假
 					</Button>
