@@ -225,21 +225,23 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
 					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
 					{isLoggedIn && (
-						<Button as={Link} href={`/events/${event.id}/invite`} className="bg-green-600 hover:bg-green-700 text-white">
+						<Button as={Link} href={`/events/${event.id}/invite`} className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded-md">
 							來賓邀請
 						</Button>
 					)}
 				</div>
 				{/* 右上角管理圖示按鈕 */}
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1">
 					{canEditDelete && (
 						<Button 
 							as={Link} 
 							href={`/admin/events/${event.id}`} 
-							className="bg-gray-600 hover:bg-gray-700 text-white p-2"
+							className="text-gray-400 hover:text-gray-600 p-1.5"
 							title="編輯活動"
 						>
-							✏️
+							<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+							</svg>
 						</Button>
 					)}
 					{canEditDelete && (
@@ -269,7 +271,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						<Button 
 							as={Link} 
 							href={`/admin/checkin/${event.id}`} 
-							className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1"
+							className="bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-0.5 rounded-md"
 						>
 							簽到
 						</Button>
@@ -424,20 +426,20 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 			{/* 主要操作按鈕 - 頁面最下方 */}
 			{isLoggedIn && (
-				<div className="flex items-center gap-4 justify-center py-6 border-t">
+				<div className="flex items-center gap-3 justify-center py-6 border-t">
 					<Button 
 						as={Link} 
 						href={`/events/${event.id}/register`} 
-						className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+						className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-1 rounded-md"
 					>
-						報名
+						報名管理
 					</Button>
 					<Button 
 						as={Link} 
 						href={`/events/${event.id}/leave`} 
-						className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-6 py-2"
+						className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-1 rounded-md"
 					>
-						請假
+						簽到管理
 					</Button>
 				</div>
 			)}

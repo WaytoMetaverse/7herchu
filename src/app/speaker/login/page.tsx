@@ -43,7 +43,7 @@ export default function SpeakerPhoneLoginPage() {
 
 	return (
 		<div className="max-w-sm mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">講師預約修改</h1>
+			<h1 className="text-xl font-semibold">報名查詢</h1>
 			{err && <div className="text-sm text-red-600">{err}</div>}
 			<form onSubmit={onSubmit} className="space-y-4">
 				<label>手機號碼
@@ -57,8 +57,8 @@ export default function SpeakerPhoneLoginPage() {
 					/>
 				</label>
 				<div className="flex items-center gap-3">
-					<Button type="submit">送出</Button>
-					<Button as={Link} href="/calendar" variant="ghost">取消</Button>
+					<Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md">送出</Button>
+					<Button as={Link} href="/calendar" className="text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">取消</Button>
 				</div>
 			</form>
 		</div>

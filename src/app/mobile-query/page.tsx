@@ -83,7 +83,7 @@ export default function MobileQueryPage() {
 				<Button 
 					disabled={loading || !phone.trim()} 
 					onClick={searchRegistrations}
-					className="w-full"
+					className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md"
 				>
 					{loading ? '查詢中…' : '查詢報名記錄'}
 				</Button>

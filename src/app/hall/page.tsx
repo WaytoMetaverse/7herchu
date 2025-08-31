@@ -95,8 +95,8 @@ export default async function HallPage() {
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">活動大廳</h1>
 				<div className="flex items-center gap-2">
-					{canManage && <Button as={Link} href="/admin/events/new" variant="brand">新增活動</Button>}
-					<Button as={Link} href="/mobile-query" variant="outline" size="sm">手機登入查詢</Button>
+					{canManage && <Button as={Link} href="/admin/events/new" className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md">新增活動</Button>}
+					<Button as={Link} href="/mobile-query" className="border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">報名查詢</Button>
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (

@@ -108,9 +108,11 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
 										{canBook ? (
-											<Link href={`/speaker/book?event=${e.id}`}><Button>預約短講</Button></Link>
+											<Link href={`/speaker/book?event=${e.id}`}>
+												<Button className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md">預約短講</Button>
+											</Link>
 										) : (
-											<Button as="button" variant="outline" aria-disabled>
+											<Button as="button" className="border border-gray-300 text-gray-500 text-sm px-3 py-1 rounded-md" aria-disabled>
 												不可預約
 											</Button>
 										)}
