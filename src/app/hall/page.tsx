@@ -29,7 +29,8 @@ export default async function HallPage() {
 	const canManage = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 	const isLoggedIn = !!(session?.user)
 
-	const counts = Object.fromEntries(
+	// 計算報名人數（成員 + 來賓）
+	const registrationCounts = Object.fromEntries(
 		(
 			await prisma.registration.groupBy({
 				by: ['eventId'],
@@ -39,7 +40,19 @@ export default async function HallPage() {
 		).map(g => [g.eventId, g._count._all])
 	)
 
-	const checked = Object.fromEntries(
+	// 計算講師人數
+	const speakerCounts = Object.fromEntries(
+		(
+			await prisma.speakerBooking.groupBy({
+				by: ['eventId'],
+				_count: { _all: true },
+				where: { eventId: { in: events.map(e => e.id) } },
+			})
+		).map(g => [g.eventId, g._count._all])
+	)
+
+	// 計算已簽到的報名人數
+	const registrationChecked = Object.fromEntries(
 		(
 			await prisma.registration.groupBy({
 				by: ['eventId'],
@@ -48,6 +61,26 @@ export default async function HallPage() {
 			})
 		).map(g => [g.eventId, g._count._all])
 	)
+
+	// 計算已簽到的講師人數
+	const speakerChecked = Object.fromEntries(
+		(
+			await prisma.speakerBooking.groupBy({
+				by: ['eventId'],
+				_count: { _all: true },
+				where: { eventId: { in: events.map(e => e.id) }, checkedInAt: { not: null } },
+			})
+		).map(g => [g.eventId, g._count._all])
+	)
+
+	// 合併統計
+	const counts: Record<string, number> = {}
+	const checked: Record<string, number> = {}
+	
+	events.forEach(e => {
+		counts[e.id] = (registrationCounts[e.id] ?? 0) + (speakerCounts[e.id] ?? 0)
+		checked[e.id] = (registrationChecked[e.id] ?? 0) + (speakerChecked[e.id] ?? 0)
+	})
 
 	// 依月份分組
 	const groups = new Map<string, typeof events>()

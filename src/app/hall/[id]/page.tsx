@@ -221,19 +221,40 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</div>
 			)}
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
-				<div className="flex items-center gap-2 flex-wrap">
-					{canEditDelete ? <Button as={Link} href={`/admin/events/${event.id}`} variant="outline" size="sm">編輯活動</Button> : null}
-					{canCheckin ? <Button as={Link} href={`/admin/checkin/${event.id}`} size="sm">簽到管理</Button> : null}
-					{/* 內部成員功能按鈕 */}
+				<div className="flex items-center gap-3">
+					<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
+					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
 					{isLoggedIn && (
-						<>
-							<Button as={Link} href={`/events/${event.id}/register`} variant="primary" size="sm">報名</Button>
-							<Button as={Link} href={`/events/${event.id}/leave`} variant="outline" size="sm">請假</Button>
-							<Button as={Link} href={`/events/${event.id}/invite`} variant="secondary" size="sm">來賓邀請</Button>
-						</>
+						<Button as={Link} href={`/events/${event.id}/invite`} className="bg-green-600 hover:bg-green-700 text-white">
+							來賓邀請
+						</Button>
 					)}
-					{canEditDelete ? <ConfirmDelete eventId={event.id} action={deleteEvent} hasLocks={hasLocks} members={memberNames} guests={guestNames} speakers={speakerNames} /> : null}
+				</div>
+				{/* 右上角管理圖示按鈕 */}
+				<div className="flex items-center gap-2">
+					{canEditDelete && (
+						<Button 
+							as={Link} 
+							href={`/admin/events/${event.id}`} 
+							className="bg-gray-600 hover:bg-gray-700 text-white p-2"
+							title="編輯活動"
+						>
+							✏️
+						</Button>
+					)}
+					{canEditDelete && (
+						<div title="刪除活動">
+							<ConfirmDelete 
+								eventId={event.id} 
+								action={deleteEvent} 
+								hasLocks={hasLocks} 
+								members={memberNames} 
+								guests={guestNames} 
+								speakers={speakerNames}
+								isIcon={true}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 
@@ -241,7 +262,19 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				<div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-500" />{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })} - {format(event.endAt, 'HH:mm', { locale: zhTW })}</div>
 				<div className="flex items-center gap-2"><MapPin className="w-4 h-4" />{event.location ?? '-'}</div>
 				<div>類別：{TYPE_LABEL[event.type as EventType]}</div>
-				<div className="flex items-center gap-2">報名資訊：已簽到 {checkedCount} / {totalCount}</div>
+				<div className="flex items-center gap-3">
+					<span>報名資訊：已簽到 {checkedCount} / {totalCount}</span>
+					{/* 簽到按鈕 - 放在報名資訊旁邊 */}
+					{canCheckin && (
+						<Button 
+							as={Link} 
+							href={`/admin/checkin/${event.id}`} 
+							className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1"
+						>
+							簽到
+						</Button>
+					)}
+				</div>
 			</div>
 
 			<div className="space-y-4">
@@ -389,7 +422,27 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</Card>
 			</div>
 
-			<div>
+			{/* 主要操作按鈕 - 頁面最下方 */}
+			{isLoggedIn && (
+				<div className="flex items-center gap-4 justify-center py-6 border-t">
+					<Button 
+						as={Link} 
+						href={`/events/${event.id}/register`} 
+						className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+					>
+						報名
+					</Button>
+					<Button 
+						as={Link} 
+						href={`/events/${event.id}/leave`} 
+						className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-6 py-2"
+					>
+						請假
+					</Button>
+				</div>
+			)}
+
+			<div className="text-center">
 				<Link href="/hall" className="text-blue-600 underline text-sm">返回活動大廳</Link>
 			</div>
 		</div>

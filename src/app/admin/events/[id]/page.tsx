@@ -100,7 +100,7 @@ async function updateEvent(formData: FormData) {
 	await prisma.event.update({ where: { id }, data })
 	revalidatePath('/calendar')
 	revalidatePath('/admin/events')
-	redirect('/admin/events')
+	redirect('/hall')
 }
 
 export default async function AdminEventEditPage({ params }: { params: Promise<{ id: string }> }) {

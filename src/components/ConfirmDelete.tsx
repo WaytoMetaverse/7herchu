@@ -10,6 +10,7 @@ export default function ConfirmDelete({
 	members = [],
 	guests = [],
 	speakers = [],
+	isIcon = false,
 }: {
 	eventId: string
 	action: (formData: FormData) => void
@@ -18,6 +19,7 @@ export default function ConfirmDelete({
 	members?: string[]
 	guests?: string[]
 	speakers?: string[]
+	isIcon?: boolean
 }) {
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		if (hasLocks) {
@@ -33,7 +35,16 @@ export default function ConfirmDelete({
 	return (
 		<form action={action} onSubmit={onSubmit}>
 			<input type="hidden" name="id" value={eventId} />
-			<Button type="submit" variant="danger">{label}</Button>
+			{isIcon ? (
+				<Button 
+					type="submit" 
+					className="bg-gray-400 hover:bg-gray-500 text-white p-2"
+				>
+					🗑️
+				</Button>
+			) : (
+				<Button type="submit" variant="danger">{label}</Button>
+			)}
 		</form>
 	)
 }

@@ -66,9 +66,10 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		const mealCode = String(formData.get('mealCode') || '')
 		const noBeef = formData.get('noBeef') === 'on'
 		const noPork = formData.get('noPork') === 'on'
+		const dietFromForm = String(formData.get('diet') || 'meat')
 
 		// 智能餐點選擇邏輯
-		let diet = 'meat'
+		let diet = dietFromForm
 		let finalMealCode = mealCode
 		
 		// 安全地檢查 eventMenu 是否存在
@@ -101,8 +102,8 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				diet = 'veg' // C餐點預設為素食
 			}
 		} else {
-			// 沒有設定餐點時，根據飲食偏好設定
-			diet = noBeef && noPork ? 'veg' : 'meat'
+			// 沒有設定餐點時，使用表單提交的飲食偏好
+			diet = dietFromForm
 			// 沒有餐點設定時，finalMealCode 保持為空字串
 		}
 
@@ -242,23 +243,57 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				{!eventMenu?.hasMealService && (
 					<div>
 						<h3 className="font-medium mb-3">飲食偏好</h3>
-						<div className="space-y-2">
-							<label className="flex items-center gap-2">
-								<input 
-									type="checkbox" 
-									name="noBeef" 
-									defaultChecked={existingReg?.noBeef || false}
-								/>
-								<span className="text-sm">不吃牛肉</span>
-							</label>
-							<label className="flex items-center gap-2">
-								<input 
-									type="checkbox" 
-									name="noPork" 
-									defaultChecked={existingReg?.noPork || false}
-								/>
-								<span className="text-sm">不吃豬肉</span>
-							</label>
+						<div className="space-y-3">
+							{/* 葷食/素食選擇 */}
+							<div className="flex items-center gap-4">
+								<label className="flex items-center gap-2 text-sm">
+									<input 
+										type="radio" 
+										name="diet" 
+										value="meat"
+										required 
+										defaultChecked={
+											existingReg?.diet === 'meat' || 
+											(!existingReg && user?.memberProfile?.dietPreference === 'meat') ||
+											(!existingReg && !user?.memberProfile?.dietPreference)
+										}
+									/>
+									葷食<span className="text-red-500">*</span>
+								</label>
+								<label className="flex items-center gap-2 text-sm">
+									<input 
+										type="radio" 
+										name="diet" 
+										value="veg"
+										required 
+										defaultChecked={
+											existingReg?.diet === 'veg' || 
+											(!existingReg && user?.memberProfile?.dietPreference === 'veg')
+										}
+									/>
+									素食<span className="text-red-500">*</span>
+								</label>
+							</div>
+							
+							{/* 不吃牛/豬選項 */}
+							<div className="flex items-center gap-4 text-sm">
+								<label className="flex items-center gap-2">
+									<input 
+										type="checkbox" 
+										name="noBeef" 
+										defaultChecked={existingReg?.noBeef || false}
+									/>
+									不吃牛
+								</label>
+								<label className="flex items-center gap-2">
+									<input 
+										type="checkbox" 
+										name="noPork" 
+										defaultChecked={existingReg?.noPork || false}
+									/>
+									不吃豬
+								</label>
+							</div>
 						</div>
 					</div>
 				)}

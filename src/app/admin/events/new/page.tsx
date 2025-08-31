@@ -83,7 +83,7 @@ async function createEvent(formData: FormData) {
 	await prisma.event.create({ data })
 	revalidatePath('/calendar')
 	revalidatePath('/admin/events')
-	redirect('/admin/events')
+	redirect('/hall')
 }
 
 export default function AdminEventNewPage() {
