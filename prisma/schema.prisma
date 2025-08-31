@@ -194,15 +194,15 @@ model EventMenu {
 }
 
 model SpeakerBooking {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   eventId          String
-  event            Event    @relation(fields: [eventId], references: [id])
+  event            Event          @relation(fields: [eventId], references: [id])
   name             String
   phone            String
   editPasswordHash String
-  diet             String   // 'veg'|'meat'
-  noBeef           Boolean  @default(false)
-  noPork           Boolean  @default(false)
+  diet             String         // 'veg'|'meat'
+  noBeef           Boolean        @default(false)
+  noPork           Boolean        @default(false)
   mealCode         String?
   pptUrl           String?
   paymentMethod    String?
@@ -210,7 +210,9 @@ model SpeakerBooking {
   industry         String?
   bniChapter       String?
   invitedBy        String?
-  createdAt        DateTime @default(now())
+  checkedInAt      DateTime?      // 簽到時間
+  paymentStatus    PaymentStatus  @default(UNPAID) // 繳費狀態
+  createdAt        DateTime       @default(now())
 
   @@unique([eventId, phone])
 }
