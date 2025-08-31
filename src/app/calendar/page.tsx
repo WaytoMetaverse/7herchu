@@ -70,7 +70,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
-					<Link href="/speaker/login"><Button className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">報名查詢</Button></Link>
+					<Link href="/speaker/login"><Button className="bg-white border border-gray-300 text-slate-900 hover:bg-gray-50 text-sm px-3 py-1 rounded-md">報名查詢</Button></Link>
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (
@@ -112,7 +112,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 												<Button className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-3 py-1 rounded-md">預約短講</Button>
 											</Link>
 										) : (
-											<Button as="button" className="bg-white border border-gray-300 text-gray-500 text-sm px-3 py-1 rounded-md" aria-disabled>
+											<Button as="button" className="bg-white border border-gray-300 text-slate-900 text-sm px-3 py-1 rounded-md" aria-disabled>
 												不可預約
 											</Button>
 										)}
