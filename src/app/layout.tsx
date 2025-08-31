@@ -58,7 +58,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
           <header className="sticky top-0 z-30 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-[0_1px_0_0_rgba(0,0,0,0.04)]">
             <nav className="max-w-6xl mx-auto px-5 h-[64px] hidden lg:flex items-center gap-6 text-[15px] text-gray-700">
               <Link href="/hall" className="flex items-center gap-2 mr-4">
-                <img src="/brand-mark.png" alt="磐石砌好厝" className="h-7 w-7 object-contain" />
+                <img src="/brand-mark.png" alt="磐石砌好厝" className="h-8 w-8 object-contain" />
                 <span className="font-semibold tracking-wide text-xl leading-none">磐石砌好厝</span>
               </Link>
               <TopNavLinks />
@@ -71,7 +71,7 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
           <PWARegister />
           <div className="md:hidden fixed top-0 inset-x-0 h-[56px] z-40 bg-white/70 backdrop-blur flex items-center px-3 gap-2 border-b">
             <Link href="/hall" className="flex items-center gap-2">
-              <img src="/brand-mark.png" alt="磐石砌好厝" className="h-6 w-6 object-contain" />
+              <img src="/brand-mark.png" alt="磐石砌好厝" className="h-7 w-7 object-contain" />
               <span className="text-[15px] font-semibold tracking-wide">磐石砌好厝</span>
             </Link>
             <MobileLogout show={!!session?.user} />
