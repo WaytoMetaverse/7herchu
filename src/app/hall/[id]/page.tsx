@@ -225,7 +225,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
 					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
 					{isLoggedIn && (
-						<Button as={Link} href={`/events/${event.id}/invite`} className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-3 py-1 rounded-md">
+						<Button as={Link} href={`/events/${event.id}/invite`} variant="primary" size="sm">
 							來賓邀請
 						</Button>
 					)}
@@ -270,7 +270,8 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						<Button 
 							as={Link} 
 							href={`/admin/checkin/${event.id}`} 
-							className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-3 py-1 rounded-md"
+							variant="primary" 
+							size="sm"
 						>
 							簽到
 						</Button>
@@ -429,7 +430,8 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					<Button 
 						as={Link} 
 						href={`/events/${event.id}/register`} 
-						className="bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white text-sm px-4 py-1 rounded-md"
+						variant="primary"
+						size="sm"
 					>
 						報名
 					</Button>
