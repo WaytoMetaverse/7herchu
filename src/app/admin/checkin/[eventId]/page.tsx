@@ -127,6 +127,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		'use server'
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
+		
+		// 在 server action 中重新獲取當月月份
+		const currentMonth = new Date().toISOString().slice(0, 7)
 
 		const registration = await prisma.registration.findUnique({
 			where: { id: registrationId },
@@ -187,6 +190,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		'use server'
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
+		
+		// 在 server action 中重新獲取當月月份
+		const currentMonth = new Date().toISOString().slice(0, 7)
 
 		const registration = await prisma.registration.findUnique({
 			where: { id: registrationId },
