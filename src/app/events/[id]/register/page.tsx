@@ -115,7 +115,8 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					mealCode: finalMealCode,
 					diet,
 					noBeef,
-					noPork
+					noPork,
+					status: 'REGISTERED'  // 確保狀態為已報名
 				}
 			})
 		} else {
@@ -130,6 +131,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					diet,
 					noBeef,
 					noPork,
+					status: 'REGISTERED',  // 新報名設為已報名狀態
 					paymentStatus: 'UNPAID'
 				}
 			})

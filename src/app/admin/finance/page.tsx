@@ -112,6 +112,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					<>
 						<Button as={Link} href="#add-form" variant="primary">新增交易</Button>
 						<Button as={Link} href="/admin/members" variant="outline">成員管理</Button>
+						<Button as={Link} href="/admin/activity-unpaid" variant="outline">活動未繳費</Button>
 					</>
 				)}
 			</div>

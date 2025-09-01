@@ -21,7 +21,8 @@ export default async function MenuManagePage() {
 					mealCode: true,
 					diet: true,
 					noBeef: true,
-					noPork: true
+					noPork: true,
+					status: true
 				}
 			},
 			speakerBookings: {
@@ -55,8 +56,8 @@ export default async function MenuManagePage() {
 			total: 0
 		}
 
-		// 統計一般報名
-		event.registrations.forEach(reg => {
+		// 統計一般報名（只統計已報名狀態）
+		event.registrations.filter(reg => reg.status === 'REGISTERED').forEach(reg => {
 			if (reg.mealCode) {
 				// 餐點統計
 				mealStats[reg.mealCode as keyof typeof mealStats]++

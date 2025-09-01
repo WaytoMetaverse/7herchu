@@ -41,10 +41,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const canCheckin = true // 所有人都可以進入簽到管理
 	const isLoggedIn = !!session?.user
 
-	const [regs, speakers, leaveRecords, eventMenu] = await Promise.all([
+	// 獲取當前用戶資訊
+	const currentUser = session?.user?.email ? await prisma.user.findUnique({
+		where: { email: session.user.email }
+	}) : null
+
+	const [regs, speakers, eventMenu] = await Promise.all([
 		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
-		prisma.leaveRecord.findMany({ where: { eventId: id }, orderBy: { leaveAt: 'asc' } }),
 		prisma.eventMenu.findUnique({ where: { eventId: id } })
 	])
 
@@ -160,11 +164,19 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 		}
 	}
 
-	const checkedCount = regs.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length
-	const totalCount = regs.length + speakers.length
-
-	const members = regs.filter(r => r.role === 'MEMBER')
+	// 分離報名狀態
+	const registeredMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'REGISTERED')
+	const leftMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'LEAVE')
 	const guests = regs.filter(r => r.role === 'GUEST')
+	const members = registeredMembers // 保持向後兼容
+
+	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length
+	const totalCount = registeredMembers.length + guests.length + speakers.length
+
+	// 檢查當前用戶的報名狀態
+	const currentUserRegistration = currentUser?.phone ? regs.find(r => 
+		r.userId === currentUser.id || r.phone === currentUser.phone
+	) : null
 
 	const hasLocks = regs.length > 0 || speakers.length > 0
 	const memberNames = members.map(r => getDisplayName(r.user) || r.name || '-').slice(0, 30)
@@ -368,14 +380,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</Card>
 
 				{/* 請假名單 */}
-				{leaveRecords.length > 0 && (
+				{leftMembers.length > 0 && (
 					<Card>
 						<CardContent>
-							<h2 className="font-medium mb-2">請假名單（{leaveRecords.length}）</h2>
+							<h2 className="font-medium mb-2">請假名單（{leftMembers.length}）</h2>
 							<div className="text-sm text-gray-600">
-								{leaveRecords.map(record => (
-									<span key={record.id} className="inline-block mr-3 mb-2">
-										{record.userName}
+								{leftMembers.map(member => (
+									<span key={member.id} className="inline-block mr-3 mb-2">
+										{getDisplayName(member.user) || member.name || '-'}
 									</span>
 								))}
 							</div>
@@ -427,22 +439,25 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			{/* 主要操作按鈕 - 頁面最下方 */}
 			{isLoggedIn && (
 				<div className="flex items-center gap-3 justify-center py-6 border-t">
-					<Button 
-						as={Link} 
-						href={`/events/${event.id}/register`} 
-						variant="primary"
-						size="sm"
-					>
-						報名
-					</Button>
-					<Button 
-						as={Link} 
-						href={`/events/${event.id}/leave`} 
-						variant="outline" 
-						size="sm"
-					>
-						請假
-					</Button>
+					{!currentUserRegistration || currentUserRegistration.status === 'LEAVE' ? (
+						<Button 
+							as={Link} 
+							href={`/events/${event.id}/register`} 
+							variant="primary"
+							size="sm"
+						>
+							報名
+						</Button>
+					) : (
+						<Button 
+							as={Link} 
+							href={`/events/${event.id}/leave`} 
+							variant="outline" 
+							size="sm"
+						>
+							請假
+						</Button>
+					)}
 				</div>
 			)}
 

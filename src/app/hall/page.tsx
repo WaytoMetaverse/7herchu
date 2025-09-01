@@ -35,7 +35,7 @@ export default async function HallPage() {
 			await prisma.registration.groupBy({
 				by: ['eventId'],
 				_count: { _all: true },
-				where: { eventId: { in: events.map(e => e.id) } },
+				where: { eventId: { in: events.map(e => e.id) }, status: 'REGISTERED' },
 			})
 		).map(g => [g.eventId, g._count._all])
 	)
@@ -51,13 +51,13 @@ export default async function HallPage() {
 		).map(g => [g.eventId, g._count._all])
 	)
 
-	// 計算已簽到的報名人數
+	// 計算已簽到的報名人數（只統計已報名狀態）
 	const registrationChecked = Object.fromEntries(
 		(
 			await prisma.registration.groupBy({
 				by: ['eventId'],
 				_count: { _all: true },
-				where: { eventId: { in: events.map(e => e.id) }, checkedInAt: { not: null } },
+				where: { eventId: { in: events.map(e => e.id) }, status: 'REGISTERED', checkedInAt: { not: null } },
 			})
 		).map(g => [g.eventId, g._count._all])
 	)

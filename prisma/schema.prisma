@@ -68,6 +68,11 @@ enum PaymentPreference {
   INVITER
 }
 
+enum RegistrationStatus {
+  REGISTERED
+  LEAVE
+}
+
 enum CardCategory {
   FINANCE         // 金融租賃（銀行、租賃、等）
   DEVELOPMENT     // 開發買賣（仲介、土開、等）
@@ -166,7 +171,7 @@ model Event {
   financeLineItems  FinanceLineItem[]
   transactions      FinanceTransaction[]
   eventMenu         EventMenu?
-  leaveRecords      LeaveRecord[]
+
 
   createdAt         DateTime @default(now())
 }
@@ -258,22 +263,13 @@ model Registration {
   paymentPreference PaymentPreference?
   paymentNote   String?
 
-  status        String   @default("confirmed")
+  status        RegistrationStatus @default(REGISTERED)
   createdAt     DateTime @default(now())
 
   @@unique([eventId, phone])
 }
 
-model LeaveRecord {
-  id        String   @id @default(cuid())
-  eventId   String
-  userName  String
-  leaveAt   DateTime @default(now())
-  
-  event     Event    @relation(fields: [eventId], references: [id])
-  
-  @@unique([eventId, userName])
-}
+
 
 model FinanceInvoice {
   id        String   @id @default(cuid())

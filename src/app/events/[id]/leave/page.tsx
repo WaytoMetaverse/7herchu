@@ -10,54 +10,59 @@ import { zhTW } from 'date-fns/locale'
 
 export default async function EventLeavePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: eventId } = await params
+	
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) redirect('/auth/signin')
 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) notFound()
 
-	const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+	const user = await prisma.user.findUnique({ 
+		where: { email: session.user.email },
+		include: { memberProfile: true }
+	})
 	if (!user) redirect('/auth/signin')
 
-	// 檢查是否已有記錄
-	const existingReg = await prisma.registration.findUnique({
-		where: { eventId_phone: { eventId, phone: user.phone || '' } }
-	})
+	// 檢查是否已報名
+	const existingReg = user.phone ? await prisma.registration.findUnique({
+		where: { eventId_phone: { eventId, phone: user.phone } }
+	}) : null
 
 	// 處理請假
 	async function submitLeave() {
 		'use server'
+		
 		if (!user) return
 		
-		// 如果已有報名記錄，則刪除
 		if (existingReg) {
-			await prisma.registration.delete({
-				where: { id: existingReg.id }
+			// 更新為請假狀態
+			await prisma.registration.update({
+				where: { id: existingReg.id },
+				data: { status: 'LEAVE' }
+			})
+		} else {
+			// 新增請假記錄
+			await prisma.registration.create({
+				data: {
+					eventId,
+					userId: user.id,
+					role: 'MEMBER',
+					name: user.name || '',
+					phone: user.phone || '',
+					status: 'LEAVE',
+					paymentStatus: 'UNPAID'
+				}
 			})
 		}
-
-		// 新增請假記錄到 LeaveRecord 表
-		await prisma.leaveRecord.create({
-			data: {
-				eventId,
-				userName: user.name || '未知用戶'
-			}
-		})
 
 		revalidatePath(`/hall/${eventId}`)
 		redirect(`/hall/${eventId}`)
 	}
 
-	// 檢查是否已請假
-	const leaveRecord = await prisma.leaveRecord.findUnique({
-		where: { eventId_userName: { eventId, userName: user.name || '' } }
-	})
-	const isOnLeave = !!leaveRecord
-
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-6">
 			<div className="text-center space-y-2">
-				<h1 className="text-2xl font-semibold">請假登記</h1>
+				<h1 className="text-2xl font-semibold">活動請假</h1>
 				<div className="text-gray-600">
 					<div className="font-medium">{event.title}</div>
 					<div className="text-sm">
@@ -67,51 +72,28 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 				</div>
 			</div>
 
-			{isOnLeave ? (
-				<div className="bg-orange-50 p-4 rounded-lg text-center">
-					<div className="text-orange-700 font-medium mb-2">您已登記請假</div>
-					<div className="text-sm text-orange-600">如需報名參加，請點擊下方「報名」按鈕</div>
-				</div>
-			) : existingReg ? (
-				<div className="bg-blue-50 p-4 rounded-lg text-center">
-					<div className="text-blue-700 font-medium mb-2">您已報名此活動</div>
-					<div className="text-sm text-blue-600">確定要改為請假嗎？</div>
-				</div>
-			) : (
-				<div className="bg-gray-50 p-4 rounded-lg text-center">
-					<div className="text-gray-700 font-medium mb-2">請假登記</div>
-					<div className="text-sm text-gray-600">登記請假後將不會出現在報名名單中</div>
+			{existingReg && existingReg.status === 'REGISTERED' && (
+				<div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-700">
+					您已報名此活動，確認請假將取消您的報名。
 				</div>
 			)}
 
-			<div className="flex items-center gap-3 justify-center">
-				{isOnLeave ? (
-					<form action={async () => {
-						'use server'
-						// 刪除請假記錄
-						await prisma.leaveRecord.delete({
-							where: { eventId_userName: { eventId, userName: user.name || '' } }
-						})
-						revalidatePath(`/hall/${eventId}`)
-						redirect(`/events/${eventId}/register`)
-					}}>
-						<Button type="submit" variant="primary">
-							改為報名
-						</Button>
-					</form>
-				) : (
-					<form action={submitLeave}>
-						<Button type="submit" variant="outline">
-							確定請假
-						</Button>
-					</form>
-				)}
-				<Button as={Link} href={`/hall/${eventId}`} variant="ghost">取消</Button>
-			</div>
+			{existingReg && existingReg.status === 'LEAVE' && (
+				<div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
+					您已請假此活動。
+				</div>
+			)}
 
-			<div className="text-xs text-gray-500 text-center">
-				請假記錄會保留，但不會出現在活動報名名單中
-			</div>
+			<form action={submitLeave} className="space-y-6">
+				<div className="flex items-center gap-3">
+					<Button type="submit" variant="outline" size="sm">
+						{existingReg?.status === 'LEAVE' ? '確認請假' : '確認請假'}
+					</Button>
+					<Button as={Link} href={`/hall/${eventId}`} variant="primary" size="sm">
+						取消
+					</Button>
+				</div>
+			</form>
 		</div>
 	)
 }
