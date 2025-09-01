@@ -77,7 +77,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	// 判斷繳費狀態和顯示邏輯
 	function getPaymentStatus(registration: typeof registrations[0]) {
-		const isLoggedIn = !!registration.userId
 		const eventType = event?.type as EventType
 		const isFixedMember = registration.user?.memberProfile?.memberType === 'FIXED'
 		const monthlyPayment = registration.user?.monthlyPayments?.[0]
@@ -85,7 +84,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			if (isLoggedIn && isFixedMember) {
+			if (registration.userId && isFixedMember) {
 				// 固定成員
 				if (isMonthlyPaid) {
 					return { status: 'monthly_paid', text: '月費已繳', clickable: false }
