@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { EventType } from '@prisma/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
@@ -50,13 +50,12 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	// 計算活動價格
 	function getPrice(registration: typeof registrations[0]): number {
-		const isLoggedIn = !!registration.userId
 		const eventType = event?.type as EventType
 		if (!event) return 0
 
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			if (isLoggedIn) {
+			if (registration.userId) {
 				// 登入用戶：單次成員 180，講師 250
 				return registration.role === 'SPEAKER' ? 250 : 180
 			} else {
@@ -66,11 +65,11 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 變動價格活動（BOD/餐敘/軟性活動）
 		if (eventType === 'BOD') {
-			return isLoggedIn ? (event.bodMemberPriceCents || 0) / 100 : (event.bodGuestPriceCents || 0) / 100
+			return registration.userId ? (event.bodMemberPriceCents || 0) / 100 : (event.bodGuestPriceCents || 0) / 100
 		}
 
 		if (['DINNER', 'SOFT'].includes(eventType)) {
-			return isLoggedIn ? (event.defaultPriceCents || 0) / 100 : (event.guestPriceCents || 0) / 100
+			return registration.userId ? (event.defaultPriceCents || 0) / 100 : (event.guestPriceCents || 0) / 100
 		}
 
 		return 0
@@ -152,7 +151,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 
 		const price = getPrice(registration)
-		const isLoggedIn = !!registration.userId
 
 		// 更新繳費狀態
 		await prisma.registration.update({
@@ -497,7 +495,17 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 										<div className="text-xs">講師</div>
 									</td>
 									<td className="px-4 py-3 text-center font-medium">
-										NT$ 0
+										NT$ {(() => {
+											const eventType = event?.type as EventType
+											if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
+												return 250 // 講師固定價格
+											} else if (eventType === 'BOD') {
+												return (event?.bodMemberPriceCents || 0) / 100
+											} else if (['DINNER', 'SOFT'].includes(eventType)) {
+												return (event?.defaultPriceCents || 0) / 100
+											}
+											return 0
+										})()}
 									</td>
 									<td className="px-4 py-3 text-center">
 										{speaker.checkedInAt ? (
