@@ -311,6 +311,19 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		revalidatePath(`/admin/checkin/${eventId}`)
 	}
 
+	// 講師簽到
+	async function checkInSpeaker(formData: FormData) {
+		'use server'
+		const speakerId = String(formData.get('speakerId'))
+		if (!speakerId) return
+
+		await prisma.speakerBooking.update({
+			where: { id: speakerId },
+			data: { checkedInAt: new Date() }
+		})
+		revalidatePath(`/admin/checkin/${eventId}`)
+	}
+
 	// 統計資料
 	const totalCount = registrations.length + speakers.length
 	const checkedInCount = registrations.filter(r => r.checkedInAt).length + speakers.filter(s => s.checkedInAt).length
@@ -492,16 +505,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												已簽到
 											</span>
 										) : canCheckin ? (
-											<form action={async (formData: FormData) => {
-												'use server'
-												const speakerId = String(formData.get('speakerId'))
-												if (!speakerId) return
-												await prisma.speakerBooking.update({
-													where: { id: speakerId },
-													data: { checkedInAt: new Date() }
-												})
-												revalidatePath(`/admin/checkin/${eventId}`)
-											}} className="inline">
+											<form action={checkInSpeaker} className="inline">
 												<input type="hidden" name="speakerId" value={speaker.id} />
 												<Button type="submit" variant="outline" size="sm">
 													未簽到

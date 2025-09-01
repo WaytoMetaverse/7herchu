@@ -73,7 +73,7 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 					</div>
 				</div>
 				<Button as={Link} href={`/hall/${eventId}`} variant="outline">
-					返回活動詳情
+					返回
 				</Button>
 			</div>
 

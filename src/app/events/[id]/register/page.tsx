@@ -232,7 +232,8 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 						</div>
 					) : (
 						<div className="text-gray-500 text-center py-8">
-							此活動未提供餐點服務
+							此活動尚未提供餐點更新，<br />
+							更新後Ai小助理將依您的飲食偏好選擇
 						</div>
 					)}
 				</div>

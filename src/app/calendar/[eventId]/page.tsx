@@ -37,7 +37,7 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl lg:text-3xl font-semibold">講師名單 · {event.title}</h1>
-        <Link href="/calendar"><Button variant="outline" size="sm">返回</Button></Link>
+        <Link href={`/hall/${eventId}`}><Button variant="outline" size="sm">返回</Button></Link>
       </div>
       <div className="text-sm text-gray-600">日期：{format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })}</div>
 
