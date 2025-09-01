@@ -179,12 +179,10 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 									<div className="flex-1">
 										<div className="flex items-center gap-2 mb-1">
 											<span className="font-medium">選項 A</span>
+											{eventMenu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+											{eventMenu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
 										</div>
 										<div className="text-gray-700">{eventMenu.mealCodeA}</div>
-										<div className="text-xs text-gray-500 mt-1 space-x-2">
-											{eventMenu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
-											{eventMenu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
-										</div>
 									</div>
 								</label>
 							)}
@@ -203,12 +201,10 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 									<div className="flex-1">
 										<div className="flex items-center gap-2 mb-1">
 											<span className="font-medium">選項 B</span>
+											{eventMenu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+											{eventMenu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
 										</div>
 										<div className="text-gray-700">{eventMenu.mealCodeB}</div>
-										<div className="text-xs text-gray-500 mt-1 space-x-2">
-											{eventMenu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
-											{eventMenu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
-										</div>
 									</div>
 								</label>
 							)}

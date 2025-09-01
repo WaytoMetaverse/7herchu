@@ -341,7 +341,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 				<Card>
 					<CardContent>
-						<h2 className="font-medium mb-2">內部成員（{members.length}）</h2>
+						<div className="flex items-center justify-between mb-2">
+							<h2 className="font-medium">內部成員（{members.length}）</h2>
+							{canEditDelete ? (
+								<Button as={Link} href={`/admin/member-management/${event.id}`} variant="outline" size="sm">
+									成員管理
+								</Button>
+							) : null}
+						</div>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
 							{members.map(m => {
 								let mealInfo = ''
@@ -397,7 +404,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 				<Card>
 					<CardContent>
-						<h2 className="font-medium mb-2">來賓（{guests.length}）</h2>
+						<div className="flex items-center justify-between mb-2">
+							<h2 className="font-medium">來賓（{guests.length}）</h2>
+							{canEditDelete ? (
+								<Button as={Link} href={`/admin/guest-management/${event.id}`} variant="outline" size="sm">
+									來賓管理
+								</Button>
+							) : null}
+						</div>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
 							{guests.map(g => {
 								let mealInfo = ''

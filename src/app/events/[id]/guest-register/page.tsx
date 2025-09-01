@@ -205,14 +205,14 @@ export default function GuestRegisterPage({ params }: { params: Promise<{ id: st
 											{item.isVegetarian && (
 												<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
 											)}
+											{!item.isVegetarian && item.containsBeef && (
+												<span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>
+											)}
+											{!item.isVegetarian && item.containsPork && (
+												<span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>
+											)}
 										</div>
 										<div className="text-gray-700">{item.name}</div>
-										{!item.isVegetarian && (
-											<div className="text-xs text-gray-500 mt-1 space-x-2">
-												{item.containsBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded">含牛</span>}
-												{item.containsPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded">含豬</span>}
-											</div>
-										)}
 									</div>
 								</label>
 							))}

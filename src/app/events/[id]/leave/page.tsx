@@ -73,19 +73,19 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 			</div>
 
 			{existingReg && existingReg.status === 'REGISTERED' && (
-				<div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-700">
+				<div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-700 text-center">
 					您已報名此活動，確認請假將取消您的報名。
 				</div>
 			)}
 
 			{existingReg && existingReg.status === 'LEAVE' && (
-				<div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
+				<div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700 text-center">
 					您已請假此活動。
 				</div>
 			)}
 
 			<form action={submitLeave} className="space-y-6">
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-3 justify-center">
 					<Button type="submit" variant="outline" size="sm">
 						{existingReg?.status === 'LEAVE' ? '確認請假' : '確認請假'}
 					</Button>
