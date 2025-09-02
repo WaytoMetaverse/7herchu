@@ -190,9 +190,7 @@ export default async function InvitationCardsPage() {
 				<div className="text-sm text-blue-800 space-y-1">
 					<div>• 不同類型的活動可以使用不同的邀請卡</div>
 					<div>• 系統會根據活動類型自動選擇對應的邀請卡</div>
-					<div>• 若特定類型未設定邀請卡，則不顯示邀請卡</div>
 					<div>• 邀請卡會在「來賓邀請」分享時顯示</div>
-					<div>• 建議上傳包含組織 Logo 和活動資訊的圖片</div>
 					<div>• 圖片會在 Line、Facebook 等平台的分享預覽中顯示</div>
 				</div>
 			</div>
