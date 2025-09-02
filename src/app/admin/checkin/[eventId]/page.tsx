@@ -142,7 +142,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							select: { isPaid: true }
 						}
 					} 
-				} 
+				},
+				event: true  // 包含 event 資料
 			}
 		})
 		if (!registration) return
@@ -152,7 +153,26 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			return
 		}
 
-		const price = getPrice(registration)
+		// 在 server action 中重新計算價格
+		const eventType = registration.event?.type as EventType
+		let price = 0
+		
+		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
+		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
+			if (registration.userId) {
+				// 登入用戶：單次成員 180，講師 250
+				price = registration.role === 'SPEAKER' ? 250 : 180
+			} else {
+				price = 250 // 來賓價格
+			}
+		}
+		// 變動價格活動（BOD/餐敘/軟性活動）
+		else if (eventType === 'BOD') {
+			price = registration.userId ? (registration.event.bodMemberPriceCents || 0) / 100 : (registration.event.bodGuestPriceCents || 0) / 100
+		}
+		else if (['DINNER', 'SOFT'].includes(eventType)) {
+			price = registration.userId ? (registration.event.defaultPriceCents || 0) / 100 : (registration.event.guestPriceCents || 0) / 100
+		}
 
 		// 更新繳費狀態
 		await prisma.registration.update({
@@ -176,7 +196,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: `${event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
+				note: `${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
 				categoryId: category.id,
 				eventId: eventId
 			}
@@ -205,7 +225,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							select: { isPaid: true }
 						}
 					} 
-				} 
+				},
+				event: true  // 包含 event 資料
 			}
 		})
 		if (!registration) return
@@ -221,7 +242,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			where: {
 				eventId: eventId,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: { contains: `${event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費` }
+				note: { contains: `${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費` }
 			}
 		})
 
@@ -235,7 +256,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		if (!speakerId) return
 
 		const speaker = await prisma.speakerBooking.findUnique({
-			where: { id: speakerId }
+			where: { id: speakerId },
+			include: { event: true }  // 包含 event 資料
 		})
 		if (!speaker) return
 
@@ -245,14 +267,14 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 
 		// 計算講師價格
-		const eventType = event?.type as EventType
+		const eventType = speaker.event?.type as EventType
 		let price = 0
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			price = 250 // 講師固定價格
 		} else if (eventType === 'BOD') {
-			price = (event?.bodMemberPriceCents || 0) / 100
+			price = (speaker.event?.bodMemberPriceCents || 0) / 100
 		} else if (['DINNER', 'SOFT'].includes(eventType)) {
-			price = (event?.defaultPriceCents || 0) / 100
+			price = (speaker.event?.defaultPriceCents || 0) / 100
 		}
 
 		// 更新繳費狀態
@@ -276,7 +298,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: speaker.name || '未命名',
-				note: `${event?.title || '活動'} - 講師繳費`,
+				note: `${speaker.event?.title || '活動'} - 講師繳費`,
 				categoryId: category.id,
 				eventId: eventId
 			}
@@ -292,7 +314,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		if (!speakerId) return
 
 		const speaker = await prisma.speakerBooking.findUnique({
-			where: { id: speakerId }
+			where: { id: speakerId },
+			include: { event: true }  // 包含 event 資料
 		})
 		if (!speaker) return
 
@@ -307,7 +330,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			where: {
 				eventId: eventId,
 				counterparty: speaker.name || '未命名',
-				note: { contains: `${event?.title || '活動'} - 講師繳費` }
+				note: { contains: `${speaker.event?.title || '活動'} - 講師繳費` }
 			}
 		})
 
