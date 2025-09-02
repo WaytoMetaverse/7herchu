@@ -190,13 +190,16 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 
 		// 新增財務交易記錄
+		const eventDate = registration.event?.startAt ? 
+			new Date(registration.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
+			''
 		await prisma.financeTransaction.create({
 			data: {
 				date: new Date(),
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: `${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
+				note: `${eventDate}${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
 				categoryId: category.id,
 				eventId: eventId
 			}
@@ -238,11 +241,14 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		})
 
 		// 刪除對應的財務記錄
+		const eventDate = registration.event?.startAt ? 
+			new Date(registration.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
+			''
 		await prisma.financeTransaction.deleteMany({
 			where: {
 				eventId: eventId,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: { contains: `${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費` }
+				note: { contains: `${eventDate}${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費` }
 			}
 		})
 
@@ -292,13 +298,16 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 
 		// 新增財務交易記錄
+		const eventDate = speaker.event?.startAt ? 
+			new Date(speaker.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
+			''
 		await prisma.financeTransaction.create({
 			data: {
 				date: new Date(),
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: speaker.name || '未命名',
-				note: `${speaker.event?.title || '活動'} - 講師繳費`,
+				note: `${eventDate}${speaker.event?.title || '活動'} - 講師繳費`,
 				categoryId: category.id,
 				eventId: eventId
 			}
@@ -326,11 +335,14 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		})
 
 		// 刪除對應的財務記錄
+		const eventDate = speaker.event?.startAt ? 
+			new Date(speaker.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
+			''
 		await prisma.financeTransaction.deleteMany({
 			where: {
 				eventId: eventId,
 				counterparty: speaker.name || '未命名',
-				note: { contains: `${speaker.event?.title || '活動'} - 講師繳費` }
+				note: { contains: `${eventDate}${speaker.event?.title || '活動'} - 講師繳費` }
 			}
 		})
 

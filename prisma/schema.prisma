@@ -341,7 +341,11 @@ model OrgSettings {
   id          String @id @default("singleton")
   bankInfo    String
   linePayInfo String?
-  invitationCardUrl String?
+  invitationCardUrl String?  // 預設邀請卡（向後相容）
+  invitationCardGeneral String?  // 簡報組聚/聯合組聚/封閉會議
+  invitationCardDinner String?   // 餐敘
+  invitationCardSoft String?     // 軟性活動
+  invitationCardBod String?      // BOD
 } 
 
 model BusinessCard {

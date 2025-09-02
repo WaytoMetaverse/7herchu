@@ -18,8 +18,10 @@ export default async function InvitationCardsPage() {
 	// 上傳邀請卡
 	async function uploadInvitationCard(formData: FormData) {
 		'use server'
-		const file = formData.get('invitationCard') as File
-		if (!file || file.size === 0) return
+		const file = formData.get('file') as File
+		const cardType = formData.get('cardType') as string
+		
+		if (!file || file.size === 0 || !cardType) return
 
 		// 檢查檔案類型
 		if (!file.type.startsWith('image/')) {
@@ -38,83 +40,160 @@ export default async function InvitationCardsPage() {
 		const uploadData = await uploadRes.json()
 		if (!uploadRes.ok || !uploadData?.url) return
 
+		// 根據卡片類型更新不同欄位
+		const updateField = {
+			general: 'invitationCardGeneral',
+			dinner: 'invitationCardDinner',
+			soft: 'invitationCardSoft',
+			bod: 'invitationCardBod'
+		}[cardType]
+		
+		if (!updateField) return
+
 		// 更新組織設定
 		await prisma.orgSettings.upsert({
 			where: { id: 'singleton' },
 			create: {
 				id: 'singleton',
 				bankInfo: '',
-				invitationCardUrl: uploadData.url
+				[updateField]: uploadData.url
 			},
 			update: {
-				invitationCardUrl: uploadData.url
+				[updateField]: uploadData.url
 			}
 		})
 
 		revalidatePath('/admin/invitation-cards')
 	}
 
+	// 刪除邀請卡
+	async function deleteInvitationCard(formData: FormData) {
+		'use server'
+		const cardType = formData.get('cardType') as string
+		if (!cardType) return
+
+		const updateField = {
+			general: 'invitationCardGeneral',
+			dinner: 'invitationCardDinner',
+			soft: 'invitationCardSoft',
+			bod: 'invitationCardBod'
+		}[cardType]
+		
+		if (!updateField) return
+
+		await prisma.orgSettings.update({
+			where: { id: 'singleton' },
+			data: {
+				[updateField]: null
+			}
+		})
+
+		revalidatePath('/admin/invitation-cards')
+	}
+
+	const cards = [
+		{
+			type: 'general',
+			title: '簡報組聚 / 聯合組聚 / 封閉會議',
+			description: '用於簡報組聚、聯合組聚、封閉會議的邀請',
+			imageUrl: orgSettings?.invitationCardGeneral,
+			color: 'blue'
+		},
+		{
+			type: 'dinner',
+			title: '餐敘',
+			description: '用於餐敘活動的邀請',
+			imageUrl: orgSettings?.invitationCardDinner,
+			color: 'green'
+		},
+		{
+			type: 'soft',
+			title: '軟性活動',
+			description: '用於軟性活動的邀請',
+			imageUrl: orgSettings?.invitationCardSoft,
+			color: 'purple'
+		},
+		{
+			type: 'bod',
+			title: 'BOD',
+			description: '用於 BOD 活動的邀請',
+			imageUrl: orgSettings?.invitationCardBod,
+			color: 'orange'
+		}
+	]
+
 	return (
-		<div className="max-w-4xl mx-auto p-4 space-y-6">
+		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-semibold">邀請卡管理</h1>
 				<Button as={Link} href="/group" variant="outline">返回小組管理</Button>
 			</div>
 
-			{/* 當前邀請卡 */}
-			<div className="bg-white rounded-lg border p-6">
-				<h2 className="font-medium mb-4">目前邀請卡</h2>
-				{orgSettings?.invitationCardUrl ? (
-					<div className="space-y-4">
-						<div className="max-w-md mx-auto">
-							{/* eslint-disable-next-line @next/next/no-img-element */}
-							<img 
-								src={orgSettings.invitationCardUrl} 
-								alt="邀請卡" 
-								className="w-full rounded-lg border shadow-sm"
-							/>
+			{/* 邀請卡列表 */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{cards.map((card) => (
+					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
+						{/* 標題區 */}
+						<div className={`p-4 bg-${card.color}-50 border-b`}>
+							<h3 className={`font-medium text-${card.color}-900`}>{card.title}</h3>
+							<p className={`text-sm text-${card.color}-700 mt-1`}>{card.description}</p>
 						</div>
-						<div className="text-sm text-gray-600 text-center">
-							此圖片將用於來賓邀請分享
-						</div>
-					</div>
-				) : (
-					<div className="text-center py-12 text-gray-500">
-						<div className="mb-4">尚未上傳邀請卡</div>
-						<div className="text-sm">請上傳一張圖片作為來賓邀請時使用的邀請卡</div>
-					</div>
-				)}
-			</div>
 
-			{/* 上傳新邀請卡 */}
-			<div className="bg-white rounded-lg border p-6">
-				<h2 className="font-medium mb-4">上傳邀請卡</h2>
-				<form action={uploadInvitationCard} className="space-y-4">
-					<div>
-						<label className="block mb-2">選擇圖片檔案</label>
-						<input 
-							type="file" 
-							name="invitationCard" 
-							accept="image/*" 
-							required
-							className="w-full"
-						/>
-						<div className="text-sm text-gray-500 mt-1">
-							支援 JPG、PNG、GIF 等圖片格式，建議尺寸適合手機分享
+						{/* 圖片區 */}
+						<div className="p-4">
+							{card.imageUrl ? (
+								<div className="space-y-3">
+									{/* eslint-disable-next-line @next/next/no-img-element */}
+									<img 
+										src={card.imageUrl} 
+										alt={card.title}
+										className="w-full rounded-lg border shadow-sm"
+									/>
+									<form action={deleteInvitationCard} className="text-center">
+										<input type="hidden" name="cardType" value={card.type} />
+										<Button 
+											type="submit" 
+											variant="outline" 
+											size="sm"
+											className="text-red-600 hover:text-red-700"
+										>
+											刪除邀請卡
+										</Button>
+									</form>
+								</div>
+							) : (
+								<div className="text-center py-8 text-gray-400">
+									<div className="mb-2">尚未上傳</div>
+									<form action={uploadInvitationCard} className="space-y-3">
+										<input type="hidden" name="cardType" value={card.type} />
+										<input 
+											type="file" 
+											name="file" 
+											accept="image/*" 
+											required
+											className="w-full text-sm"
+										/>
+										<Button type="submit" variant="primary" size="sm">
+											上傳圖片
+										</Button>
+									</form>
+								</div>
+							)}
 						</div>
 					</div>
-					<Button type="submit" variant="primary">上傳邀請卡</Button>
-				</form>
+				))}
 			</div>
 
 			{/* 使用說明 */}
 			<div className="bg-blue-50 rounded-lg p-4">
 				<h3 className="font-medium text-blue-900 mb-2">使用說明</h3>
 				<div className="text-sm text-blue-800 space-y-1">
-					<div>• 邀請卡會在成員分享活動給來賓時一起顯示</div>
+					<div>• 不同類型的活動可以使用不同的邀請卡</div>
+					<div>• 系統會根據活動類型自動選擇對應的邀請卡</div>
+					<div>• 若特定類型未設定邀請卡，則不顯示邀請卡</div>
+					<div>• 邀請卡會在「來賓邀請」分享時顯示</div>
 					<div>• 建議上傳包含組織 Logo 和活動資訊的圖片</div>
 					<div>• 圖片會在 Line、Facebook 等平台的分享預覽中顯示</div>
-					<div>• 上傳新圖片會覆蓋舊的邀請卡</div>
 				</div>
 			</div>
 		</div>

@@ -90,9 +90,8 @@ export default function GuestRegisterPage({ params }: { params: Promise<{ id: st
 			return
 		}
 
-		// 報名成功
-		alert('報名成功！我們會在活動前與您聯繫。')
-		router.push('/hall')
+		// 報名成功，導向成功頁面
+		router.push(`/events/${eventId}/guest-success?phone=${encodeURIComponent(form.phone)}`)
 	}
 
 	const Required = () => <span className="text-red-600">*</span>

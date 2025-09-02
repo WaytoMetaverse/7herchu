@@ -17,6 +17,27 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 
 	// 取得邀請卡
 	const orgSettings = await prisma.orgSettings.findFirst()
+	
+	// 根據活動類型選擇對應的邀請卡
+	let invitationCardUrl: string | null = null
+	if (orgSettings) {
+		switch (event.type) {
+			case 'GENERAL':
+			case 'JOINT':
+			case 'CLOSED':
+				invitationCardUrl = orgSettings.invitationCardGeneral
+				break
+			case 'DINNER':
+				invitationCardUrl = orgSettings.invitationCardDinner
+				break
+			case 'SOFT':
+				invitationCardUrl = orgSettings.invitationCardSoft
+				break
+			case 'BOD':
+				invitationCardUrl = orgSettings.invitationCardBod
+				break
+		}
+	}
 
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events/${eventId}/guest-register`
@@ -44,13 +65,13 @@ ${inviteUrl}
 			</div>
 
 			{/* 邀請卡預覽 */}
-			{orgSettings?.invitationCardUrl && (
+			{invitationCardUrl && (
 				<div className="bg-white rounded-lg border p-4">
 					<h2 className="font-medium mb-3">邀請卡片</h2>
 					<div className="max-w-xs mx-auto">
 						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img 
-							src={orgSettings.invitationCardUrl} 
+							src={invitationCardUrl} 
 							alt="邀請卡" 
 							className="w-full rounded-lg border shadow-sm"
 						/>
