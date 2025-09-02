@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import InviteClient from './InviteClient'
 
 export default async function EventInvitePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: eventId } = await params
@@ -79,107 +80,11 @@ ${inviteUrl}
 				</div>
 			)}
 
-			{/* 邀請訊息 */}
-			<div className="bg-white rounded-lg border p-4">
-				<h2 className="font-medium mb-3">邀請訊息</h2>
-				<div className="bg-gray-50 p-3 rounded text-sm font-mono whitespace-pre-line border">
-					{inviteMessage}
-				</div>
-				<div className="mt-3 flex gap-2">
-					<Button 
-						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-							navigator.clipboard.writeText(inviteMessage)
-							const btn = e.target as HTMLButtonElement
-							if (btn) {
-								const original = btn.textContent
-								btn.textContent = '已複製！'
-								setTimeout(() => { btn.textContent = original }, 2000)
-							}
-						}}
-						variant="secondary" 
-						size="sm"
-					>
-						複製訊息
-					</Button>
-					<Button 
-						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-							navigator.clipboard.writeText(inviteUrl)
-							const btn = e.target as HTMLButtonElement
-							if (btn) {
-								const original = btn.textContent
-								btn.textContent = '已複製！'
-								setTimeout(() => { btn.textContent = original }, 2000)
-							}
-						}}
-						variant="outline" 
-						size="sm"
-					>
-						複製連結
-					</Button>
-				</div>
-			</div>
-
-			{/* 分享按鈕 */}
-			<div className="bg-white rounded-lg border p-4">
-				<h2 className="font-medium mb-3">分享到</h2>
-				<div className="grid grid-cols-2 gap-3">
-					<Button 
-						onClick={() => {
-							if (navigator.share) {
-								navigator.share({
-									title: event.title,
-									text: inviteMessage,
-									url: inviteUrl
-								}).catch(() => {
-									// 如果分享失敗，回退到複製
-									navigator.clipboard.writeText(inviteMessage)
-								})
-							} else {
-								// 不支援 Web Share API，開啟 Line 分享
-								const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(inviteMessage)}`
-								window.open(lineUrl, '_blank')
-							}
-						}}
-						variant="primary" 
-						className="bg-green-500 hover:bg-green-600"
-					>
-						Line 分享
-					</Button>
-					<Button 
-						onClick={() => {
-							const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteUrl)}&quote=${encodeURIComponent(inviteMessage)}`
-							window.open(fbUrl, '_blank')
-						}}
-						variant="primary"
-						className="bg-blue-600 hover:bg-blue-700"
-					>
-						Facebook
-					</Button>
-				</div>
-				
-				{/* iOS/Android 原生分享 */}
-				<div className="mt-3">
-					<Button 
-						onClick={() => {
-							if (navigator.share) {
-								navigator.share({
-									title: event.title,
-									text: inviteMessage,
-									url: inviteUrl
-								})
-							} else {
-								// 回退到複製訊息
-								navigator.clipboard.writeText(`${inviteMessage}`)
-								alert('訊息已複製到剪貼簿，請手動分享到您想要的平台')
-							}
-						}}
-						variant="outline"
-						className="w-full"
-					>
-						📱 更多分享選項
-					</Button>
-				</div>
-			</div>
+			<InviteClient 
+				inviteMessage={inviteMessage}
+				inviteUrl={inviteUrl}
+				eventTitle={event.title}
+			/>
 
 			<div className="text-center">
 				<Button as={Link} href={`/hall/${eventId}`} variant="ghost">
