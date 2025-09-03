@@ -6,6 +6,9 @@ import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import MessageEditor from './MessageEditor'
+import { put } from '@vercel/blob'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 export default async function InvitationsPage() {
 	const session = await getServerSession(authOptions)
@@ -29,42 +32,61 @@ export default async function InvitationsPage() {
 			return
 		}
 
-		// 上傳檔案
-		const uploadFormData = new FormData()
-		uploadFormData.append('file', file)
-		
-		const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upload`, {
-			method: 'POST',
-			body: uploadFormData
-		})
-		
-		const uploadData = await uploadRes.json()
-		if (!uploadRes.ok || !uploadData?.url) return
-
-		// 根據卡片類型更新不同欄位
-		const updateField = {
-			general: 'invitationCardGeneral',
-			dinner: 'invitationCardDinner',
-			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod'
-		}[cardType]
-		
-		if (!updateField) return
-
-		// 更新組織設定
-		await prisma.orgSettings.upsert({
-			where: { id: 'singleton' },
-			create: {
-				id: 'singleton',
-				bankInfo: '',
-				[updateField]: uploadData.url
-			},
-			update: {
-				[updateField]: uploadData.url
+		try {
+			// 直接在 Server Action 中處理檔案上傳
+			const buf = Buffer.from(await file.arrayBuffer())
+			const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+			const filename = `invitation_${cardType}_${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`
+			
+			let uploadUrl: string
+			
+			if (process.env.BLOB_READ_WRITE_TOKEN) {
+				// 使用 Vercel Blob
+				const res = await put(`uploads/${filename}`, buf, {
+					access: 'public',
+					addRandomSuffix: false,
+					token: process.env.BLOB_READ_WRITE_TOKEN,
+					contentType: file.type || 'image/jpeg',
+				})
+				uploadUrl = res.url
+			} else {
+				// 使用本地檔案系統
+				const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+				await fs.mkdir(uploadDir, { recursive: true })
+				await fs.writeFile(path.join(uploadDir, filename), buf)
+				uploadUrl = `/uploads/${filename}`
 			}
-		})
+			
+			if (!uploadUrl) return
 
-		revalidatePath('/admin/invitations')
+			// 根據卡片類型更新不同欄位
+			const updateField = {
+				general: 'invitationCardGeneral',
+				dinner: 'invitationCardDinner',
+				soft: 'invitationCardSoft',
+				bod: 'invitationCardBod'
+			}[cardType]
+			
+			if (!updateField) return
+
+			// 更新組織設定
+			await prisma.orgSettings.upsert({
+				where: { id: 'singleton' },
+				create: {
+					id: 'singleton',
+					bankInfo: '',
+					[updateField]: uploadUrl
+				},
+				update: {
+					[updateField]: uploadUrl
+				}
+			})
+
+			revalidatePath('/admin/invitations')
+		} catch (error) {
+			console.error('Upload error:', error)
+			// 可以在這裡添加錯誤處理，例如顯示錯誤訊息
+		}
 	}
 
 	// 刪除邀請卡
