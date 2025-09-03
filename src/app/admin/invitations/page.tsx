@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
+import MessageEditor from './MessageEditor'
 
 export default async function InvitationsPage() {
 	const session = await getServerSession(authOptions)
@@ -218,34 +219,11 @@ export default async function InvitationsPage() {
 							{/* 邀請訊息編輯 */}
 							<div className="border-t pt-4">
 								<h4 className="text-sm font-medium text-gray-700 mb-2">邀請訊息</h4>
-								<form action={updateInvitationMessage} className="space-y-2">
-									<input type="hidden" name="messageType" value={card.type} />
-									<textarea
-										name="message"
-										defaultValue={card.message}
-										placeholder="請輸入邀請訊息"
-										className="w-full p-2 border rounded-lg resize-none h-20 text-sm"
-									/>
-									<div className="flex gap-2">
-										<Button type="submit" variant="primary" size="sm">
-											儲存
-										</Button>
-										<Button 
-											type="button" 
-											variant="outline" 
-											size="sm"
-											onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-												const form = e.currentTarget.closest('form')
-												const textarea = form?.querySelector('textarea')
-												if (textarea) {
-													textarea.value = card.message || '磐石砌好厝誠摯地邀請您一同來參與'
-												}
-											}}
-										>
-											取消
-										</Button>
-									</div>
-								</form>
+								<MessageEditor 
+									messageType={card.type}
+									defaultMessage={card.message}
+									updateAction={updateInvitationMessage}
+								/>
 								<div className="mt-2 text-xs text-gray-500">
 									<div>訊息會自動加上活動資訊：</div>
 									<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
