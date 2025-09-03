@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 		} = body
 
 		// 驗證必填欄位
-		if (!eventId || !name || !phone || !companyName || !industry || !invitedBy || !mealCode) {
+		if (!eventId || !name || !phone || !companyName || !industry || !invitedBy) {
 			return NextResponse.json({ error: '請填寫所有必填欄位' }, { status: 400 })
 		}
 
@@ -53,8 +53,20 @@ export async function POST(req: NextRequest) {
 		})
 
 		let diet = 'meat'
-		if (mealCode === 'C' || eventMenu?.mealCodeC) {
-			diet = 'veg' // C餐點預設為素食
+		const finalMealCode = mealCode || null
+		
+		// 如果有餐點服務
+		if (eventMenu?.hasMealService && mealCode) {
+			if (mealCode === 'C') {
+				diet = 'veg' // C餐點預設為素食
+			}
+		}
+		// 如果沒有餐點服務，根據飲食偏好智能選擇
+		else if (!eventMenu?.hasMealService) {
+			// 如果兩者都不吃，預設為素食
+			if (noBeef && noPork) {
+				diet = 'veg'
+			}
 		}
 
 		// 建立來賓報名記錄
@@ -68,11 +80,12 @@ export async function POST(req: NextRequest) {
 				industry,
 				bniChapter: bniChapter || null,
 				invitedBy,
-				mealCode,
+				mealCode: finalMealCode,
 				diet,
 				noBeef: !!noBeef,
 				noPork: !!noPork,
-				paymentStatus: 'UNPAID'
+				paymentStatus: 'UNPAID',
+				status: 'REGISTERED'
 			}
 		})
 

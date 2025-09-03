@@ -90,23 +90,23 @@ export default async function GroupHomePage() {
 					</Card>
 				)}
 
-				{/* 邀請卡管理卡片 */}
+				{/* 邀請管理卡片 */}
 				{isAdmin && (
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
 								<Image className="w-6 h-6 text-purple-600" />
-								<h2 className="text-lg font-semibold">邀請卡管理</h2>
+								<h2 className="text-lg font-semibold">邀請管理</h2>
 							</div>
 							<div className="space-y-4">
 								<p className="text-gray-600 text-sm">
-									管理來賓邀請時使用的邀請卡片圖像。
+									管理邀請卡片與邀請訊息。
 								</p>
 								<Link
-									href="/admin/invitation-cards"
+									href="/admin/invitations"
 									className="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center py-2 px-4 rounded transition-colors"
 								>
-									邀請卡管理
+									邀請管理
 								</Link>
 							</div>
 						</CardContent>

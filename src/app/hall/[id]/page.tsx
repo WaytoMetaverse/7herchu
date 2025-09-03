@@ -13,6 +13,7 @@ import { redirect } from 'next/navigation'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import { getDisplayName } from '@/lib/displayName'
+import SharePopover from './SharePopover'
 
 const TYPE_LABEL: Record<EventType, string> = {
 	GENERAL: '簡報組聚',
@@ -46,10 +47,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 		where: { email: session.user.email }
 	}) : null
 
-	const [regs, speakers, eventMenu] = await Promise.all([
+	const [regs, speakers, eventMenu, orgSettings] = await Promise.all([
 		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
-		prisma.eventMenu.findUnique({ where: { eventId: id } })
+		prisma.eventMenu.findUnique({ where: { eventId: id } }),
+		prisma.orgSettings.findFirst()
 	])
 
 	// 智能選擇：為沒有 mealCode 但活動有餐點設定的報名記錄自動分配餐點
@@ -236,11 +238,42 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				<div className="flex items-center gap-3">
 					<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
 					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
-					{isLoggedIn && (
-						<Button as={Link} href={`/events/${event.id}/invite`} variant="primary" size="sm">
-							來賓邀請
-						</Button>
-					)}
+					{isLoggedIn && (() => {
+						// 根據活動類型選擇對應的邀請訊息和卡片
+						let invitationMessage = '磐石砌好厝誠摯地邀請您一同來參與'
+						let invitationCardUrl: string | null = null
+						
+						if (orgSettings) {
+							switch (event.type) {
+								case 'GENERAL':
+								case 'JOINT':
+								case 'CLOSED':
+									invitationMessage = orgSettings.invitationMessageGeneral || invitationMessage
+									invitationCardUrl = orgSettings.invitationCardGeneral
+									break
+								case 'DINNER':
+									invitationMessage = orgSettings.invitationMessageDinner || invitationMessage
+									invitationCardUrl = orgSettings.invitationCardDinner
+									break
+								case 'SOFT':
+									invitationMessage = orgSettings.invitationMessageSoft || invitationMessage
+									invitationCardUrl = orgSettings.invitationCardSoft
+									break
+								case 'BOD':
+									invitationMessage = orgSettings.invitationMessageBod || invitationMessage
+									invitationCardUrl = orgSettings.invitationCardBod
+									break
+							}
+						}
+						
+						return (
+							<SharePopover 
+								event={event}
+								invitationMessage={invitationMessage}
+								invitationCardUrl={invitationCardUrl}
+							/>
+						)
+					})()}
 				</div>
 				{/* 右上角管理圖示按鈕 */}
 				<div className="flex items-center gap-1">

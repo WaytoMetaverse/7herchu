@@ -346,6 +346,10 @@ model OrgSettings {
   invitationCardDinner String?   // 餐敘
   invitationCardSoft String?     // 軟性活動
   invitationCardBod String?      // BOD
+  invitationMessageGeneral String? @default("磐石砌好厝誠摯地邀請您一同來參與") // 簡報組聚/聯合組聚/封閉會議訊息
+  invitationMessageDinner String? @default("磐石砌好厝誠摯地邀請您一同來參與")  // 餐敘訊息
+  invitationMessageSoft String? @default("磐石砌好厝誠摯地邀請您一同來參與")    // 軟性活動訊息
+  invitationMessageBod String? @default("磐石砌好厝誠摯地邀請您一同來參與")     // BOD訊息
 } 
 
 model BusinessCard {
