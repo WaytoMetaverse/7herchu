@@ -2,9 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { EventType, PricingMode } from '@prisma/client'
 
-export async function GET() {
-	const list = await prisma.event.findMany({ orderBy: { startAt: 'asc' } })
-	return NextResponse.json(list)
+export async function GET(req: NextRequest) {
+	const { searchParams } = new URL(req.url)
+	const id = searchParams.get('id')
+	
+	if (id) {
+		// 查詢單一活動
+		const event = await prisma.event.findUnique({ where: { id } })
+		if (!event) {
+			return NextResponse.json({ error: '活動不存在' }, { status: 404 })
+		}
+		return NextResponse.json({ data: event })
+	} else {
+		// 查詢所有活動
+		const list = await prisma.event.findMany({ orderBy: { startAt: 'asc' } })
+		return NextResponse.json(list)
+	}
 }
 
 export async function POST(req: NextRequest) {
