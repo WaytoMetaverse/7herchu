@@ -13,6 +13,10 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 		title: string
 		startAt: string
 		location: string
+		type: string
+		defaultPriceCents?: number
+		guestPriceCents?: number
+		bodGuestPriceCents?: number
 	} | null>(null)
 	const searchParams = useSearchParams()
 	const phone = searchParams.get('phone')
@@ -35,6 +39,26 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 				// 錯誤處理
 			})
 	}, [eventId])
+
+	// 計算來賓金額
+	const getGuestPrice = () => {
+		if (!event) return '-'
+		
+		switch (event.type) {
+			case 'GENERAL':
+			case 'JOINT':
+			case 'CLOSED':
+				return 'NT$ 250'
+			case 'BOD':
+				return event.bodGuestPriceCents ? `NT$ ${event.bodGuestPriceCents / 100}` : '-'
+			case 'DINNER':
+			case 'SOFT':
+				return event.guestPriceCents ? `NT$ ${event.guestPriceCents / 100}` : 
+					   event.defaultPriceCents ? `NT$ ${event.defaultPriceCents / 100}` : '-'
+			default:
+				return '-'
+		}
+	}
 
 	if (!event) {
 		return (
@@ -63,15 +87,16 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 					<div>📅 {event.title}</div>
 					<div>🗓️ {format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
 					<div>📍 {event.location}</div>
+					<div>💰 活動費用：{getGuestPrice()}</div>
 				</div>
 			</div>
 
-			{/* 提醒訊息 */}
+			{/* 重要提醒 */}
 			<div className="bg-blue-50 rounded-lg p-4 space-y-2">
 				<h3 className="font-medium text-blue-900">重要提醒</h3>
-				<div className="text-sm text-blue-700 space-y-1">
-					<div>✓ 我們會在活動前與您聯繫</div>
-					<div>✓ 請準時出席活動</div>
+				<div className="text-sm text-blue-700 space-y-2">
+					<div>✓ 請匯款至帳號：中國信託822 城中分行 107540665031或匯款或line pay給您的邀約人</div>
+					<div>✓ 下班時段易塞車請注意交通安全，以確保準時蒞臨與會</div>
 					{phone && <div>✓ 您的報名手機：{phone}</div>}
 				</div>
 			</div>

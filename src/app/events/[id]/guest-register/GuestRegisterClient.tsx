@@ -35,6 +35,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		bniChapter: '',
 		invitedBy: '',
 		mealCode: '',
+		diet: 'meat' as 'meat' | 'veg',
 		noBeef: false,
 		noPork: false,
 	})
@@ -271,6 +272,26 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 					<div>
 						<h3 className="font-medium mb-3">飲食偏好</h3>
 						<div className="space-y-2">
+							<label className="flex items-center gap-2">
+								<input 
+									type="radio" 
+									name="diet"
+									value="meat"
+									checked={form.diet === 'meat'}
+									onChange={(e) => setForm(v => ({...v, diet: e.target.value as 'meat' | 'veg'}))}
+								/>
+								<span className="text-sm">葷食</span>
+							</label>
+							<label className="flex items-center gap-2">
+								<input 
+									type="radio" 
+									name="diet"
+									value="veg"
+									checked={form.diet === 'veg'}
+									onChange={(e) => setForm(v => ({...v, diet: e.target.value as 'meat' | 'veg'}))}
+								/>
+								<span className="text-sm">素食</span>
+							</label>
 							<label className="flex items-center gap-2">
 								<input 
 									type="checkbox" 
