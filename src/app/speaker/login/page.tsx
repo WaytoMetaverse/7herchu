@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 
 export default function SpeakerPhoneLoginPage() {
 	const router = useRouter()
@@ -10,6 +12,15 @@ export default function SpeakerPhoneLoginPage() {
   const eventId = sp.get('event') || ''
 	const [phone, setPhone] = useState('')
 	const [err, setErr] = useState<string | null>(null)
+	const [bookings, setBookings] = useState<{
+		id: string
+		eventId: string
+		event?: {
+			title: string
+			startAt: string
+		}
+	}[]>([])
+	const [showSelection, setShowSelection] = useState(false)
 
 	function onSubmit(e: React.FormEvent) {
 		e.preventDefault()
@@ -23,22 +34,79 @@ export default function SpeakerPhoneLoginPage() {
 			.then(res => res.json())
 			.then(data => {
 				const d = data?.data
-				let targetEventId = ''
 				if (d) {
 					if (Array.isArray(d)) {
-						targetEventId = d[0]?.eventId || ''
+						// 多場預約
+						if (d.length === 1) {
+							// 只有一場，直接跳轉
+							const targetEventId = eventId || d[0]?.eventId || ''
+							if (targetEventId) {
+								router.push(`/speaker/book?event=${encodeURIComponent(targetEventId)}&phone=${encodeURIComponent(v)}&mode=edit`)
+							} else {
+								router.push('/calendar')
+							}
+						} else if (d.length > 1) {
+							// 多場預約，顯示選單
+							setBookings(d)
+							setShowSelection(true)
+						} else {
+							// 沒有預約
+							router.push('/calendar')
+						}
 					} else {
-						targetEventId = d.eventId || ''
+						// 單一預約
+						const targetEventId = eventId || d.eventId || ''
+						if (targetEventId) {
+							router.push(`/speaker/book?event=${encodeURIComponent(targetEventId)}&phone=${encodeURIComponent(v)}&mode=edit`)
+						} else {
+							router.push('/calendar')
+						}
 					}
-				}
-				if (eventId) targetEventId = eventId
-				if (targetEventId) {
-					router.push(`/speaker/book?event=${encodeURIComponent(targetEventId)}&phone=${encodeURIComponent(v)}&mode=edit`)
 				} else {
+					// 沒有預約
 					router.push('/calendar')
 				}
 			})
 			.catch(() => router.push('/calendar'))
+	}
+
+	function selectBooking(eventId: string) {
+		router.push(`/speaker/book?event=${encodeURIComponent(eventId)}&phone=${encodeURIComponent(phone)}&mode=edit`)
+	}
+
+	if (showSelection) {
+		return (
+			<div className="max-w-lg mx-auto p-4 space-y-6">
+				<div className="text-center space-y-2">
+					<h1 className="text-2xl font-semibold">選擇要編輯的講師預約</h1>
+					<p className="text-gray-600 text-sm">找到 {bookings.length} 筆講師預約記錄，請選擇：</p>
+				</div>
+
+				<div className="space-y-2">
+					{bookings.map((booking) => (
+						<button
+							key={booking.id}
+							onClick={() => selectBooking(booking.eventId)}
+							className="w-full p-3 border rounded-lg text-left hover:bg-gray-50 transition-colors"
+						>
+							<div className="font-medium">{booking.event?.title}</div>
+							<div className="text-sm text-gray-600">
+								{booking.event?.startAt ? format(new Date(booking.event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
+							</div>
+						</button>
+					))}
+				</div>
+
+				<div className="text-center">
+					<Button 
+						onClick={() => setShowSelection(false)} 
+						variant="outline"
+					>
+						返回
+					</Button>
+				</div>
+			</div>
+		)
 	}
 
 	return (

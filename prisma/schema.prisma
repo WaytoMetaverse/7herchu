@@ -245,6 +245,7 @@ model Registration {
 
   name          String?
   phone         String?
+  editPasswordHash String? // 來賓編輯密碼（手機號碼 hash）
   companyName   String?
   industry      String?
   bniChapter    String?

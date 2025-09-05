@@ -34,7 +34,8 @@ export default function MobileQueryPage() {
 		}
 
 		try {
-			const res = await fetch(`/api/registrations/search?phone=${encodeURIComponent(v)}`)
+			// 使用新的來賓查詢 API
+			const res = await fetch(`/api/guest/booking?phone=${encodeURIComponent(v)}`)
 			const data = await res.json()
 			
 			if (!res.ok) {
@@ -55,7 +56,8 @@ export default function MobileQueryPage() {
 	}
 
 	function selectEvent(eventId: string) {
-		router.push(`/events/${eventId}/guest-status?phone=${encodeURIComponent(phone)}`)
+		// 跳轉到來賓編輯頁面（編輯模式）
+		router.push(`/events/${eventId}/guest-edit?phone=${encodeURIComponent(phone)}&mode=edit`)
 	}
 
 	return (
@@ -103,13 +105,13 @@ export default function MobileQueryPage() {
 								variant="primary"
 								className="w-full"
 							>
-								查看 {results[0].event?.title} 報名詳情
+								編輯 {results[0].event?.title} 報名資料
 							</Button>
 						</div>
 					) : (
 						// 多筆記錄，顯示選單
 						<div className="space-y-2">
-							<div className="text-sm text-gray-600">找到 {results.length} 筆報名記錄，請選擇：</div>
+							<div className="text-sm text-gray-600">找到 {results.length} 筆報名記錄，請選擇要編輯的活動：</div>
 							{results.map((reg) => (
 								<button
 									key={reg.id}

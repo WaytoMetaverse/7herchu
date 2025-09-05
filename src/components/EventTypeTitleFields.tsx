@@ -47,7 +47,7 @@ export default function EventTypeTitleFields({
 				<input
 					name={titleName}
 					
-					placeholder={map[selectedType] || ''}
+					placeholder="請輸入標題"
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
 				/>

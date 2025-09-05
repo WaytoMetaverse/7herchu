@@ -41,39 +41,31 @@ async function createEvent(formData: FormData) {
 	if (!dateStr || !startTime || !endTime || !title) return
 	const startAt = buildDate(dateStr, startTime)
 	const endAt = buildDate(dateStr, endTime)
+	// 檢查是否有輸入講師名額
+	const speakerQuotaInput = Number(formData.get('speakerQuota') ?? 0)
+	const hasSpeakerQuota = speakerQuotaInput > 0
+	
 	const data: Prisma.EventCreateInput = {
 		type,
 		title,
 		startAt,
 		endAt,
 		location,
-		allowSpeakers: type === 'GENERAL',
+		allowSpeakers: hasSpeakerQuota, // 只要有輸入講師名額就開放
 		allowGuests: type !== 'CLOSED',
+		speakerQuota: hasSpeakerQuota ? speakerQuotaInput : null,
 	}
 	if (type === 'GENERAL') {
-		data.allowSpeakers = true
-		data.allowGuests = true
-		data.speakerQuota = Number(formData.get('speakerQuota') ?? 5)
 		data.guestPriceCents = cents(formData.get('guestPrice')) ?? 25000
 	} else if (type === 'BOD') {
-		data.allowSpeakers = false
-		data.allowGuests = true
 		data.bodMemberPriceCents = cents(formData.get('bodMemberPrice'))
 		data.bodGuestPriceCents = cents(formData.get('bodGuestPrice'))
 	} else if (type === 'DINNER') {
-		data.allowSpeakers = false
-		data.allowGuests = true
 		data.pricingMode = PricingMode.MANUAL_PER_REG
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 	} else if (type === 'CLOSED') {
-		data.allowSpeakers = false
 		data.allowGuests = false
-	} else if (type === 'JOINT') {
-		data.allowSpeakers = false
-		data.allowGuests = true
 	} else if (type === 'SOFT') {
-		data.allowSpeakers = false
-		data.allowGuests = true
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
 	}
@@ -128,12 +120,12 @@ export default function AdminEventNewPage() {
 				<label className="col-span-2">地點
 					<div className="flex items-center gap-2">
 						<MapPin className="w-4 h-4" />
-						<input name="location"  placeholder="富興工廠2F" />
+						<input name="location"  placeholder="請輸入地點" />
 					</div>
 				</label>
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-					<label>一般：講師名額
-						<input name="speakerQuota" type="number" min={0}  placeholder="5" />
+					<label>設定講師名額
+						<input name="speakerQuota" type="number" min={0}  placeholder="請輸入講師名額" />
 					</label>
 				</div>
 				<div className="col-span-2 flex items-center gap-3">

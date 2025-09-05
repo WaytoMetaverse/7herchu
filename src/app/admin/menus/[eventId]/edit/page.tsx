@@ -44,7 +44,7 @@ export default async function EditEventMenuPage({
 		const mealBHasPork = formData.get('mealBHasPork') === 'on'
 
 		// 使用upsert來建立或更新活動餐點設定
-		await prisma.eventMenu.upsert({
+		const updatedEventMenu = await prisma.eventMenu.upsert({
 			where: { eventId },
 			update: {
 				hasMealService,
@@ -70,6 +70,107 @@ export default async function EditEventMenuPage({
 				mealBHasPork
 			}
 		})
+
+		// 如果啟用了餐點服務，重新為所有現有報名執行智能判斷
+		if (hasMealService) {
+			// 取得所有現有的報名記錄（成員和來賓）
+			const existingRegistrations = await prisma.registration.findMany({
+				where: { 
+					eventId,
+					status: 'REGISTERED' // 只處理已報名狀態
+				}
+			})
+
+			// 重新為每個報名執行智能判斷
+			if (existingRegistrations.length > 0) {
+				const updates = existingRegistrations.map(reg => {
+					let finalMealCode = ''
+					let diet = 'meat'
+
+					// 智能選擇邏輯
+					if (reg.noBeef && reg.noPork) {
+						// 不吃牛也不吃豬 → 選素食 C
+						finalMealCode = 'C'
+						diet = 'veg'
+					} else {
+						// 葷食，需要智能選擇 A 或 B
+						const canEatA = !(reg.noBeef && mealAHasBeef) && !(reg.noPork && mealAHasPork)
+						const canEatB = !(reg.noBeef && mealBHasBeef) && !(reg.noPork && mealBHasPork)
+						
+						if (canEatA && canEatB) {
+							// 兩個都可以吃，選擇 A（可以之後優化為選人數較少的）
+							finalMealCode = 'A'
+						} else if (canEatA) {
+							finalMealCode = 'A'
+						} else if (canEatB) {
+							finalMealCode = 'B'
+						} else {
+							// 都不能吃，選素食 C
+							finalMealCode = 'C'
+							diet = 'veg'
+						}
+					}
+
+					return prisma.registration.update({
+						where: { id: reg.id },
+						data: {
+							mealCode: finalMealCode,
+							diet
+						}
+					})
+				})
+
+				// 執行批量更新
+				await Promise.all(updates)
+			}
+
+			// 同樣為講師預約進行智能重新判斷
+			const existingSpeakers = await prisma.speakerBooking.findMany({
+				where: { eventId }
+			})
+
+			if (existingSpeakers.length > 0) {
+				const speakerUpdates = existingSpeakers.map(speaker => {
+					let finalMealCode = ''
+					let diet = 'meat'
+
+					// 智能選擇邏輯
+					if (speaker.noBeef && speaker.noPork) {
+						// 不吃牛也不吃豬 → 選素食 C
+						finalMealCode = 'C'
+						diet = 'veg'
+					} else {
+						// 葷食，需要智能選擇 A 或 B
+						const canEatA = !(speaker.noBeef && mealAHasBeef) && !(speaker.noPork && mealAHasPork)
+						const canEatB = !(speaker.noBeef && mealBHasBeef) && !(speaker.noPork && mealBHasPork)
+						
+						if (canEatA && canEatB) {
+							// 兩個都可以吃，選擇 A
+							finalMealCode = 'A'
+						} else if (canEatA) {
+							finalMealCode = 'A'
+						} else if (canEatB) {
+							finalMealCode = 'B'
+						} else {
+							// 都不能吃，選素食 C
+							finalMealCode = 'C'
+							diet = 'veg'
+						}
+					}
+
+					return prisma.speakerBooking.update({
+						where: { id: speaker.id },
+						data: {
+							mealCode: finalMealCode,
+							diet
+						}
+					})
+				})
+
+				// 執行批量更新
+				await Promise.all(speakerUpdates)
+			}
+		}
 
 		revalidatePath('/admin/menus')
 		redirect('/admin/menus')

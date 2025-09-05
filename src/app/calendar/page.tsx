@@ -49,7 +49,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 		events = all.filter(e => {
 			const count = counts[e.id] ?? 0
 			const left = Math.max(0, (e.speakerQuota ?? 0) - count)
-			return e.allowSpeakers && e.type === 'GENERAL' && left > 0
+			return e.allowSpeakers && left > 0
 		})
 	}
 
@@ -78,7 +78,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 					<h2 className="text-lg font-medium">{format(new Date(key + '-01'), 'yyyy/MM', { locale: zhTW })}</h2>
 					<div className="space-y-3">
 						{list.map((e) => {
-							const canBookSpeaker = e.allowSpeakers && e.type === EventType.GENERAL
+							const canBookSpeaker = e.allowSpeakers
 							const cnt = counts[e.id] ?? 0
 							const quota = e.speakerQuota ?? 0
 							const hasQuota = quota > 0

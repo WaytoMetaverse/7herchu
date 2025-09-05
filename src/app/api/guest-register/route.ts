@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
 	try {
@@ -69,6 +70,9 @@ export async function POST(req: NextRequest) {
 			}
 		}
 
+		// 生成編輯密碼（與講師預約相同邏輯）
+		const editPasswordHash = bcrypt.hashSync(phone, 10)
+
 		// 建立來賓報名記錄
 		const registration = await prisma.registration.create({
 			data: {
@@ -76,6 +80,7 @@ export async function POST(req: NextRequest) {
 				role: 'GUEST',
 				name,
 				phone,
+				editPasswordHash,
 				companyName,
 				industry,
 				bniChapter: bniChapter || null,

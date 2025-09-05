@@ -116,7 +116,7 @@ export default async function MenuManagePage() {
 				<Button as={Link} href="/group" variant="ghost">返回小組管理</Button>
 			</div>
 
-			<p className="text-gray-600">管理所有活動的餐點設定，方便講師預約時判斷餐點。</p>
+			<p className="text-gray-600">管理所有活動的餐點設定，Ai機器人輔助判斷餐點。</p>
 
 			{/* 活動列表 */}
 			<div className="space-y-4">
@@ -129,7 +129,7 @@ export default async function MenuManagePage() {
 									{new Date(event.startAt).toLocaleDateString('zh-TW')} {event.location}
 								</p>
 								<p className="text-sm text-gray-500">
-									報名人數：{event.registrations.length} 人
+									報名人數：{event.registrations.filter(reg => reg.status === 'REGISTERED').length + event.speakerBookings.length} 人
 								</p>
 							</div>
 							<div className="flex items-center gap-2">
@@ -156,24 +156,18 @@ export default async function MenuManagePage() {
 							<div className="bg-blue-50 p-4 rounded-lg">
 								<h4 className="font-medium text-blue-900 mb-2">餐點統計</h4>
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-									{event.mealStats.A > 0 && (
-										<div className="text-center">
-											<div className="text-lg font-semibold text-blue-700">{event.mealStats.A}</div>
-											<div className="text-blue-600">A餐點</div>
-										</div>
-									)}
-									{event.mealStats.B > 0 && (
-										<div className="text-center">
-											<div className="text-lg font-semibold text-blue-700">{event.mealStats.B}</div>
-											<div className="text-blue-600">B餐點</div>
-										</div>
-									)}
-									{event.mealStats.C > 0 && (
-										<div className="text-center">
-											<div className="text-lg font-semibold text-blue-700">{event.mealStats.C}</div>
-											<div className="text-blue-600">C餐點</div>
-										</div>
-									)}
+									<div className="text-center">
+										<div className="text-lg font-semibold text-blue-700">{event.mealStats.A}</div>
+										<div className="text-blue-600">{event.eventMenu?.mealCodeA || 'A餐點'}</div>
+									</div>
+									<div className="text-center">
+										<div className="text-lg font-semibold text-blue-700">{event.mealStats.B}</div>
+										<div className="text-blue-600">{event.eventMenu?.mealCodeB || 'B餐點'}</div>
+									</div>
+									<div className="text-center">
+										<div className="text-lg font-semibold text-blue-700">{event.mealStats.C}</div>
+										<div className="text-blue-600">{event.eventMenu?.mealCodeC || 'C餐點'}</div>
+									</div>
 									<div className="text-center">
 										<div className="text-lg font-semibold text-blue-900">{event.mealStats.total}</div>
 										<div className="text-blue-800">總計</div>
