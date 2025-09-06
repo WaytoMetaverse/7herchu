@@ -185,8 +185,8 @@ export default async function MembersManagePage({
 			data: { paymentStatus: 'PAID' }
 		})
 
-		revalidatePath('/admin/members')
-	}
+	revalidatePath('/admin/members')
+}
 
 	// 取消繳費的 Server Action
 	async function cancelLastPayment(formData: FormData) {
@@ -213,7 +213,8 @@ export default async function MembersManagePage({
 		if (!lastTransaction) return
 
 		// 計算回滾後的金額
-		const rollbackAmount = monthlyPayment.amount - lastTransaction.amountCents
+		const currentAmount = monthlyPayment.amount || 0
+		const rollbackAmount = currentAmount - lastTransaction.amountCents
 		const rollbackCount = Math.round(lastTransaction.amountCents / 100 / 220)
 
 		// 刪除最後一筆財務交易
@@ -536,7 +537,7 @@ export default async function MembersManagePage({
 							))}
 						</tbody>
 					</table>
-				</div>
+						</div>
 			</div>
 		</div>
 	)
