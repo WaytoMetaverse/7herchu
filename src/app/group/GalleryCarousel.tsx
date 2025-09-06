@@ -80,7 +80,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 	}
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-black">
+		<div className="min-h-screen relative overflow-hidden">
 			{/* 圖片容器 */}
 			<div className="relative w-full h-screen">
 				{images.map((image, index) => (
