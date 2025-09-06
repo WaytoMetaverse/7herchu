@@ -12,6 +12,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [isMobile, setIsMobile] = useState(false)
 	const [isClient, setIsClient] = useState(false)
+	const [imageLoadStates, setImageLoadStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({})
 
 	// 檢測是否在客戶端
 	useEffect(() => {
@@ -95,12 +96,21 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							className="w-full h-full object-cover"
 							onError={(e) => {
 								console.error('Image failed to load:', image)
+								setImageLoadStates(prev => ({ ...prev, [image]: 'error' }))
 								e.currentTarget.style.display = 'none'
 							}}
 							onLoad={() => {
 								console.log('Image loaded successfully:', image)
+								setImageLoadStates(prev => ({ ...prev, [image]: 'loaded' }))
 							}}
 						/>
+						{/* 載入指示器 */}
+						{imageLoadStates[image] !== 'loaded' && imageLoadStates[image] !== 'error' && (
+							<div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+								<div className="text-gray-500">載入中...</div>
+							</div>
+						)}
+						
 						{/* 圖片遮罩 */}
 						<div className="absolute inset-0 bg-black bg-opacity-20" />
 					</div>

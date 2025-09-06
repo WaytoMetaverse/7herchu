@@ -114,7 +114,7 @@ export default async function MembersManagePage({
 
 	// 標記月費已繳
 	async function markPaid(formData: FormData) {
-		'use server'
+	'use server'
 		const userId = String(formData.get('userId'))
 		const month = String(formData.get('month'))
 		if (!userId || !month) return
@@ -517,14 +517,14 @@ export default async function MembersManagePage({
 																		required
 																	/>
 																	<span className="text-xs">次</span>
-																</div>
+						</div>
 																<button 
 																	type="submit"
 																	className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded"
 																>
 																	繳費 $220/次
 																</button>
-															</form>
+					</form>
 														) : (
 															<div className="text-xs text-gray-400">無報名記錄</div>
 														)}
