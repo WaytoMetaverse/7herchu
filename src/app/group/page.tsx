@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 // import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Users, DollarSign, UtensilsCrossed, Image } from 'lucide-react'
+import { Users, DollarSign, UtensilsCrossed, Image, Monitor } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
+import GalleryCarousel from './GalleryCarousel'
 
 
 
@@ -14,6 +16,18 @@ export default async function GroupHomePage() {
 	const canManageFinance = isAdmin || roles.includes('finance_manager')
 	const canManageMenu = isAdmin || roles.includes('menu_manager')
 	const isLoggedIn = !!session?.user
+
+	// 如果未登入，顯示圖片輪播
+	if (!isLoggedIn) {
+		const orgSettings = await prisma.orgSettings.findFirst()
+		
+		return (
+			<GalleryCarousel
+				mobileImages={orgSettings?.mobileGalleryImages || []}
+				desktopImages={orgSettings?.desktopGalleryImages || []}
+			/>
+		)
+	}
 
 
 	return (
@@ -107,6 +121,29 @@ export default async function GroupHomePage() {
 									className="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center py-2 px-4 rounded transition-colors"
 								>
 									邀請管理
+								</Link>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* 展示設定卡片 */}
+				{isAdmin && (
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center gap-3 mb-4">
+								<Monitor className="w-6 h-6 text-indigo-600" />
+								<h2 className="text-lg font-semibold">展示設定</h2>
+							</div>
+							<div className="space-y-4">
+								<p className="text-gray-600 text-sm">
+									管理未登入用戶看到的小組展示圖片，分別設定手機版和電腦版。
+								</p>
+								<Link
+									href="/admin/gallery"
+									className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2 px-4 rounded transition-colors"
+								>
+									展示設定
 								</Link>
 							</div>
 						</CardContent>

@@ -351,6 +351,8 @@ model OrgSettings {
   invitationMessageDinner String? @default("磐石砌好厝誠摯地邀請您一同來參與")  // 餐敘訊息
   invitationMessageSoft String? @default("磐石砌好厝誠摯地邀請您一同來參與")    // 軟性活動訊息
   invitationMessageBod String? @default("磐石砌好厝誠摯地邀請您一同來參與")     // BOD訊息
+  mobileGalleryImages String[] @default([])   // 手機版展示圖片
+  desktopGalleryImages String[] @default([])  // 電腦版展示圖片
 } 
 
 model BusinessCard {

@@ -299,12 +299,13 @@ export default async function MembersManagePage({
 				<Button as={Link} href="/admin/finance" variant="outline">返回財務管理</Button>
 			</div>
 
-			{/* 月份選擇器 */}
-			<MonthSelector currentMonth={selectedMonth} />
-
 			{/* 繳費訊息產生器 */}
 			<div className="bg-blue-50 p-4 rounded-lg">
-				<h2 className="font-medium mb-2">繳費訊息（固定成員）</h2>
+				<div className="flex items-center justify-between mb-2">
+					<h2 className="font-medium">繳費訊息（固定成員）</h2>
+					{/* 月份選擇器 */}
+					<MonthSelector currentMonth={selectedMonth} />
+				</div>
 				<div className="bg-white p-3 rounded border text-sm font-mono whitespace-pre-line">
 					{paymentMessage}
 				</div>

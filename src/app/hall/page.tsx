@@ -95,7 +95,8 @@ export default async function HallPage() {
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">活動大廳</h1>
 				<div className="flex items-center gap-2">
-					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm">新增活動</Button>}
+					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm" className="hidden sm:inline-flex">新增活動</Button>}
+					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm" className="sm:hidden">+</Button>}
 					<Button as={Link} href="/mobile-query" variant="outline" size="sm">報名查詢</Button>
 				</div>
 			</div>
@@ -108,39 +109,39 @@ export default async function HallPage() {
 								{isLoggedIn ? (
 									<Link href={`/hall/${e.id}`}>
 										<CardContent className="p-4 hover:bg-[color-mix(in_oklab,_var(--brand-600)_10%,_white)] rounded-xl">
-											<div className="flex justify-between">
-												<div>
-													<div className="font-medium flex items-center gap-2">
-														<CalendarIcon className="w-4 h-4 text-gray-500" />
-														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span>{e.title}</span>
+											<div className="flex justify-between items-start">
+												<div className="flex-1 min-w-0">
+													<div className="font-medium flex items-center gap-2 mb-1">
+														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+														<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span className="truncate">{e.title}</span>
 													</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
-														<MapPin className="w-4 h-4" />
-														<span>{e.location ?? ''}</span>
-														<span className="text-[var(--brand-700)]">· {TYPE_LABEL[e.type as EventType]}</span>
+														<MapPin className="w-4 h-4 flex-shrink-0" />
+														<span className="truncate">{e.location ?? ''}</span>
+														<span className="text-[var(--brand-700)] whitespace-nowrap">· {TYPE_LABEL[e.type as EventType]}</span>
 													</div>
 												</div>
-												<div className="text-sm text-gray-500">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
+												<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
 											</div>
 										</CardContent>
 									</Link>
 								) : (
 									<CardContent className="p-4 rounded-xl opacity-90">
-										<div className="flex justify-between">
-											<div>
-												<div className="font-medium flex items-center gap-2">
-													<CalendarIcon className="w-4 h-4 text-gray-500" />
-													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-													<span>{e.title}</span>
+										<div className="flex justify-between items-start">
+											<div className="flex-1 min-w-0">
+												<div className="font-medium flex items-center gap-2 mb-1">
+													<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+													<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+													<span className="truncate">{e.title}</span>
 												</div>
 												<div className="text-sm text-gray-700 flex items-center gap-2">
-													<MapPin className="w-4 h-4" />
-													<span>{e.location ?? ''}</span>
-													<span className="text-[var(--brand-700)]">· {TYPE_LABEL[e.type as EventType]}</span>
+													<MapPin className="w-4 h-4 flex-shrink-0" />
+													<span className="truncate">{e.location ?? ''}</span>
+													<span className="text-[var(--brand-700)] whitespace-nowrap">· {TYPE_LABEL[e.type as EventType]}</span>
 												</div>
 											</div>
-											<div className="text-sm text-gray-500">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
+											<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
 										</div>
 									</CardContent>
 								)}

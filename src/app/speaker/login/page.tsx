@@ -76,21 +76,21 @@ export default function SpeakerPhoneLoginPage() {
 
 	if (showSelection) {
 		return (
-			<div className="max-w-lg mx-auto p-4 space-y-6">
-				<div className="text-center space-y-2">
+			<div className="max-w-sm mx-auto p-4 space-y-6">
+				<div className="text-center space-y-3">
 					<h1 className="text-2xl font-semibold">選擇要編輯的講師預約</h1>
-					<p className="text-gray-600 text-sm">找到 {bookings.length} 筆講師預約記錄，請選擇：</p>
+					<p className="text-gray-600">找到 {bookings.length} 筆講師預約記錄，請選擇：</p>
 				</div>
 
-				<div className="space-y-2">
+				<div className="space-y-3">
 					{bookings.map((booking) => (
 						<button
 							key={booking.id}
 							onClick={() => selectBooking(booking.eventId)}
-							className="w-full p-3 border rounded-lg text-left hover:bg-gray-50 transition-colors"
+							className="w-full p-4 border rounded-lg text-left hover:bg-gray-50 active:bg-gray-100 transition-colors min-h-[60px]"
 						>
-							<div className="font-medium">{booking.event?.title}</div>
-							<div className="text-sm text-gray-600">
+							<div className="font-medium text-lg mb-1">{booking.event?.title}</div>
+							<div className="text-gray-600">
 								{booking.event?.startAt ? format(new Date(booking.event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
 							</div>
 						</button>
@@ -101,6 +101,7 @@ export default function SpeakerPhoneLoginPage() {
 					<Button 
 						onClick={() => setShowSelection(false)} 
 						variant="outline"
+						className="w-full min-h-[44px]"
 					>
 						返回
 					</Button>
@@ -110,14 +111,15 @@ export default function SpeakerPhoneLoginPage() {
 	}
 
 	return (
-		<div className="max-w-sm mx-auto p-4 space-y-4">
-			<div className="text-center space-y-2">
-				<h1 className="text-xl font-semibold">報名查詢</h1>
-				<p className="text-gray-600 text-sm">請輸入手機號碼查詢您的活動報名記錄</p>
+		<div className="max-w-sm mx-auto p-4 space-y-6">
+			<div className="text-center space-y-3">
+				<h1 className="text-2xl font-semibold">報名查詢</h1>
+				<p className="text-gray-600">請輸入手機號碼查詢您的活動報名記錄</p>
 			</div>
 			{err && <div className="text-sm text-red-600">{err}</div>}
-			<form onSubmit={onSubmit} className="space-y-4">
-				<label>手機號碼
+			<form onSubmit={onSubmit} className="space-y-6">
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">手機號碼</label>
 					<input
 						inputMode="numeric"
 						maxLength={10}
@@ -125,11 +127,12 @@ export default function SpeakerPhoneLoginPage() {
 						placeholder="請輸入10碼手機號碼"
 						value={phone}
 						onChange={(e) => setPhone(e.target.value)}
+						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
-				</label>
-				<div className="flex items-center gap-3">
-					<Button type="submit" variant="primary" size="sm">送出</Button>
-					<Button as={Link} href="/calendar" variant="outline" size="sm">取消</Button>
+				</div>
+				<div className="flex flex-col gap-3">
+					<Button type="submit" variant="primary" size="sm" className="w-full min-h-[44px]">送出</Button>
+					<Button as={Link} href="/calendar" variant="outline" size="sm" className="w-full min-h-[44px]">取消</Button>
 				</div>
 			</form>
 		</div>

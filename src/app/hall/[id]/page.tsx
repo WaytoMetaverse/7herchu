@@ -234,9 +234,9 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					{sp?.speakers ? <div>講師：{String(sp.speakers)}</div> : null}
 				</div>
 			)}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					<h1 className="text-2xl lg:text-3xl font-semibold">{event.title}</h1>
+			<div className="flex items-start justify-between">
+				<div className="flex-1 min-w-0">
+					<h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold mb-2 pr-2">{event.title}</h1>
 					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
 					{isLoggedIn && (() => {
 						// 根據活動類型選擇對應的邀請訊息和卡片
@@ -276,7 +276,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					})()}
 				</div>
 				{/* 右上角管理圖示按鈕 */}
-				<div className="flex items-center gap-1">
+				<div className="flex items-center gap-1 flex-shrink-0">
 					{canEditDelete && (
 						<Link 
 							href={`/admin/events/${event.id}`} 
@@ -485,13 +485,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 			{/* 主要操作按鈕 - 頁面最下方 */}
 			{isLoggedIn && (
-				<div className="flex items-center gap-3 justify-center py-6 border-t">
+				<div className="flex flex-col sm:flex-row items-center gap-3 justify-center py-6 border-t">
 					{!currentUserRegistration || currentUserRegistration.status === 'LEAVE' ? (
 						<Button 
 							as={Link} 
 							href={`/events/${event.id}/register`} 
 							variant="primary"
 							size="sm"
+							className="w-full sm:w-auto min-h-[44px]"
 						>
 							報名
 						</Button>
@@ -501,6 +502,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 							href={`/events/${event.id}/leave`} 
 							variant="outline" 
 							size="sm"
+							className="w-full sm:w-auto min-h-[44px]"
 						>
 							請假
 						</Button>
