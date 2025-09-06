@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 
 const MAX_SIZE = 1024 * 1024 // 1MB
@@ -84,12 +85,12 @@ async function compressImage(file: File, maxBytes = MAX_SIZE): Promise<{ blob: B
 
 interface InvitationUploadProps {
 	cardType: string
-	onUploadSuccess: () => void
 }
 
-export default function InvitationUpload({ cardType, onUploadSuccess }: InvitationUploadProps) {
+export default function InvitationUpload({ cardType }: InvitationUploadProps) {
 	const [uploading, setUploading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const router = useRouter()
 
 	const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
@@ -136,7 +137,8 @@ export default function InvitationUpload({ cardType, onUploadSuccess }: Invitati
 				alert(`上傳成功！檔案已自動壓縮至 ${Math.round(finalFile.size / 1024)}KB`)
 			}
 
-			onUploadSuccess()
+			// 刷新頁面
+			router.refresh()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : '上傳失敗')
 		} finally {

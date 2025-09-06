@@ -96,6 +96,26 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		'use server'
 		const id = String(formData.get('id'))
 		if (!id) return
+
+		// 檢查是否為系統自動產生的記錄
+		const transaction = await prisma.financeTransaction.findUnique({
+			where: { id },
+			include: { event: true, monthlyPayment: true }
+		})
+
+		if (!transaction) return
+
+		// 檢查是否為系統自動產生的活動繳費記錄
+		if (transaction.eventId) {
+			throw new Error('此為系統自動產生的活動繳費記錄，請從「簽到管理」頁面取消繳費，不可直接刪除')
+		}
+
+		// 檢查是否為系統自動產生的月費記錄
+		if (transaction.monthlyPaymentId) {
+			throw new Error('此為系統自動產生的月費記錄，請從「成員管理」頁面操作，不可直接刪除')
+		}
+
+		// 只有手動新增的記錄才可以刪除
 		await prisma.financeTransaction.delete({ where: { id } })
 		revalidatePath('/admin/finance')
 	}

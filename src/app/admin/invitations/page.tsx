@@ -152,7 +152,6 @@ export default async function InvitationsPage() {
 										<div className="mb-2">尚未上傳</div>
 										<InvitationUpload 
 											cardType={card.type}
-											onUploadSuccess={() => window.location.reload()}
 										/>
 									</div>
 								)}

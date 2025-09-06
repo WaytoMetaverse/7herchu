@@ -98,55 +98,69 @@ export default async function ActivityUnpaidPage() {
 									</div>
 									<div className="text-right">
 										<div className="text-sm text-gray-600">未繳費人數</div>
-										<div className="text-2xl font-bold text-red-600">{event.registrations.length}</div>
+										<div className="text-2xl font-bold text-red-600">
+											{event.registrations.filter(reg => {
+												const isLoggedIn = !!reg.userId
+												const price = getEventPrice(event, isLoggedIn)
+												return price > 0
+											}).length}
+										</div>
 									</div>
 								</div>
 
-								{event.registrations.length > 0 ? (
-									<div>
-										<h3 className="font-medium mb-3">未繳費名單</h3>
-										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-											{event.registrations.map(reg => {
-												const isLoggedIn = !!reg.userId
-												const price = getEventPrice(event, isLoggedIn)
-												const displayName = isLoggedIn ? 
-													getDisplayName(reg.user) || reg.name || '-' : 
-													reg.name || '-'
-												
-												return (
-													<div key={reg.id} className="bg-gray-50 p-3 rounded-lg">
-														<div className="flex items-center justify-between">
-															<div>
-																<div className="font-medium">{displayName}</div>
-																<div className="text-sm text-gray-600">
-																	{isLoggedIn ? '成員' : '來賓'}
+								{(() => {
+									const unpaidWithPrice = event.registrations.filter(reg => {
+										const isLoggedIn = !!reg.userId
+										const price = getEventPrice(event, isLoggedIn)
+										return price > 0  // 只顯示價格大於0的項目
+									})
+									
+									return unpaidWithPrice.length > 0 ? (
+										<div>
+											<h3 className="font-medium mb-3">未繳費名單</h3>
+											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+												{unpaidWithPrice.map(reg => {
+													const isLoggedIn = !!reg.userId
+													const price = getEventPrice(event, isLoggedIn)
+													const displayName = isLoggedIn ? 
+														getDisplayName(reg.user) || reg.name || '-' : 
+														reg.name || '-'
+													
+													return (
+														<div key={reg.id} className="bg-gray-50 p-3 rounded-lg">
+															<div className="flex items-center justify-between">
+																<div>
+																	<div className="font-medium">{displayName}</div>
+																	<div className="text-sm text-gray-600">
+																		{isLoggedIn ? '成員' : '來賓'}
+																	</div>
 																</div>
-															</div>
-															<div className="text-right">
-																<div className="font-medium text-red-600">
-																	${price}
+																<div className="text-right">
+																	<div className="font-medium text-red-600">
+																		${price}
+																	</div>
+																	<Button 
+																		as={Link} 
+																		href={`/admin/checkin/${event.id}`}
+																		size="sm"
+																		variant="outline"
+																		className="text-xs mt-1"
+																	>
+																		前往繳費
+																	</Button>
 																</div>
-																<Button 
-																	as={Link} 
-																	href={`/admin/checkin/${event.id}`}
-																	size="sm"
-																	variant="outline"
-																	className="text-xs mt-1"
-																>
-																	前往繳費
-																</Button>
 															</div>
 														</div>
-													</div>
-												)
-											})}
+													)
+												})}
+											</div>
 										</div>
-									</div>
-								) : (
-									<div className="text-center py-4 text-gray-500">
-										<p>此活動無未繳費人員</p>
-									</div>
-								)}
+									) : (
+										<div className="text-center py-4 text-gray-500">
+											<p>此活動無需繳費人員</p>
+										</div>
+									)
+								})()}
 							</CardContent>
 						</Card>
 					))}

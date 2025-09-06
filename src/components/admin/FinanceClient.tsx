@@ -22,6 +22,7 @@ export default function FinanceClient({
 	deleteTxn: (formData: FormData) => void
 }) {
 	const [editMode, setEditMode] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
 	return (
 		<div className="bg-white rounded-lg border">
@@ -29,7 +30,10 @@ export default function FinanceClient({
 				<h2 className="font-medium">交易清單</h2>
 				{canManage && (
 					<Button 
-						onClick={() => setEditMode(!editMode)}
+						onClick={() => {
+							setEditMode(!editMode)
+							setError(null) // 清除錯誤訊息
+						}}
 						variant="outline"
 						size="sm"
 					>
@@ -37,6 +41,13 @@ export default function FinanceClient({
 					</Button>
 				)}
 			</div>
+			{error && (
+				<div className="p-4 bg-red-50 border-b">
+					<div className="text-red-700 text-sm">
+						❌ {error}
+					</div>
+				</div>
+			)}
 			<div className="overflow-x-auto">
 				<table className="w-full text-sm">
 					<thead className="bg-gray-50">
@@ -74,7 +85,14 @@ export default function FinanceClient({
 								{editMode && (
 									<td className="px-4 py-3 text-center">
 										{canManage && (
-											<form action={deleteTxn} className="inline" onSubmit={(e) => {
+											<form action={async (formData: FormData) => {
+												try {
+													setError(null)
+													await deleteTxn(formData)
+												} catch (err) {
+													setError(err instanceof Error ? err.message : '刪除失敗')
+												}
+											}} className="inline" onSubmit={(e) => {
 												if (!confirm('確定要刪除這筆交易嗎？')) e.preventDefault()
 											}}>
 												<input type="hidden" name="id" value={txn.id} />

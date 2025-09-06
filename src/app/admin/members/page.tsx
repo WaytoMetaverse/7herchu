@@ -287,26 +287,33 @@ export default async function MembersManagePage({
 												<td key={month} className="px-3 py-3 text-center text-gray-600">
 													<div className="space-y-2">
 														<div>報名 {registrationCount} 次</div>
-														{payment?.isPaid && (
-															<div className="text-xs text-green-600">已繳月費</div>
-														)}
-														{registrationCount > 0 && (
+														{payment?.isPaid ? (
+															<div className="text-xs text-green-600">
+																已繳月費 ${(payment.amount || 0) / 100}
+															</div>
+														) : registrationCount > 0 ? (
 															<form action={async (formData: FormData) => {
 																'use server'
 																const userId = String(formData.get('userId'))
 																const month = String(formData.get('month'))
-																const count = Number(formData.get('count'))
-																if (!userId || !month || !count) return
+																const inputCount = Number(formData.get('inputCount'))
+																if (!userId || !month || !inputCount) return
+
+																// 檢查是否已經繳費過
+																const existingPayment = await prisma.memberMonthlyPayment.findUnique({
+																	where: { userId_month: { userId, month } }
+																})
+																if (existingPayment?.isPaid) return
 
 																// 獲取用戶資訊
 																const user = await prisma.user.findUnique({ where: { id: userId } })
 																if (!user) return
 
-																const amount = 180 * count // 單次成員：180 × 次數
+																const amount = 220 * inputCount // 單次成員：220 × 次數
 																const amountCents = amount * 100
 
 																// 更新月費記錄
-																await prisma.memberMonthlyPayment.upsert({
+																const monthlyPayment = await prisma.memberMonthlyPayment.upsert({
 																	where: { userId_month: { userId, month } },
 																	create: {
 																		userId,
@@ -343,8 +350,9 @@ export default async function MembersManagePage({
 																		type: 'INCOME',
 																		amountCents: amountCents,
 																		counterparty: user.name || '未命名',
-																		note: `${month} 單次成員繳費 (${count}次活動 × $180)`,
-																		categoryId: category.id
+																		note: `${month} 單次成員繳費 (${inputCount}次活動 × $220)`,
+																		categoryId: category.id,
+																		monthlyPaymentId: monthlyPayment.id
 																	}
 																})
 
@@ -366,17 +374,30 @@ export default async function MembersManagePage({
 																})
 
 																revalidatePath('/admin/members')
-															}} className="inline">
+															}} className="inline space-y-1">
 																<input type="hidden" name="userId" value={member.id} />
 																<input type="hidden" name="month" value={month} />
-																<input type="hidden" name="count" value={registrationCount} />
+																<div className="flex items-center gap-1">
+																	<input 
+																		type="number" 
+																		name="inputCount" 
+																		min="1" 
+																		max={registrationCount}
+																		defaultValue={registrationCount}
+																		className="w-12 text-xs px-1 py-0.5 border rounded text-center"
+																		required
+																	/>
+																	<span className="text-xs">次</span>
+																</div>
 																<button 
 																	type="submit"
 																	className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded"
 																>
-																	繳費 ${180 * registrationCount}
+																	繳費 $220/次
 																</button>
 															</form>
+														) : (
+															<div className="text-xs text-gray-400">無報名記錄</div>
 														)}
 													</div>
 												</td>
