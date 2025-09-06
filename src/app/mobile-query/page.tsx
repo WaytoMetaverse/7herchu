@@ -22,7 +22,8 @@ export default function MobileQueryPage() {
 	const [err, setErr] = useState<string | null>(null)
 	const router = useRouter()
 
-	async function searchRegistrations() {
+	async function handleSubmit(e: React.FormEvent) {
+		e.preventDefault()
 		setLoading(true)
 		setErr(null)
 
@@ -67,11 +68,9 @@ export default function MobileQueryPage() {
 				<p className="text-gray-600 text-sm">請輸入手機號碼查詢您的活動報名記錄</p>
 			</div>
 
-			{err && <div className="text-red-600 text-sm text-center">{err}</div>}
-
-			<div className="space-y-4">
-				<div>
-					<label>手機號碼</label>
+			{err && <div className="text-sm text-red-600">{err}</div>}
+			<form onSubmit={handleSubmit} className="space-y-4">
+				<label>手機號碼
 					<input
 						inputMode="numeric"
 						maxLength={10}
@@ -80,18 +79,12 @@ export default function MobileQueryPage() {
 						value={phone}
 						onChange={(e) => setPhone(e.target.value)}
 					/>
+				</label>
+				<div className="flex items-center gap-3">
+					<Button type="submit" variant="primary" size="sm">送出</Button>
+					<Button as={Link} href="/hall" variant="outline" size="sm">取消</Button>
 				</div>
-
-				<Button 
-					disabled={loading || !phone.trim()} 
-					onClick={searchRegistrations}
-					variant="primary" 
-					size="sm"
-					className="w-full"
-				>
-					{loading ? '查詢中…' : '查詢報名記錄'}
-				</Button>
-			</div>
+			</form>
 
 			{/* 查詢結果 */}
 			{results.length > 0 && (

@@ -174,11 +174,11 @@ export default function SpeakerBookPage() {
 				setUploading(false)
 				return
 			}
-			if (file.size > 50 * 1024 * 1024) {
-				setErr('檔案過大，請小於 50MB')
-				setUploading(false)
-				return
-			}
+		if (file.size > 10 * 1024 * 1024) {
+			setErr('檔案過大，請小於 10MB，超過請使用雲端連結')
+			setUploading(false)
+			return
+		}
 			const fd = new FormData()
 			fd.append('file', file)
 			const res = await fetch('/api/upload', { method: 'POST', body: fd })
@@ -229,9 +229,14 @@ export default function SpeakerBookPage() {
 						type="file"
 						accept=".ppt,.pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint,application/pdf"
 						onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPpt(f) }}
+						disabled={uploading}
 					/>
-					{uploading ? <span className="text-gray-600">上傳中…</span> : null}
-					{form.pptUrl ? <a href={form.pptUrl} target="_blank" className="text-blue-600 underline">已上傳/連結</a> : null}
+					{uploading && <span className="text-blue-600 font-medium">📤 上傳中，請稍候...</span>}
+					{form.pptUrl && !uploading && <span className="text-green-600 font-medium">✅ 已上傳完成</span>}
+					{form.pptUrl ? <a href={form.pptUrl} target="_blank" className="text-blue-600 underline ml-2">查看檔案</a> : null}
+				</div>
+				<div className="text-xs text-gray-500">
+					💡 檔案限制：10MB內，超過請使用雲端連結（Google Drive、OneDrive等）
 				</div>
 			</div>
 			{/* 餐點選擇 - 如果有設定餐點服務 */}
@@ -334,7 +339,9 @@ export default function SpeakerBookPage() {
 				</>
 			)}
 			<div className="flex items-center gap-3">
-				<Button disabled={loading} onClick={submit}>{loading ? '送出中…' : '送出預約'}</Button>
+				<Button disabled={loading || uploading} onClick={submit}>
+					{loading ? '送出中…' : uploading ? '上傳中，請稍候...' : '送出預約'}
+				</Button>
 				<Button as={Link} href="/calendar" variant="ghost">取消</Button>
 			</div>
 		</div>
