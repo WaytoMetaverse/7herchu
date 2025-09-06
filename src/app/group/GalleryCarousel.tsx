@@ -91,7 +91,8 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							index === currentIndex ? 'opacity-100' : 'opacity-0'
 						}`}
 						style={{
-							zIndex: index === currentIndex ? 10 : 1
+							zIndex: index === currentIndex ? 10 : 1,
+							opacity: index === currentIndex ? 1 : 0 // 強制設定透明度
 						}}
 					>
 						<img
@@ -110,10 +111,10 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 								setImageLoadStates(prev => ({ ...prev, [image]: 'loaded' }))
 							}}
 						/>
-						{/* 載入指示器 */}
-						{imageLoadStates[image] !== 'loaded' && imageLoadStates[image] !== 'error' && (
+						{/* 載入指示器 - 只在明確載入失敗時顯示 */}
+						{imageLoadStates[image] === 'error' && (
 							<div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-								<div className="text-gray-500">載入中...</div>
+								<div className="text-gray-500">圖片載入失敗</div>
 							</div>
 						)}
 						
