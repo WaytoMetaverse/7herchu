@@ -61,10 +61,10 @@ export default function MobileQueryPage() {
 	}
 
 	return (
-		<div className="max-w-lg mx-auto p-4 space-y-6">
+		<div className="max-w-sm mx-auto p-4 space-y-4">
 			<div className="text-center space-y-2">
-				<h1 className="text-2xl font-semibold">手機查詢報名</h1>
-				<p className="text-gray-600 text-sm">輸入手機號碼查詢您的活動報名記錄</p>
+				<h1 className="text-xl font-semibold">報名查詢</h1>
+				<p className="text-gray-600 text-sm">請輸入手機號碼查詢您的活動報名記錄</p>
 			</div>
 
 			{err && <div className="text-red-600 text-sm text-center">{err}</div>}
@@ -95,7 +95,7 @@ export default function MobileQueryPage() {
 
 			{/* 查詢結果 */}
 			{results.length > 0 && (
-				<div className="space-y-3">
+				<div className="space-y-4">
 					<h2 className="font-medium">查詢結果</h2>
 					{results.length === 1 ? (
 						// 只有一筆記錄，直接跳轉

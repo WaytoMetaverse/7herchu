@@ -111,7 +111,10 @@ export default function SpeakerPhoneLoginPage() {
 
 	return (
 		<div className="max-w-sm mx-auto p-4 space-y-4">
-			<h1 className="text-xl font-semibold">報名查詢</h1>
+			<div className="text-center space-y-2">
+				<h1 className="text-xl font-semibold">報名查詢</h1>
+				<p className="text-gray-600 text-sm">請輸入手機號碼查詢您的活動報名記錄</p>
+			</div>
 			{err && <div className="text-sm text-red-600">{err}</div>}
 			<form onSubmit={onSubmit} className="space-y-4">
 				<label>手機號碼

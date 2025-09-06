@@ -27,15 +27,23 @@ export default function MobileTabBar() {
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t" style={{ paddingBottom: 'max(4px, env(safe-area-inset-bottom))', height: 'var(--mobile-tabbar-h)' }}>
-      <ul className="grid grid-cols-5 h-full text-[11px]">
+      <ul className="grid grid-cols-5 h-full text-sm">
         {items.map(({ href, label, Icon }) => {
           const finalHref = label === '個人' ? (hasSession ? '/profile' : '/auth/signin?callbackUrl=%2Fprofile') : href
           const active = pathname?.startsWith(href)
           return (
             <li key={href} className="flex items-stretch">
-              <Link prefetch={false} href={finalHref} className="flex-1 flex flex-col items-center justify-center gap-0.5 text-gray-600 hover:text-gray-900">
-                <Icon size={20} className={active ? 'text-gray-900' : ''} />
-                <span className={active ? 'text-gray-900 font-medium' : ''}>{label}</span>
+              <Link 
+                prefetch={false} 
+                href={finalHref} 
+                className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${
+                  active 
+                    ? 'text-black' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon size={24} />
+                <span className={active ? 'font-semibold' : 'font-normal'}>{label}</span>
               </Link>
             </li>
           )
