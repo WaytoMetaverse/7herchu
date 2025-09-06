@@ -95,29 +95,35 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	async function deleteTxn(formData: FormData) {
 		'use server'
 		const id = String(formData.get('id'))
-		if (!id) return
+		if (!id) return { success: false, error: '缺少交易ID' }
 
-		// 檢查是否為系統自動產生的記錄
-		const transaction = await prisma.financeTransaction.findUnique({
-			where: { id },
-			include: { event: true, monthlyPayment: true }
-		})
+		try {
+			// 檢查是否為系統自動產生的記錄
+			const transaction = await prisma.financeTransaction.findUnique({
+				where: { id },
+				include: { event: true, monthlyPayment: true }
+			})
 
-		if (!transaction) return
+			if (!transaction) return { success: false, error: '找不到該交易記錄' }
 
-		// 檢查是否為系統自動產生的活動繳費記錄
-		if (transaction.eventId) {
-			throw new Error('此為系統自動產生的活動繳費記錄，請從「簽到管理」頁面取消繳費，不可直接刪除')
+			// 檢查是否為系統自動產生的活動繳費記錄
+			if (transaction.eventId) {
+				return { success: false, error: '系統生成繳費無法刪除' }
+			}
+
+			// 檢查是否為系統自動產生的月費記錄
+			if (transaction.monthlyPaymentId) {
+				return { success: false, error: '系統生成繳費無法刪除' }
+			}
+
+			// 只有手動新增的記錄才可以刪除
+			await prisma.financeTransaction.delete({ where: { id } })
+			revalidatePath('/admin/finance')
+			return { success: true }
+		} catch (error) {
+			console.error('Delete transaction error:', error)
+			return { success: false, error: '刪除失敗，請稍後再試' }
 		}
-
-		// 檢查是否為系統自動產生的月費記錄
-		if (transaction.monthlyPaymentId) {
-			throw new Error('此為系統自動產生的月費記錄，請從「成員管理」頁面操作，不可直接刪除')
-		}
-
-		// 只有手動新增的記錄才可以刪除
-		await prisma.financeTransaction.delete({ where: { id } })
-		revalidatePath('/admin/finance')
 	}
 
 	return (

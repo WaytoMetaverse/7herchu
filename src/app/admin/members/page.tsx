@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 import CopyButton from '@/components/admin/CopyButton'
 import MemberTypeSelect from '@/components/admin/MemberTypeSelect'
 import MonthSelector from '@/components/admin/MonthSelector'
+import CancelPaymentButton from './CancelPaymentButton'
 
 export default async function MembersManagePage({ 
 	searchParams 
@@ -187,6 +188,88 @@ export default async function MembersManagePage({
 		revalidatePath('/admin/members')
 	}
 
+	// 取消繳費的 Server Action
+	async function cancelLastPayment(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		const month = String(formData.get('month'))
+		if (!userId || !month) return
+
+		// 找到該成員該月份的繳費記錄
+		const monthlyPayment = await prisma.memberMonthlyPayment.findUnique({
+			where: { userId_month: { userId, month } }
+		})
+		
+		if (!monthlyPayment || !monthlyPayment.isPaid) return
+
+		// 找到最後一筆財務交易記錄（按創建時間降序）
+		const lastTransaction = await prisma.financeTransaction.findFirst({
+			where: {
+				monthlyPaymentId: monthlyPayment.id
+			},
+			orderBy: { createdAt: 'desc' }
+		})
+
+		if (!lastTransaction) return
+
+		// 計算回滾後的金額
+		const rollbackAmount = monthlyPayment.amount - lastTransaction.amountCents
+		const rollbackCount = Math.round(lastTransaction.amountCents / 100 / 220)
+
+		// 刪除最後一筆財務交易
+		await prisma.financeTransaction.delete({
+			where: { id: lastTransaction.id }
+		})
+
+		if (rollbackAmount > 0) {
+			// 更新月費記錄為新的金額
+			await prisma.memberMonthlyPayment.update({
+				where: { id: monthlyPayment.id },
+				data: {
+					amount: rollbackAmount,
+					paidAt: new Date()
+				}
+			})
+		} else {
+			// 如果金額歸零，刪除月費記錄
+			await prisma.memberMonthlyPayment.delete({
+				where: { id: monthlyPayment.id }
+			})
+		}
+
+		// 找到該次繳費對應的活動註冊記錄，將其改回 UNPAID
+		const startDate = new Date(`${month}-01`)
+		const endDate = new Date(startDate)
+		endDate.setMonth(endDate.getMonth() + 1)
+
+		// 找出該成員當月所有已繳費的活動，按時間倒序排序（最晚的優先取消）
+		const paidRegistrations = await prisma.registration.findMany({
+			where: {
+				userId: userId,
+				status: 'REGISTERED',
+				paymentStatus: 'PAID',
+				event: {
+					type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
+					startAt: { gte: startDate, lt: endDate }
+				}
+			},
+			include: { event: true },
+			orderBy: { event: { startAt: 'desc' } }  // 按活動時間倒序，優先取消較晚的活動
+		})
+
+		// 只取消對應次數的活動繳費狀態
+		const registrationsToCancel = paidRegistrations.slice(0, rollbackCount)
+		
+		for (const registration of registrationsToCancel) {
+			await prisma.registration.update({
+				where: { id: registration.id },
+				data: { paymentStatus: 'UNPAID' }
+			})
+		}
+
+		revalidatePath('/admin/members')
+	}
+
 	// 生成繳費訊息
 	const fixedMembers = members.filter(m => m.memberProfile?.memberType === 'FIXED')
 	const unpaidFixedMembers = fixedMembers.filter(m => {
@@ -288,10 +371,20 @@ export default async function MembersManagePage({
 													<div className="space-y-2">
 														<div>報名 {registrationCount} 次</div>
 														{payment?.isPaid ? (
-															<div className="text-xs text-green-600">
-																已繳月費 ${(payment.amount || 0) / 100}
-															</div>
-														) : registrationCount > 0 ? (
+															<CancelPaymentButton
+																userId={member.id}
+																month={month}
+																amount={payment.amount || 0}
+																activityCount={Math.round((payment.amount || 0) / 100 / 220)}
+																onCancel={cancelLastPayment}
+															/>
+														) : null}
+														{(() => {
+															const currentPaidAmount = payment?.amount || 0
+															const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
+															const remainingCount = registrationCount - currentPaidCount
+															return remainingCount > 0
+														})() ? (
 															<form action={async (formData: FormData) => {
 																'use server'
 																const userId = String(formData.get('userId'))
@@ -299,32 +392,43 @@ export default async function MembersManagePage({
 																const inputCount = Number(formData.get('inputCount'))
 																if (!userId || !month || !inputCount) return
 
-																// 檢查是否已經繳費過
+																// 檢查現有繳費記錄
 																const existingPayment = await prisma.memberMonthlyPayment.findUnique({
 																	where: { userId_month: { userId, month } }
 																})
-																if (existingPayment?.isPaid) return
+																
+																// 計算已繳費次數和剩餘未繳費次數
+																const currentPaidAmount = existingPayment?.amount || 0
+																const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
+																const remainingUnpaidCount = registrationCount - currentPaidCount
+																
+																// 如果沒有剩餘未繳費活動，則不執行
+																if (remainingUnpaidCount <= 0) return
+																
+																// 限制輸入次數不能超過剩餘未繳費次數
+																const actualInputCount = Math.min(inputCount, remainingUnpaidCount)
 
 																// 獲取用戶資訊
 																const user = await prisma.user.findUnique({ where: { id: userId } })
 																if (!user) return
 
-																const amount = 220 * inputCount // 單次成員：220 × 次數
+																const amount = 220 * actualInputCount // 單次成員：220 × 實際次數
 																const amountCents = amount * 100
+																const newTotalAmount = currentPaidAmount + amountCents
 
-																// 更新月費記錄
+																// 更新月費記錄（累積金額）
 																const monthlyPayment = await prisma.memberMonthlyPayment.upsert({
 																	where: { userId_month: { userId, month } },
 																	create: {
 																		userId,
 																		month,
 																		isPaid: true,
-																		amount: amountCents,
+																		amount: newTotalAmount,
 																		paidAt: new Date()
 																	},
 																	update: {
 																		isPaid: true,
-																		amount: amountCents,
+																		amount: newTotalAmount,
 																		paidAt: new Date()
 																	}
 																})
@@ -350,28 +454,43 @@ export default async function MembersManagePage({
 																		type: 'INCOME',
 																		amountCents: amountCents,
 																		counterparty: user.name || '未命名',
-																		note: `${month} 單次成員繳費 (${inputCount}次活動 × $220)`,
+																		note: `${month} 單次成員繳費 (${actualInputCount}次活動 × $220)`,
 																		categoryId: category.id,
 																		monthlyPaymentId: monthlyPayment.id
 																	}
 																})
 
-																// 同步更新該成員當月所有活動的繳費狀態
+																// 按實際繳費次數標記對應數量的活動為已繳費
 																const startDate = new Date(`${month}-01`)
 																const endDate = new Date(startDate)
 																endDate.setMonth(endDate.getMonth() + 1)
 
-																await prisma.registration.updateMany({
+																// 找出該成員當月所有未繳費的活動，按時間順序排序
+																const unpaidRegistrations = await prisma.registration.findMany({
 																	where: {
 																		userId: userId,
 																		status: 'REGISTERED',
+																		paymentStatus: 'UNPAID',
 																		event: {
 																			type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
 																			startAt: { gte: startDate, lt: endDate }
 																		}
 																	},
-																	data: { paymentStatus: 'PAID' }
+																	include: { event: true },
+																	orderBy: { event: { startAt: 'asc' } }  // 按活動時間排序，優先標記較早的活動
 																})
+
+																// 只標記對應次數的活動為已繳費
+																const registrationsToUpdate = unpaidRegistrations.slice(0, actualInputCount)
+																
+																if (registrationsToUpdate.length > 0) {
+																	await prisma.registration.updateMany({
+																		where: {
+																			id: { in: registrationsToUpdate.map(r => r.id) }
+																		},
+																		data: { paymentStatus: 'PAID' }
+																	})
+																}
 
 																revalidatePath('/admin/members')
 															}} className="inline space-y-1">
@@ -382,8 +501,16 @@ export default async function MembersManagePage({
 																		type="number" 
 																		name="inputCount" 
 																		min="1" 
-																		max={registrationCount}
-																		defaultValue={registrationCount}
+																		max={(() => {
+																			const currentPaidAmount = payment?.amount || 0
+																			const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
+																			return registrationCount - currentPaidCount
+																		})()}
+																		defaultValue={(() => {
+																			const currentPaidAmount = payment?.amount || 0
+																			const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
+																			return registrationCount - currentPaidCount
+																		})()}
 																		className="w-12 text-xs px-1 py-0.5 border rounded text-center"
 																		required
 																	/>

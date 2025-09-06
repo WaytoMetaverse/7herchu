@@ -19,7 +19,7 @@ export default function FinanceClient({
 }: { 
 	transactions: Transaction[]
 	canManage: boolean
-	deleteTxn: (formData: FormData) => void
+	deleteTxn: (formData: FormData) => Promise<{ success: boolean; error?: string }>
 }) {
 	const [editMode, setEditMode] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -86,11 +86,10 @@ export default function FinanceClient({
 									<td className="px-4 py-3 text-center">
 										{canManage && (
 											<form action={async (formData: FormData) => {
-												try {
-													setError(null)
-													await deleteTxn(formData)
-												} catch (err) {
-													setError(err instanceof Error ? err.message : '刪除失敗')
+												setError(null)
+												const result = await deleteTxn(formData)
+												if (!result.success && result.error) {
+													setError(result.error)
 												}
 											}} className="inline" onSubmit={(e) => {
 												if (!confirm('確定要刪除這筆交易嗎？')) e.preventDefault()
