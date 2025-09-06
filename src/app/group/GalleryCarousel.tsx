@@ -11,9 +11,11 @@ interface GalleryCarouselProps {
 export default function GalleryCarousel({ mobileImages, desktopImages }: GalleryCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [isMobile, setIsMobile] = useState(false)
+	const [isClient, setIsClient] = useState(false)
 
-	// 檢測裝置類型
+	// 檢測是否在客戶端
 	useEffect(() => {
+		setIsClient(true)
 		const checkDevice = () => {
 			setIsMobile(window.innerWidth < 768)
 		}
@@ -23,8 +25,19 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 		return () => window.removeEventListener('resize', checkDevice)
 	}, [])
 
-	// 選擇對應的圖片陣列
-	const images = isMobile ? mobileImages : desktopImages
+	// 選擇對應的圖片陣列 - 在服務器端預設使用桌面版
+	const images = isClient ? (isMobile ? mobileImages : desktopImages) : desktopImages
+	
+	// 除錯資訊
+	console.log('GalleryCarousel Debug:', {
+		isClient,
+		isMobile,
+		mobileImagesCount: mobileImages?.length || 0,
+		desktopImagesCount: desktopImages?.length || 0,
+		selectedImagesCount: images?.length || 0,
+		windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'SSR',
+		selectedImages: images
+	})
 	
 	// 自動輪播
 	useEffect(() => {

@@ -21,6 +21,12 @@ export default async function GroupHomePage() {
 	if (!isLoggedIn) {
 		const orgSettings = await prisma.orgSettings.findFirst()
 		
+		console.log('Group Page Debug:', {
+			hasOrgSettings: !!orgSettings,
+			mobileImagesCount: orgSettings?.mobileGalleryImages?.length || 0,
+			desktopImagesCount: orgSettings?.desktopGalleryImages?.length || 0
+		})
+		
 		return (
 			<GalleryCarousel
 				mobileImages={orgSettings?.mobileGalleryImages || []}
