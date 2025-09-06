@@ -50,8 +50,9 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 		return () => clearInterval(timer)
 	}, [images])
 
-	// 如果沒有圖片，不顯示輪播
+	// 如果沒有圖片，顯示預設頁面
 	if (!images || images.length === 0) {
+		console.log('No images found, showing default page')
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
 				<div className="text-center space-y-4">
@@ -62,6 +63,8 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 			</div>
 		)
 	}
+
+	console.log('Rendering carousel with images:', images)
 
 	const goToPrevious = () => {
 		setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
@@ -90,6 +93,13 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							src={image}
 							alt={`小組展示圖片 ${index + 1}`}
 							className="w-full h-full object-cover"
+							onError={(e) => {
+								console.error('Image failed to load:', image)
+								e.currentTarget.style.display = 'none'
+							}}
+							onLoad={() => {
+								console.log('Image loaded successfully:', image)
+							}}
 						/>
 						{/* 圖片遮罩 */}
 						<div className="absolute inset-0 bg-black bg-opacity-20" />
