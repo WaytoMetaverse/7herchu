@@ -99,8 +99,10 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 								setImageLoadStates(prev => ({ ...prev, [image]: 'error' }))
 								e.currentTarget.style.display = 'none'
 							}}
-							onLoad={() => {
+							onLoad={(e) => {
 								console.log('Image loaded successfully:', image)
+								const img = e.target as HTMLImageElement
+								console.log('Image dimensions:', { width: img.naturalWidth, height: img.naturalHeight })
 								setImageLoadStates(prev => ({ ...prev, [image]: 'loaded' }))
 							}}
 						/>
@@ -111,8 +113,8 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							</div>
 						)}
 						
-						{/* 圖片遮罩 */}
-						<div className="absolute inset-0 bg-black bg-opacity-20" />
+						{/* 圖片遮罩 - 降低透明度讓圖片更明顯 */}
+						<div className="absolute inset-0 bg-black bg-opacity-10" />
 					</div>
 				))}
 			</div>
