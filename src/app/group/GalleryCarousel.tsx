@@ -68,6 +68,28 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 	console.log('Rendering carousel with images:', images)
 	console.log('Current index:', currentIndex, 'Images length:', images.length)
 
+	// 臨時簡化：僅顯示第一張圖片，移除所有覆蓋層/動畫（排除樣式干擾）
+	return (
+		<div className="min-h-screen w-full">
+			<img
+				src={images[0]}
+				alt="小組展示圖片"
+				className="w-full h-screen object-cover"
+				onError={(e) => {
+					console.error('Image failed to load (simple view):', images[0])
+					setImageLoadStates(prev => ({ ...prev, [images[0]]: 'error' }))
+					;(e.currentTarget as HTMLImageElement).style.display = 'none'
+				}}
+				onLoad={(e) => {
+					console.log('Image loaded successfully (simple view):', images[0])
+					const img = e.target as HTMLImageElement
+					console.log('Image dimensions (simple view):', { width: img.naturalWidth, height: img.naturalHeight })
+					setImageLoadStates(prev => ({ ...prev, [images[0]]: 'loaded' }))
+				}}
+			/>
+		</div>
+	)
+
 	const goToPrevious = () => {
 		setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
 	}
