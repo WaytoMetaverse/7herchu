@@ -66,6 +66,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 	}
 
 	console.log('Rendering carousel with images:', images)
+	console.log('Current index:', currentIndex, 'Images length:', images.length)
 
 	const goToPrevious = () => {
 		setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
@@ -89,6 +90,9 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 						className={`absolute inset-0 transition-opacity duration-1000 ${
 							index === currentIndex ? 'opacity-100' : 'opacity-0'
 						}`}
+						style={{
+							zIndex: index === currentIndex ? 10 : 1
+						}}
 					>
 						<img
 							src={image}
