@@ -57,6 +57,14 @@ code, pre, kbd, samp {
     padding-left: 16px;
     padding-right: 16px;
   }
+
+  /* 手機版更小尺寸：40px / 15px / 8px（覆蓋 .btn 規則） */
+  .btn-mobile-sm,
+  .btn.btn-mobile-sm {
+    min-height: 40px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+  }
   
   /* 手機版卡片間距優化 */
   .card {
