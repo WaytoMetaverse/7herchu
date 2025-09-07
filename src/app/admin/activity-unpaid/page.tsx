@@ -42,7 +42,7 @@ export default async function ActivityUnpaidPage() {
 				orderBy: { createdAt: 'asc' }
 			}
 		},
-		orderBy: { startAt: 'desc' }
+		orderBy: { startAt: 'asc' }
 	})
 
 	// 活動類型標籤

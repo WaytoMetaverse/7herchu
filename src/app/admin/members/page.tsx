@@ -44,15 +44,15 @@ export default async function MembersManagePage({
 		orderBy: { name: 'asc' }
 	})
 
-	// 生成月份列表：從 2025-09 起（含）到本月，確保 10 月之後仍保留 9 月
+	// 生成 6 個月視窗：當月為中心，顯示 -2、-1、0、+1、+2、+3（可跨年）
 	const months: string[] = []
 	{
-		const start = new Date('2025-09-01')
 		const now = new Date()
-		const iter = new Date(now.getFullYear(), now.getMonth(), 1)
-		while (iter >= start) {
-			months.push(iter.toISOString().slice(0, 7))
-			iter.setMonth(iter.getMonth() - 1)
+		const base = new Date(now.getFullYear(), now.getMonth(), 1)
+		for (let offset = -2; offset <= 3; offset++) {
+			const d = new Date(base)
+			d.setMonth(d.getMonth() + offset)
+			months.push(d.toISOString().slice(0, 7))
 		}
 	}
 
@@ -350,12 +350,14 @@ export default async function MembersManagePage({
 										const payment = member.monthlyPayments.find(p => p.month === month)
 										const isFixed = member.memberProfile?.memberType === 'FIXED'
 										const registrationCount = memberRegistrationCounts.get(member.id)?.get(month) || 0
+										const isJulyOrAug2025 = month === '2025-07' || month === '2025-08'
 										
 										if (isFixed) {
 											// 固定成員：顯示月費繳費狀態
+											const treatAsPaid = Boolean(payment?.isPaid) || isJulyOrAug2025
 											return (
 												<td key={month} className="px-3 py-3 text-center">
-													{payment?.isPaid ? (
+													{treatAsPaid ? (
 														<span className="text-green-600 font-medium">已繳費</span>
 													) : (
 														<form action={markPaid} className="inline">
@@ -373,6 +375,16 @@ export default async function MembersManagePage({
 											)
 										} else {
 											// 單次成員：顯示報名次數和繳費功能
+											if (isJulyOrAug2025) {
+												return (
+													<td key={month} className="px-3 py-3 text-center text-gray-600">
+														<div className="space-y-2">
+															<div>報名 {registrationCount} 次</div>
+															<span className="text-green-600 font-medium">已繳費</span>
+														</div>
+													</td>
+												)
+											}
 											return (
 												<td key={month} className="px-3 py-3 text-center text-gray-600">
 													<div className="space-y-2">

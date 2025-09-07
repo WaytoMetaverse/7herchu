@@ -5,19 +5,16 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 	const router = useRouter()
 	const searchParams = useSearchParams()
 
-	// 生成月份選項：從 2025-09 開始到未來12個月（隱藏 9 月以前）
-	const startDate = new Date('2025-09-01')
-	const endDate = new Date()
-	endDate.setMonth(endDate.getMonth() + 12) // 未來12個月
-	
-	const monthOptions = []
-	const iterDate = new Date(startDate)
-	
-	while (iterDate <= endDate) {
-		const monthStr = iterDate.toISOString().slice(0, 7)
-		const displayName = `${iterDate.getFullYear()}年${iterDate.getMonth() + 1}月`
+	// 生成 6 個月視窗：當月為中心，顯示 -2、-1、0、+1、+2、+3（可跨年）
+	const now = new Date()
+	const base = new Date(now.getFullYear(), now.getMonth(), 1)
+	const monthOptions: { value: string; label: string }[] = []
+	for (let offset = -2; offset <= 3; offset++) {
+		const d = new Date(base)
+		d.setMonth(d.getMonth() + offset)
+		const monthStr = d.toISOString().slice(0, 7)
+		const displayName = `${d.getFullYear()}年${d.getMonth() + 1}月`
 		monthOptions.push({ value: monthStr, label: displayName })
-		iterDate.setMonth(iterDate.getMonth() + 1)
 	}
 
 	const handleMonthChange = (month: string) => {
