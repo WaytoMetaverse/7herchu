@@ -35,7 +35,7 @@ export default async function MenuManagePage() {
 				}
 			}
 		},
-		orderBy: { startAt: 'desc' }
+		orderBy: { startAt: 'asc' }
 	})
 
 	// 計算每個活動的統計
@@ -109,6 +109,12 @@ export default async function MenuManagePage() {
 
 
 
+	// 分群：今日與未來 / 過去
+	const now = new Date()
+	const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+	const upcomingEvents = eventsWithStats.filter(e => new Date(e.startAt) >= todayStart)
+	const pastEvents = eventsWithStats.filter(e => new Date(e.startAt) < todayStart)
+
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
@@ -119,8 +125,9 @@ export default async function MenuManagePage() {
 			<p className="text-gray-600">管理所有活動的餐點設定，Ai機器人輔助判斷餐點。</p>
 
 			{/* 活動列表 */}
-			<div className="space-y-4">
-				{eventsWithStats.map(event => (
+			<div className="space-y-8">
+				{/* 即將與今日 */}
+				{upcomingEvents.length > 0 && upcomingEvents.map(event => (
 					<div key={event.id} className="bg-white border rounded-lg p-6">
 						<div className="flex items-start justify-between mb-4">
 							<div className="flex-1">
@@ -228,6 +235,121 @@ export default async function MenuManagePage() {
 						)}
 					</div>
 				))}
+
+				{/* 過去的活動 */}
+				{pastEvents.length > 0 && (
+					<div className="space-y-4">
+						<h2 className="text-lg font-semibold text-gray-800">過去的活動</h2>
+						{pastEvents.map(event => (
+							<div key={event.id} className="bg-white border rounded-lg p-6">
+								<div className="flex items-start justify-between mb-4">
+									<div className="flex-1">
+										<h3 className="text-lg font-medium">{event.title}</h3>
+										<p className="text-sm text-gray-600">
+											{new Date(event.startAt).toLocaleDateString('zh-TW')} {event.location}
+										</p>
+										<p className="text-sm text-gray-500">
+											報名人數：{event.registrations.filter(reg => reg.status === 'REGISTERED').length + event.speakerBookings.length} 人
+										</p>
+									</div>
+									<div className="flex items-center gap-2">
+										{event.eventMenu?.hasMealService ? (
+											<span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+												已設定餐點
+											</span>
+										) : (
+											<span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">
+												未設定餐點
+											</span>
+										)}
+										<Link
+											href={`/admin/menus/${event.id}/edit`}
+											className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+										>
+											{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
+										</Link>
+									</div>
+								</div>
+
+								{/* 餐點統計 */}
+								{event.eventMenu?.hasMealService ? (
+									<div className="bg-blue-50 p-4 rounded-lg">
+										<h4 className="font-medium text-blue-900 mb-2">餐點統計（A/B/C）</h4>
+										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+											<div className="text-center">
+												<div className="text-lg font-semibold text-blue-700">{event.mealStats.A}</div>
+												<div className="text-blue-600">A. {event.eventMenu?.mealCodeA ?? ''}</div>
+											</div>
+											<div className="text-center">
+												<div className="text-lg font-semibold text-blue-700">{event.mealStats.B}</div>
+												<div className="text-blue-600">B. {event.eventMenu?.mealCodeB ?? ''}</div>
+											</div>
+											<div className="text-center">
+												<div className="text-lg font-semibold text-blue-700">{event.mealStats.C}</div>
+												<div className="text-blue-600">C. {event.eventMenu?.mealCodeC ?? ''}</div>
+											</div>
+											<div className="text-center">
+												<div className="text-lg font-semibold text-blue-900">{event.mealStats.total}</div>
+												<div className="text-blue-800">總計</div>
+											</div>
+										</div>
+									</div>
+								) : (
+									<div className="bg-gray-50 p-4 rounded-lg">
+										<h4 className="font-medium text-gray-900 mb-2">飲食偏好統計</h4>
+										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+											{/* 葷食（無限制） */}
+											{event.dietStats.meat > 0 && (
+												<div className="text-center">
+													<div className="text-lg font-semibold text-gray-700">{event.dietStats.meat}</div>
+													<div className="text-gray-600">葷食（無限制）</div>
+												</div>
+											)}
+											
+											{/* 葷食（不吃牛） */}
+											{event.dietStats.noBeef > 0 && (
+												<div className="text-center">
+													<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeef}</div>
+													<div className="text-gray-600">葷食（不吃牛）</div>
+												</div>
+											)}
+											
+											{/* 葷食（不吃豬） */}
+											{event.dietStats.noPork > 0 && (
+												<div className="text-center">
+													<div className="text-lg font-semibold text-gray-700">{event.dietStats.noPork}</div>
+													<div className="text-gray-600">葷食（不吃豬）</div>
+												</div>
+											)}
+											
+											{/* 葷食（不吃牛不吃豬） */}
+											{event.dietStats.noBeefNoPork > 0 && (
+												<div className="text-center">
+													<div className="text-lg font-semibold text-gray-700">{event.dietStats.noBeefNoPork}</div>
+													<div className="text-gray-600">葷食（不吃牛不吃豬）</div>
+												</div>
+											)}
+											
+											{/* 素食 */}
+											{event.dietStats.veg > 0 && (
+												<div className="text-center">
+													<div className="text-lg font-semibold text-gray-700">{event.dietStats.veg}</div>
+													<div className="text-gray-600">素食</div>
+												</div>
+											)}
+											
+											{/* 總計 */}
+											<div className="text-center">
+												<div className="text-lg font-semibold text-gray-900">{event.dietStats.total}</div>
+												<div className="text-gray-800">共</div>
+											</div>
+										</div>
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	)
