@@ -160,7 +160,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 													</div>
 												</div>
 											</div>
-											<div className="text-sm">{label}</div>
+											<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">{label}</div>
 										</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
