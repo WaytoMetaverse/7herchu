@@ -530,7 +530,7 @@ export default async function MembersManagePage({
 																			const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
 																			return registrationCount - currentPaidCount
 																		})()}
-																		className="w-12 text-xs px-1 py-0.5 border rounded text-center"
+																		className="w-10 text-xs px-1 py-0.5 border rounded text-center h-7"
 																		required
 																	/>
 																	<span className="text-xs">次</span>

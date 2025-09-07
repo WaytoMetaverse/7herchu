@@ -13,11 +13,11 @@ export default function MemberTypeSelect({
 	const formRef = useRef<HTMLFormElement>(null)
 
 	return (
-		<form ref={formRef} action={updateMemberType} className="inline">
+		<form ref={formRef} action={updateMemberType} className="inline" key={userId + ':' + defaultValue}>
 			<input type="hidden" name="userId" value={userId} />
 			<select 
 				name="memberType" 
-				defaultValue={defaultValue}
+				value={defaultValue}
 				onChange={() => {
 					if (formRef.current) {
 						formRef.current.requestSubmit()
