@@ -300,8 +300,8 @@ export default async function MembersManagePage({
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">成員管理</h1>
-				<Button as={Link} href="/admin/finance" variant="outline">返回財務管理</Button>
+				<h1 className="text-2xl font-semibold truncate">成員管理</h1>
+				<Button as={Link} href="/admin/finance" variant="outline" className="whitespace-nowrap">返回財務管理</Button>
 			</div>
 
 			{/* 繳費訊息產生器 */}
@@ -322,13 +322,13 @@ export default async function MembersManagePage({
 			{/* 成員列表 */}
 			<div className="bg-white rounded-lg border overflow-hidden">
 				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
+					<table className="w-full text-sm min-w-max">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-4 py-3 text-left font-medium">姓名</th>
-								<th className="px-4 py-3 text-left font-medium">類型</th>
+								<th className="px-4 py-3 text-left font-medium whitespace-nowrap">姓名</th>
+								<th className="px-4 py-3 text-left font-medium whitespace-nowrap">類型</th>
 								{months.map(month => (
-									<th key={month} className="px-3 py-3 text-center font-medium min-w-20">
+									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap">
 										{month.slice(5)}月
 									</th>
 								))}
@@ -338,8 +338,8 @@ export default async function MembersManagePage({
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="px-4 py-3 font-medium">{getDisplayName(member)}</td>
-									<td className="px-4 py-3">
+									<td className="px-4 py-3 font-medium whitespace-nowrap">{getDisplayName(member)}</td>
+									<td className="px-4 py-3 whitespace-nowrap">
 										<MemberTypeSelect
 											userId={member.id}
 											defaultValue={member.memberProfile?.memberType || 'SINGLE'}
@@ -356,7 +356,7 @@ export default async function MembersManagePage({
 											// 固定成員：顯示月費繳費狀態
 											const treatAsPaid = Boolean(payment?.isPaid) || isJulyOrAug2025
 											return (
-												<td key={month} className="px-3 py-3 text-center">
+												<td key={month} className="px-2 py-2 text-center">
 													{treatAsPaid ? (
 														<span className="text-green-600 font-medium">已繳費</span>
 													) : (
@@ -377,7 +377,7 @@ export default async function MembersManagePage({
 											// 單次成員：顯示報名次數和繳費功能
 											if (isJulyOrAug2025) {
 												return (
-													<td key={month} className="px-3 py-3 text-center text-gray-600">
+													<td key={month} className="px-2 py-2 text-center text-gray-600">
 														<div className="space-y-2">
 															<div>報名 {registrationCount} 次</div>
 															<span className="text-green-600 font-medium">已繳費</span>
@@ -386,7 +386,7 @@ export default async function MembersManagePage({
 												)
 											}
 											return (
-												<td key={month} className="px-3 py-3 text-center text-gray-600">
+												<td key={month} className="px-2 py-2 text-center text-gray-600">
 													<div className="space-y-2">
 														<div>報名 {registrationCount} 次</div>
 														{payment?.isPaid ? (

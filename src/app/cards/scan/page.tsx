@@ -106,8 +106,8 @@ export default function CardScanPage() {
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">新增名片</h1>
-        <Button as={Link} href="/cards" variant="ghost">返回名片庫</Button>
+        <h1 className="text-xl font-semibold truncate">新增名片</h1>
+        <Button as={Link} href="/cards" variant="ghost" className="whitespace-nowrap">返回名片庫</Button>
       </div>
       {err && <div className="text-sm text-red-600">{err}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

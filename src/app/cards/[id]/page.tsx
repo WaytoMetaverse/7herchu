@@ -17,11 +17,11 @@ export default async function CardDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{card.name}</h1>
+        <h1 className="text-xl font-semibold truncate">{card.name}</h1>
         <div className="flex items-center gap-2">
-          <Button as={Link} href={`/cards/${card.id}/edit`} variant="outline">編輯</Button>
+          <Button as={Link} href={`/cards/${card.id}/edit`} variant="outline" className="whitespace-nowrap">編輯</Button>
           <form action={deleteCard} onSubmit={(e)=>{ if(!confirm('確定要刪除嗎？')) e.preventDefault() }}>
-            <Button type="submit" variant="danger">刪除</Button>
+            <Button type="submit" variant="danger" className="whitespace-nowrap">刪除</Button>
           </form>
         </div>
       </div>

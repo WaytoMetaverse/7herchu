@@ -32,8 +32,8 @@ export default async function CardEditPage({ params }: { params: Promise<{ id: s
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">編輯名片</h1>
-        <Button as={Link} href={`/cards/${card.id}`} variant="ghost">取消</Button>
+        <h1 className="text-xl font-semibold truncate">編輯名片</h1>
+        <Button as={Link} href={`/cards/${card.id}`} variant="ghost" className="whitespace-nowrap">取消</Button>
       </div>
       <form action={update} className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label className="text-sm">姓名

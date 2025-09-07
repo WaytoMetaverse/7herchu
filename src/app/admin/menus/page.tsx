@@ -119,11 +119,11 @@ export default async function MenuManagePage() {
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">活動餐點管理</h1>
-				<Button as={Link} href="/group" variant="ghost">返回小組管理</Button>
+				<h1 className="text-2xl font-semibold truncate">活動餐點管理</h1>
+				<Button as={Link} href="/group" variant="ghost" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
-			<p className="text-gray-600">管理所有活動的餐點設定，Ai機器人輔助判斷餐點。</p>
+			<p className="text-gray-600 line-clamp-2">管理所有活動的餐點設定，Ai機器人輔助判斷餐點。</p>
 
 			{/* 活動列表 */}
 			<div className="space-y-8">
@@ -150,12 +150,9 @@ export default async function MenuManagePage() {
 										未設定餐點
 									</span>
 								)}
-								<Link
-									href={`/admin/menus/${event.id}/edit`}
-									className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-								>
+								<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
 									{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
-								</Link>
+								</Button>
 							</div>
 						</div>
 
@@ -263,12 +260,9 @@ export default async function MenuManagePage() {
 												未設定餐點
 											</span>
 										)}
-										<Link
-											href={`/admin/menus/${event.id}/edit`}
-											className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-										>
+										<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
 											{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
-										</Link>
+										</Button>
 									</div>
 								</div>
 
