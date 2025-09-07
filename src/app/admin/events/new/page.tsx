@@ -88,7 +88,7 @@ export default function AdminEventNewPage() {
 	})
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-5">
-			<h1 className="text-2xl font-semibold leading-tight">新增活動</h1>
+			<h1 className="text-2xl font-semibold leading-tight truncate">新增活動</h1>
 			<form action={createEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<EventTypePricing options={options} initialType={options[0]?.value || 'GENERAL'} />
 				<label className="col-span-2">日期
@@ -100,7 +100,7 @@ export default function AdminEventNewPage() {
 				<label>開始時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="startTime" >
+						<select name="startTime" className="w-full px-4 py-3 rounded-lg border">
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}
@@ -110,7 +110,7 @@ export default function AdminEventNewPage() {
 				<label>結束時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="endTime" >
+						<select name="endTime" className="w-full px-4 py-3 rounded-lg border">
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}
@@ -120,17 +120,17 @@ export default function AdminEventNewPage() {
 				<label className="col-span-2">地點
 					<div className="flex items-center gap-2">
 						<MapPin className="w-4 h-4" />
-						<input name="location"  placeholder="請輸入地點" />
+						<input name="location" placeholder="請輸入地點" className="w-full px-4 py-3 rounded-lg border" />
 					</div>
 				</label>
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
 					<label>設定講師名額
-						<input name="speakerQuota" type="number" min={0}  placeholder="請輸入講師名額" />
+						<input name="speakerQuota" type="number" min={0} placeholder="請輸入講師名額" className="w-full px-4 py-3 rounded-lg border" />
 					</label>
 				</div>
-				<div className="col-span-2 flex items-center gap-3">
-					<Button type="submit">建立</Button>
-					<Button as={Link} href="/hall" variant="ghost">取消</Button>
+				<div className="col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+					<Button type="submit" className="w-full sm:w-auto min-h-[44px]">建立</Button>
+					<Button as={Link} href="/hall" variant="ghost" className="w-full sm:w-auto min-h-[44px]">取消</Button>
 				</div>
 			</form>
 		</div>

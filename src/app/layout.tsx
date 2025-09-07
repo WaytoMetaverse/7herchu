@@ -15,11 +15,17 @@ import SessionProvider from '@/components/auth/SessionProvider'
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ['400','500','600'],
+  display: 'swap',
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  weight: ['400','500'],
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {

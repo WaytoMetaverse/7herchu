@@ -118,7 +118,7 @@ export default async function HallPage() {
 												<div className="flex-1 min-w-0">
 													<div className="font-medium flex items-center gap-2 mb-1">
 														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-														<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
 														<span className="truncate">{e.title}</span>
 													</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
@@ -137,7 +137,7 @@ export default async function HallPage() {
 											<div className="flex-1 min-w-0">
 												<div className="font-medium flex items-center gap-2 mb-1">
 													<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-													<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
 													<span className="truncate">{e.title}</span>
 												</div>
 												<div className="text-sm text-gray-700 flex items-center gap-2">
@@ -169,7 +169,7 @@ export default async function HallPage() {
 												<div className="flex-1 min-w-0">
 													<div className="font-medium flex items-center gap-2 mb-1">
 														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-														<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
 														<span className="truncate">{e.title}</span>
 													</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
@@ -188,7 +188,7 @@ export default async function HallPage() {
 											<div className="flex-1 min-w-0">
 												<div className="font-medium flex items-center gap-2 mb-1">
 													<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-													<span className="text-sm sm:text-base">{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
 													<span className="truncate">{e.title}</span>
 												</div>
 												<div className="text-sm text-gray-700 flex items-center gap-2">

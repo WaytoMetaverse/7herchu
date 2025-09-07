@@ -45,8 +45,23 @@ export default function MobileQueryPage() {
 				return
 			}
 
-			setResults(data.data || [])
-			if (!data.data || data.data.length === 0) {
+			const d = data.data
+			if (Array.isArray(d)) {
+				if (d.length === 0) {
+					setResults([])
+					setErr('找不到相關報名記錄')
+				} else if (d.length === 1) {
+					// 單場：直接導向編輯
+					router.push(`/events/${d[0].eventId}/guest-edit?phone=${encodeURIComponent(v)}&mode=edit`)
+				} else {
+					// 多場：顯示選擇清單
+					setResults(d)
+				}
+			} else if (d && d.eventId) {
+				// 物件：直接導向編輯
+				router.push(`/events/${d.eventId}/guest-edit?phone=${encodeURIComponent(v)}&mode=edit`)
+			} else {
+				setResults([])
 				setErr('找不到相關報名記錄')
 			}
 		} catch {
