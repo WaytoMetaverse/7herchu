@@ -1,6 +1,5 @@
 'use client'
 import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
@@ -31,6 +30,8 @@ export default function SpeakerBookPage() {
 	const [err, setErr] = useState<string | null>(null)
 	const [existingId, setExistingId] = useState<string | null>(null)
     	const [eventDateLabel, setEventDateLabel] = useState<string>('')
+    const [eventTitle, setEventTitle] = useState<string>('')
+    const [eventLocation, setEventLocation] = useState<string>('')
 	const [eventMenu, setEventMenu] = useState<{
 		hasMealService: boolean
 		mealCodeA?: string
@@ -82,32 +83,46 @@ export default function SpeakerBookPage() {
                     typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
                 )
                 if (e?.startAt) {
-                    // 處理時區問題：直接使用原始日期字符串，避免時區轉換
+                    // 解析為本地日期時間，避免時區偏移，並包含時間
                     let eventDate: Date
                     if (typeof e.startAt === 'string') {
-                        // 如果是字符串，直接解析為本地日期
-                        const [year, month, day] = e.startAt.split('T')[0].split('-')
-                        eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                        const [datePart, timePart] = e.startAt.split('T')
+                        const [year, month, day] = datePart.split('-').map((v) => parseInt(v))
+                        let hh = 0, mm = 0
+                        if (timePart) {
+                            const [h, m] = timePart.split(':')
+                            hh = parseInt(h)
+                            mm = parseInt(m)
+                        }
+                        eventDate = new Date(year, (month || 1) - 1, day || 1, hh, mm)
                     } else {
-                        // 如果是 Date 對象，直接使用
                         eventDate = e.startAt
                     }
-                    
                     if (isNaN(eventDate.getTime())) {
                         setEventDateLabel('日期格式錯誤')
                     } else {
-                        setEventDateLabel(format(eventDate, 'yyyy/MM/dd（EEEEE）', { locale: zhTW }))
+                        setEventDateLabel(format(eventDate, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW }))
                     }
                 } else {
                     setEventDateLabel('')
                 }
             }
             
-            // 處理餐點設定
+            // 處理餐點設定與標題地點
             if (menuData?.data) {
                 setEventMenu(menuData.data)
             } else {
                 setEventMenu(null)
+            }
+            // 也從事件列表補上標題與地點
+            if (Array.isArray(eventList)) {
+                const e = eventList.find((x): x is { id: string; title?: string; location?: string; startAt?: string | Date } => 
+                    typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
+                )
+                if (e) {
+                    setEventTitle(e.title || '')
+                    setEventLocation((e as { location?: string }).location || '')
+                }
             }
         }).catch(() => {
             setEventDateLabel('')
@@ -218,39 +233,44 @@ export default function SpeakerBookPage() {
 
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-3">
-			{eventDateLabel && <div className="text-sm text-gray-600">日期：{eventDateLabel}</div>}
-			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-semibold">講師預約</h1>
-				<Button variant="outline" onClick={goBack}>返回</Button>
+			<div className="text-center space-y-2">
+				<h1 className="text-2xl font-semibold">講師預約</h1>
+				{(eventTitle || eventDateLabel || eventLocation) && (
+					<div className="text-gray-600">
+						{eventTitle && <div className="font-medium">{eventTitle}</div>}
+						{eventDateLabel && <div className="text-sm">{eventDateLabel}</div>}
+						{eventLocation && <div className="text-sm">{eventLocation}</div>}
+					</div>
+				)}
 			</div>
 			{err && <div className="text-red-600 text-sm">{err}</div>}
 			<div>
 				<label>姓名<Required /></label>
-				<input required value={form.name} onChange={(e) => setForm(v => ({...v, name: e.target.value}))} />
+				<input required value={form.name} onChange={(e) => setForm(v => ({...v, name: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 			</div>
 			<div>
 				<label>手機<Required /></label>
-				<input required value={form.phone} onChange={(e) => setForm(v => ({...v, phone: e.target.value}))} disabled={Boolean(existingId)} maxLength={10} pattern="\d{10}" />
+				<input required value={form.phone} onChange={(e) => setForm(v => ({...v, phone: e.target.value}))} disabled={Boolean(existingId)} maxLength={10} pattern="\d{10}" className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50" />
 			</div>
 			<div>
 				<label>公司名稱<Required /></label>
-				<input required value={form.companyName} onChange={(e) => setForm(v => ({...v, companyName: e.target.value}))} />
+				<input required value={form.companyName} onChange={(e) => setForm(v => ({...v, companyName: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 			</div>
 			<div>
 				<label>產業<Required /></label>
-				<input required value={form.industry} onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} />
+				<input required value={form.industry} onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 			</div>
 			<div>
 				<label>BNI 分會（選填）</label>
-				<input value={form.bniChapter} onChange={(e) => setForm(v => ({...v, bniChapter: e.target.value}))} />
+				<input value={form.bniChapter} onChange={(e) => setForm(v => ({...v, bniChapter: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 			</div>
 			<div>
 				<label>邀請人<Required /></label>
-				<input required value={form.invitedBy} onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} />
+				<input required value={form.invitedBy} onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 			</div>
 			<div className="space-y-2">
 				<label>PPT或連結（之後可用手機號碼登入補件）</label>
-				<input placeholder="https://..." value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} />
+				<input placeholder="https://..." value={form.pptUrl} onChange={(e) => setForm(v => ({...v, pptUrl: e.target.value}))} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
 				<div className="flex items-center gap-2 text-sm">
 					<input
 						type="file"
@@ -369,7 +389,7 @@ export default function SpeakerBookPage() {
 				<Button disabled={loading || uploading} onClick={submit}>
 					{loading ? '送出中…' : uploading ? '上傳中，請稍候...' : '送出預約'}
 				</Button>
-				<Button as={Link} href="/calendar" variant="ghost">取消</Button>
+				<Button onClick={goBack} variant="ghost">取消</Button>
 			</div>
 		</div>
 	)

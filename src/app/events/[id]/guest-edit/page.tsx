@@ -223,6 +223,7 @@ export default function GuestEditPage({ params }: { params: Promise<{ id: string
 						pattern="\d{10}"
 						value={form.phone}
 						onChange={(e) => setForm(v => ({ ...v, phone: e.target.value }))}
+						disabled={mode === 'edit'}
 					/>
 				</div>
 
@@ -264,114 +265,102 @@ export default function GuestEditPage({ params }: { params: Promise<{ id: string
 				{/* 餐點選擇 */}
 				{eventMenu?.hasMealService ? (
 					<div>
-						<label>餐點選擇 *</label>
-						<div className="space-y-2">
-							<label className="flex items-center gap-2">
+						<h3 className="font-medium mb-3">餐點選擇<span className="text-red-600">*</span></h3>
+						<div className="space-y-3">
+							{/* A 餐 */}
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
 								<input
 									type="radio"
 									name="mealCode"
 									value="A"
 									checked={form.mealCode === 'A'}
 									onChange={(e) => setForm(v => ({ ...v, mealCode: e.target.value }))}
+									required
+									className="mt-1"
 								/>
-								<span className="text-sm">
-									選項 A {eventMenu.mealCodeA}
-									{eventMenu.mealAHasBeef && <span className="text-orange-600"> 含牛</span>}
-									{eventMenu.mealAHasPork && <span className="text-red-600"> 含豬</span>}
-								</span>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 A</span>
+										{eventMenu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+										{eventMenu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeA}</div>
+								</div>
 							</label>
-							<label className="flex items-center gap-2">
+
+							{/* B 餐 */}
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
 								<input
 									type="radio"
 									name="mealCode"
 									value="B"
 									checked={form.mealCode === 'B'}
 									onChange={(e) => setForm(v => ({ ...v, mealCode: e.target.value }))}
+									required
+									className="mt-1"
 								/>
-								<span className="text-sm">
-									選項 B {eventMenu.mealCodeB}
-									{eventMenu.mealBHasBeef && <span className="text-orange-600"> 含牛</span>}
-									{eventMenu.mealBHasPork && <span className="text-red-600"> 含豬</span>}
-								</span>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 B</span>
+										{eventMenu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+										{eventMenu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeB}</div>
+								</div>
 							</label>
-							<label className="flex items-center gap-2">
+
+							{/* C 餐 */}
+							<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
 								<input
 									type="radio"
 									name="mealCode"
 									value="C"
 									checked={form.mealCode === 'C'}
 									onChange={(e) => setForm(v => ({ ...v, mealCode: e.target.value }))}
+									required
+									className="mt-1"
 								/>
-								<span className="text-sm">選項 C {eventMenu.mealCodeC} <span className="text-green-600">素食</span></span>
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-1">
+										<span className="font-medium">選項 C</span>
+										<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
+									</div>
+									<div className="text-gray-700">{eventMenu.mealCodeC}</div>
+								</div>
 							</label>
 						</div>
 					</div>
 				) : (
-					<div>
-						<label>飲食偏好</label>
-						<div className="space-y-2">
-							<div className="flex gap-4">
-								<label className="flex items-center gap-2">
-									<input
-										type="radio"
-										name="diet"
-										value="meat"
-										checked={form.diet === 'meat'}
-										onChange={(e) => setForm(v => ({ ...v, diet: e.target.value as 'meat' | 'veg' }))}
-									/>
-									<span className="text-sm">葷食</span>
-								</label>
-								<label className="flex items-center gap-2">
-									<input
-										type="radio"
-										name="diet"
-										value="veg"
-										checked={form.diet === 'veg'}
-										onChange={(e) => setForm(v => ({ ...v, diet: e.target.value as 'meat' | 'veg' }))}
-									/>
-									<span className="text-sm">素食</span>
-								</label>
-							</div>
-							<div className="space-y-1">
-								<label className="flex items-center gap-2">
-									<input
-										type="checkbox"
-										checked={form.noBeef}
-										onChange={(e) => setForm(v => ({ ...v, noBeef: e.target.checked }))}
-									/>
-									<span className="text-sm">不吃牛肉</span>
-								</label>
-								<label className="flex items-center gap-2">
-									<input
-										type="checkbox"
-										checked={form.noPork}
-										onChange={(e) => setForm(v => ({ ...v, noPork: e.target.checked }))}
-									/>
-									<span className="text-sm">不吃豬肉</span>
-								</label>
-							</div>
+					/* 傳統飲食偏好（無餐點設定時） */
+					<>
+						<div className="flex items-center gap-4">
+							<label className="flex items-center gap-2 text-sm">
+								<input type="radio" name="diet" required checked={form.diet === 'meat'} onChange={() => setForm((v) => ({ ...v, diet: 'meat' }))} />
+								葷食<span className="text-red-600">*</span>
+							</label>
+							<label className="flex items-center gap-2 text-sm">
+								<input type="radio" name="diet" required checked={form.diet === 'veg'} onChange={() => setForm((v) => ({ ...v, diet: 'veg' }))} />
+								素食<span className="text-red-600">*</span>
+							</label>
 						</div>
-					</div>
+						<div className="flex items-center gap-4 text-sm">
+							<label className="flex items-center gap-2">
+								<input type="checkbox" checked={form.noBeef} onChange={(e) => setForm((v) => ({ ...v, noBeef: e.target.checked }))} />
+								不吃牛
+							</label>
+							<label className="flex items-center gap-2">
+								<input type="checkbox" checked={form.noPork} onChange={(e) => setForm((v) => ({ ...v, noPork: e.target.checked }))} />
+								不吃豬
+							</label>
+						</div>
+					</>
 				)}
 
 				<div className="flex items-center gap-3 pt-4">
-					<Button 
-						type="submit" 
-						disabled={loading} 
-						variant="primary" 
-						size="sm"
-						className="flex-1"
-					>
+					<Button type="submit" disabled={loading}>
 						{loading ? '更新中…' : '更新報名資料'}
 					</Button>
-					<Button 
-						as={Link} 
-						href="/mobile-query" 
-						variant="outline" 
-						size="sm"
-					>
-						取消
-					</Button>
+					<Button as={Link} href="/mobile-query" variant="ghost">取消</Button>
 				</div>
 			</form>
 		</div>

@@ -18,14 +18,14 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		location: string
 	} | null>(null)
 	const [menu, setMenu] = useState<{
-		items: {
-			id: string
-			code: string
-			name: string
-			isVegetarian: boolean
-			containsBeef: boolean
-			containsPork: boolean
-		}[]
+		hasMealService: boolean
+		mealCodeA?: string
+		mealCodeB?: string
+		mealCodeC?: string
+		mealAHasBeef: boolean
+		mealAHasPork: boolean
+		mealBHasBeef: boolean
+		mealBHasPork: boolean
 	} | null>(null)
 	const [form, setForm] = useState({
 		name: '',
@@ -71,7 +71,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		}
 
 		// 如果有餐點服務，檢查是否選擇餐點
-		if (menu?.items && menu.items.length > 0 && !form.mealCode) {
+		if (menu?.hasMealService && !form.mealCode) {
 			setErr('請選擇餐點')
 			setLoading(false)
 			return
@@ -164,9 +164,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 				<h1 className="text-2xl font-semibold">來賓報名</h1>
 				<div className="text-gray-600">
 					<div className="font-medium">{event.title}</div>
-					<div className="text-sm">
-						{format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}
-					</div>
+					<div className="text-sm">{format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
 					<div className="text-sm">{event.location}</div>
 				</div>
 			</div>
@@ -180,6 +178,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						required 
 						value={form.name} 
 						onChange={(e) => setForm(v => ({...v, name: e.target.value}))} 
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 				
@@ -192,6 +191,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						maxLength={10} 
 						pattern="\d{10}"
 						placeholder="請輸入10碼手機號碼"
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 				
@@ -201,6 +201,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						required 
 						value={form.companyName} 
 						onChange={(e) => setForm(v => ({...v, companyName: e.target.value}))} 
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 				
@@ -210,6 +211,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						required 
 						value={form.industry} 
 						onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} 
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 				
@@ -218,6 +220,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 					<input 
 						value={form.bniChapter} 
 						onChange={(e) => setForm(v => ({...v, bniChapter: e.target.value}))} 
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 				
@@ -227,48 +230,86 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						required 
 						value={form.invitedBy} 
 						onChange={(e) => setForm(v => ({...v, invitedBy: e.target.value}))} 
+						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
 
-				{/* 菜單選擇 */}
-				{menu?.items && menu.items.length > 0 && (
+				{/* 餐點選擇（改為與講師一致） */}
+				{menu?.hasMealService && (
 					<div>
-						<label>菜單選擇<Required /></label>
-						<div className="space-y-2 mt-2">
-							{menu.items.map((item) => (
-								<label key={item.id} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+						<h3 className="font-medium mb-3">餐點選擇<Required /></h3>
+						<div className="space-y-3">
+							{/* A 餐 */}
+							{menu.mealCodeA && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
 									<input
 										type="radio"
 										name="mealCode"
-										value={item.code}
-										checked={form.mealCode === item.code}
+										value="A"
+										checked={form.mealCode === 'A'}
 										onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
 										required
 										className="mt-1"
 									/>
 									<div className="flex-1">
 										<div className="flex items-center gap-2 mb-1">
-											<span className="font-medium">選項 {item.code}</span>
-											{item.isVegetarian && (
-												<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
-											)}
-											{!item.isVegetarian && item.containsBeef && (
-												<span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>
-											)}
-											{!item.isVegetarian && item.containsPork && (
-												<span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>
-											)}
+											<span className="font-medium">選項 A</span>
+											{menu.mealAHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+											{menu.mealAHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
 										</div>
-										<div className="text-gray-700">{item.name}</div>
+										<div className="text-gray-700">{menu.mealCodeA}</div>
 									</div>
 								</label>
-							))}
+							)}
+							{/* B 餐 */}
+							{menu.mealCodeB && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+									<input
+										type="radio"
+										name="mealCode"
+										value="B"
+										checked={form.mealCode === 'B'}
+										onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
+										required
+										className="mt-1"
+									/>
+									<div className="flex-1">
+										<div className="flex items-center gap-2 mb-1">
+											<span className="font-medium">選項 B</span>
+											{menu.mealBHasBeef && <span className="px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">含牛</span>}
+											{menu.mealBHasPork && <span className="px-1 py-0.5 bg-orange-100 text-orange-600 rounded text-xs">含豬</span>}
+										</div>
+										<div className="text-gray-700">{menu.mealCodeB}</div>
+									</div>
+								</label>
+							)}
+							{/* C 餐 */}
+							{menu.mealCodeC && (
+								<label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+									<input
+										type="radio"
+										name="mealCode"
+										value="C"
+										checked={form.mealCode === 'C'}
+										onChange={(e) => setForm(v => ({...v, mealCode: e.target.value}))}
+										required
+										className="mt-1"
+									/>
+									<div className="flex-1">
+										<div className="flex items-center gap-2 mb-1">
+											<span className="font-medium">選項 C</span>
+											<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">素食</span>
+										</div>
+										<div className="text-gray-700">{menu.mealCodeC}</div>
+									</div>
+								</label>
+							)}
 						</div>
 					</div>
 				)}
 
 				{/* 飲食偏好 - 只在沒有餐點服務時顯示 */}
-				{(!menu?.items || menu.items.length === 0) && (
+				{!menu?.hasMealService && (
 					<div>
 						<h3 className="font-medium mb-3">飲食偏好</h3>
 						<div className="space-y-2">
@@ -315,7 +356,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 
 			<div className="flex items-center gap-3">
 				<Button 
-					disabled={loading || !form.name || !form.phone || !form.companyName || !form.industry || !form.invitedBy || (menu?.items && menu.items.length > 0 && !form.mealCode)} 
+					disabled={loading || !form.name || !form.phone || !form.companyName || !form.industry || !form.invitedBy || (menu?.hasMealService && !form.mealCode)} 
 					onClick={submit}
 				>
 					{loading ? '送出中…' : '送出報名'}

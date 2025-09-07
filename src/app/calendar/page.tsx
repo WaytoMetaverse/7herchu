@@ -94,22 +94,22 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 							return (
 								<Card key={e.id}>
 									<Link href={`/calendar/${e.id}`}>
-										<CardContent className="p-4">
-											<div className="flex justify-between">
-												<div>
+										<CardContent className="p-4 rounded-xl">
+											<div className="flex justify-between items-start">
+												<div className="flex-1 min-w-0">
 													<div className="font-medium flex items-center gap-2">
 														<CalendarIcon className="w-4 h-4 text-gray-500" />
 														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span>{e.title}</span>
+														<span className="truncate">{e.title}</span>
 													</div>
-													<div className="text-sm text-gray-600 flex items-center gap-2">
+													<div className="text-sm text-gray-700 flex items-center gap-2">
 														<MapPin className="w-4 h-4" />
-														<span>{e.location ?? ''}</span>
-														<span>· {TYPE_LABEL[e.type as EventType]}</span>
+														<span className="truncate">{e.location ?? ''}</span>
+														<span className="text-[var(--brand-700)] whitespace-nowrap">· {TYPE_LABEL[e.type as EventType]}</span>
 													</div>
 												</div>
+												<div className="text-sm">{label}</div>
 											</div>
-											<div className="text-sm">{label}</div>
 										</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
