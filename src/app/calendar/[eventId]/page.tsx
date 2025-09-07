@@ -75,7 +75,7 @@ export default async function CalendarSpeakersPage({ params }: { params: Promise
                       </Link>
                     )}
                     {canManage ? (
-                      <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}`}><Button variant="outline" size="sm" className="whitespace-nowrap">編輯</Button></Link>
+                      <Link href={`/speaker/book?event=${eventId}&mode=edit&phone=${encodeURIComponent(s.phone)}&from=calendar_event`}><Button variant="outline" size="sm" className="whitespace-nowrap">編輯</Button></Link>
                     ) : null}
                     {canManage ? (
                       <form action={deleteBooking}>

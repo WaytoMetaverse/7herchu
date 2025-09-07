@@ -66,8 +66,6 @@ export default async function GalleryPage() {
 				<h2 className="font-medium mb-2">使用說明</h2>
 				<div className="text-sm text-gray-700 space-y-1">
 					<p>• 未登入的來賓和講師訪問「小組」頁面時，會看到這些展示圖片</p>
-					<p>• 手機版建議尺寸：9:16 或 3:4 比例，寬度至少 400px</p>
-					<p>• 電腦版建議尺寸：16:9 或 4:3 比例，寬度至少 800px</p>
 					<p>• 每個版本最多 8 張圖片，支援 JPG、PNG 格式</p>
 					<p>• 圖片會自動壓縮，單張限制 2MB</p>
 				</div>
@@ -90,7 +88,7 @@ export default async function GalleryPage() {
 
 				{orgSettings?.mobileGalleryImages && orgSettings.mobileGalleryImages.length > 0 && (
 					<div className="mt-6">
-						<h3 className="font-medium mb-3">目前圖片（可拖拽排序）</h3>
+						<h3 className="font-medium mb-3">目前圖片</h3>
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
 							{orgSettings.mobileGalleryImages.map((imageUrl, index) => (
 								<div key={imageUrl} className="relative group">
@@ -137,7 +135,7 @@ export default async function GalleryPage() {
 
 				{orgSettings?.desktopGalleryImages && orgSettings.desktopGalleryImages.length > 0 && (
 					<div className="mt-6">
-						<h3 className="font-medium mb-3">目前圖片（可拖拽排序）</h3>
+						<h3 className="font-medium mb-3">目前圖片</h3>
 						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 							{orgSettings.desktopGalleryImages.map((imageUrl, index) => (
 								<div key={imageUrl} className="relative group">

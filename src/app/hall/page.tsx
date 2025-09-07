@@ -96,7 +96,7 @@ export default async function HallPage() {
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">活動大廳</h1>
 				<div className="flex items-center gap-2">
 					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm" className="hidden sm:inline-flex">新增活動</Button>}
-					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm" className="sm:hidden">+</Button>}
+					{/* 手機板移除 + 按鈕 */}
 					<Button as={Link} href="/mobile-query" variant="outline" size="sm">報名查詢</Button>
 				</div>
 			</div>

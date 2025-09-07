@@ -108,7 +108,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
 										{canBook ? (
-											<Link href={`/speaker/book?event=${e.id}`}>
+											<Link href={`/speaker/book?event=${e.id}&from=calendar`}>
 												<Button variant="primary" size="sm">預約短講</Button>
 											</Link>
 										) : (

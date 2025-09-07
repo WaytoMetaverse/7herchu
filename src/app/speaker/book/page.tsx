@@ -11,6 +11,7 @@ export default function SpeakerBookPage() {
 	const eventId = sp.get('event') || ''
 	const mode = sp.get('mode') || ''
 	const qpPhone = sp.get('phone') || ''
+  const from = sp.get('from') || ''
 	const router = useRouter()
 	const [form, setForm] = useState({
 		name: '',
@@ -159,6 +160,22 @@ export default function SpeakerBookPage() {
 	}
 
 	const Required = () => <span className="text-red-600">*</span>
+
+	function goBack() {
+		if (from === 'hall' && eventId) {
+			router.push(`/hall/${eventId}`)
+			return
+		}
+		if (from === 'calendar') {
+			router.push('/calendar')
+			return
+		}
+		if (from === 'calendar_event' && eventId) {
+			router.push(`/calendar/${eventId}`)
+			return
+		}
+		router.back()
+	}
 
 	async function uploadPpt(file: File) {
 		setUploading(true)
