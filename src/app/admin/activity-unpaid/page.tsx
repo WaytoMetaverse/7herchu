@@ -74,17 +74,18 @@ export default async function ActivityUnpaidPage() {
 	const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 	const upcoming = events.filter(e => e.startAt >= todayStart)
 	const past = events.filter(e => e.startAt < todayStart)
+	const pastDesc = [...past].sort((a, b) => b.startAt.getTime() - a.startAt.getTime())
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">活動未繳費管理</h1>
-				<Button as={Link} href="/admin/finance" variant="outline" size="sm">
+				<h1 className="text-2xl font-semibold truncate">活動未繳費管理</h1>
+				<Button as={Link} href="/admin/finance" variant="outline" size="sm" className="whitespace-nowrap">
 					返回財務管理
 				</Button>
 			</div>
 
-			{(upcoming.length + past.length) === 0 ? (
+			{(upcoming.length + pastDesc.length) === 0 ? (
 				<div className="text-center py-12 text-gray-500">
 					<p>目前沒有需要繳費的活動</p>
 				</div>
@@ -173,10 +174,10 @@ export default async function ActivityUnpaidPage() {
 					))}
 
 					{/* 過去的活動 */}
-					{past.length > 0 && (
+					{pastDesc.length > 0 && (
 						<div className="space-y-6">
-							<h2 className="text-lg font-semibold text-gray-800">過去的活動</h2>
-							{past.map(event => (
+							<h2 className="text-lg font-semibold text-gray-800">過去的活動(新到舊)</h2>
+							{pastDesc.map(event => (
 								<Card key={event.id}>
 									<CardContent className="p-6">
 										<div className="flex items-center justify-between mb-4">

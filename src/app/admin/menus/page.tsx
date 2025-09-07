@@ -114,6 +114,7 @@ export default async function MenuManagePage() {
 	const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 	const upcomingEvents = eventsWithStats.filter(e => new Date(e.startAt) >= todayStart)
 	const pastEvents = eventsWithStats.filter(e => new Date(e.startAt) < todayStart)
+	const pastEventsDesc = [...pastEvents].sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime())
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -237,10 +238,10 @@ export default async function MenuManagePage() {
 				))}
 
 				{/* 過去的活動 */}
-				{pastEvents.length > 0 && (
+				{pastEventsDesc.length > 0 && (
 					<div className="space-y-4">
-						<h2 className="text-lg font-semibold text-gray-800">過去的活動</h2>
-						{pastEvents.map(event => (
+						<h2 className="text-lg font-semibold text-gray-800">過去的活動(新到舊)</h2>
+						{pastEventsDesc.map(event => (
 							<div key={event.id} className="bg-white border rounded-lg p-6">
 								<div className="flex items-start justify-between mb-4">
 									<div className="flex-1">

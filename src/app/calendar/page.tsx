@@ -53,8 +53,14 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 		})
 	}
 
+	// 分群：即將與今日（asc）/ 過去（desc）
+	const now = new Date()
+	const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+	const upcoming = events.filter(e => e.startAt >= todayStart)
+	const past = events.filter(e => e.startAt < todayStart).sort((a, b) => b.startAt.getTime() - a.startAt.getTime())
+
 	const groups = new Map<string, typeof events>()
-	events.forEach(e => {
+	upcoming.forEach(e => {
 		const key = ym(e.startAt)
 		if (!groups.has(key)) groups.set(key, [])
 		groups.get(key)!.push(e)
@@ -101,9 +107,9 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 														<span>{e.location ?? ''}</span>
 														<span>· {TYPE_LABEL[e.type as EventType]}</span>
 													</div>
+												</div>
 											</div>
 											<div className="text-sm">{label}</div>
-										</div>
 										</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
@@ -124,6 +130,57 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 					<hr className="border-gray-200" />
 				</section>
 			))}
+			{past.length > 0 && (
+				<section className="space-y-3">
+					<h2 className="text-lg font-medium">過去的活動(新到舊)</h2>
+					<div className="space-y-3">
+						{past.map((e) => {
+							const canBookSpeaker = e.allowSpeakers
+							const cnt = counts[e.id] ?? 0
+							const quota = e.speakerQuota ?? 0
+							const hasQuota = quota > 0
+							const availableSlots = quota - cnt
+							const canBook = canBookSpeaker && hasQuota && availableSlots > 0
+							const label = statusLabel(canBookSpeaker, quota, cnt)
+							return (
+								<Card key={e.id}>
+									<Link href={`/calendar/${e.id}`}>
+										<CardContent className="p-4">
+											<div className="flex justify-between">
+												<div>
+													<div className="font-medium flex items-center gap-2">
+														<CalendarIcon className="w-4 h-4 text-gray-500" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span>{e.title}</span>
+													</div>
+													<div className="text-sm text-gray-600 flex items-center gap-2">
+														<MapPin className="w-4 h-4" />
+														<span>{e.location ?? ''}</span>
+														<span>· {TYPE_LABEL[e.type as EventType]}</span>
+													</div>
+												</div>
+											</div>
+											<div className="text-sm">{label}</div>
+										</CardContent>
+									</Link>
+									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
+										{canBook ? (
+											<Link href={`/speaker/book?event=${e.id}&from=calendar`}>
+												<Button variant="primary" size="sm">預約短講</Button>
+											</Link>
+										) : (
+											<Button as="button" variant="outline" size="sm" aria-disabled>
+												不可預約
+											</Button>
+										)}
+									</div>
+								</Card>
+							)
+						})}
+					</div>
+					<hr className="border-gray-200" />
+				</section>
+			)}
 		</div>
 	)
 } 

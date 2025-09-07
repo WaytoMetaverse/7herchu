@@ -129,32 +129,32 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">財務管理</h1>
+				<h1 className="text-2xl font-semibold truncate">財務管理</h1>
 			</div>
 
 			{/* 按鈕區 */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 flex-wrap">
 				{canManage && (
 					<>
-						<Button as={Link} href="#add-form" variant="primary">新增交易</Button>
-						<Button as={Link} href="/admin/members" variant="outline">成員管理</Button>
-						<Button as={Link} href="/admin/activity-unpaid" variant="outline">活動未繳費</Button>
+						<Button as={Link} href="#add-form" variant="primary" className="whitespace-nowrap">新增交易</Button>
+						<Button as={Link} href="/admin/members" variant="outline" className="whitespace-nowrap">成員管理</Button>
+						<Button as={Link} href="/admin/activity-unpaid" variant="outline" className="whitespace-nowrap">活動未繳費</Button>
 					</>
 				)}
 			</div>
 
 			{/* 篩選區 */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 flex-wrap">
 				<form className="flex items-center gap-2">
 					<label>月份
 						<input type="month" name="month" defaultValue={month} />
 					</label>
-					<Button type="submit" variant="outline">篩選</Button>
+					<Button type="submit" variant="outline" className="whitespace-nowrap">篩選</Button>
 				</form>
-				<Button as={Link} href="/admin/finance" variant="ghost">取消篩選</Button>
+				<Button as={Link} href="/admin/finance" variant="ghost" className="whitespace-nowrap">取消篩選</Button>
 				<form method="GET">
 					<input type="hidden" name="month" value={month} />
-					<Button type="submit" name="export" value="csv" variant="secondary">匯出</Button>
+					<Button type="submit" name="export" value="csv" variant="secondary" className="whitespace-nowrap">匯出</Button>
 				</form>
 			</div>
 
