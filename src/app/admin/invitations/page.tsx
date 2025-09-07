@@ -109,8 +109,8 @@ export default async function InvitationsPage() {
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">邀請管理</h1>
-				<Button as={Link} href="/group" variant="outline">返回小組管理</Button>
+				<h1 className="text-2xl font-semibold truncate">邀請管理</h1>
+				<Button as={Link} href="/group" variant="outline" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
 			{/* 邀請卡列表 */}

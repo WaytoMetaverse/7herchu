@@ -156,7 +156,14 @@ export default function SpeakerBookPage() {
 			setErr(data.error || '提交失敗')
 			return
 		}
-		router.push('/calendar')
+		// 依來源導向返回
+		if (from === 'hall' && eventId) {
+			router.push(`/hall/${eventId}`)
+		} else if (from === 'calendar_event' && eventId) {
+			router.push(`/calendar/${eventId}`)
+		} else {
+			router.push('/calendar')
+		}
 	}
 
 	const Required = () => <span className="text-red-600">*</span>
@@ -212,7 +219,10 @@ export default function SpeakerBookPage() {
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-3">
 			{eventDateLabel && <div className="text-sm text-gray-600">日期：{eventDateLabel}</div>}
-			<h1 className="text-xl font-semibold">講師預約</h1>
+			<div className="flex items-center justify-between">
+				<h1 className="text-xl font-semibold">講師預約</h1>
+				<Button variant="outline" onClick={goBack}>返回</Button>
+			</div>
 			{err && <div className="text-red-600 text-sm">{err}</div>}
 			<div>
 				<label>姓名<Required /></label>

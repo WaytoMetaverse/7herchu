@@ -44,12 +44,17 @@ export default async function MembersManagePage({
 		orderBy: { name: 'asc' }
 	})
 
-	// 生成最近6個月的月份列表
-	const months = Array.from({ length: 6 }, (_, i) => {
-		const date = new Date()
-		date.setMonth(date.getMonth() - i)
-		return date.toISOString().slice(0, 7)
-	})
+	// 生成月份列表：從 2025-09 起（含）到本月，確保 10 月之後仍保留 9 月
+	const months: string[] = []
+	{
+		const start = new Date('2025-09-01')
+		const now = new Date()
+		const iter = new Date(now.getFullYear(), now.getMonth(), 1)
+		while (iter >= start) {
+			months.push(iter.toISOString().slice(0, 7))
+			iter.setMonth(iter.getMonth() - 1)
+		}
+	}
 
 	// 計算當月活動數量（簡報組聚 + 聯合組聚 + 封閉組聚）
 	async function getMonthlyEventCount(month: string) {

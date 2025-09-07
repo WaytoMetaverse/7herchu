@@ -5,8 +5,8 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 	const router = useRouter()
 	const searchParams = useSearchParams()
 
-	// 生成月份選項：從2025年7月開始到未來12個月
-	const startDate = new Date('2025-07-01')
+	// 生成月份選項：從 2025-09 開始到未來12個月（隱藏 9 月以前）
+	const startDate = new Date('2025-09-01')
 	const endDate = new Date()
 	endDate.setMonth(endDate.getMonth() + 12) // 未來12個月
 	

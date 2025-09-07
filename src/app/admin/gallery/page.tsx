@@ -58,8 +58,8 @@ export default async function GalleryPage() {
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">展示設定</h1>
-				<Button as={Link} href="/group" variant="outline">返回小組管理</Button>
+				<h1 className="text-2xl font-semibold truncate">展示設定</h1>
+				<Button as={Link} href="/group" variant="outline" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
 			<div className="bg-blue-50 p-4 rounded-lg">

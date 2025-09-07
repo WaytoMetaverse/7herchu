@@ -49,10 +49,13 @@ code, pre, kbd, samp {
   .btn-compact { font-size: 14px; padding-left: 12px; padding-right: 12px; }
   
   /* 手機版按鈕優化 */
+  /* 手機版通用按鈕規範（參考活動大廳兩顆按鈕） */
   button, .btn {
-    min-height: 44px;
-    font-size: 16px;
-    border-radius: 8px;
+    min-height: 44px;   /* 舒適觸控高度 */
+    font-size: 16px;    /* 舒適字級 */
+    border-radius: 8px; /* 一致圓角 */
+    padding-left: 16px;
+    padding-right: 16px;
   }
   
   /* 手機版卡片間距優化 */
@@ -87,6 +90,7 @@ textarea {
 
 /* 手機版優化：更大的觸控區域和更好的視覺回饋 */
 @media (max-width: 767px) {
+  /* 手機板：統一單行輸入與下拉高度為 0.7cm */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -95,9 +99,16 @@ textarea {
   input[type="month"],
   input[type="file"],
   input:not([type]),
-  select,
+  select {
+    @apply px-4; /* 垂直高度固定，不再增加 padding-y */
+    height: 0.7cm;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  /* 手機板：多行輸入保留自適應高度 */
   textarea {
-    @apply px-4 py-4;
+    @apply px-4;
     font-size: 16px;
     border-radius: 12px;
   }

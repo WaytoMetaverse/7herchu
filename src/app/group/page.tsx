@@ -38,7 +38,7 @@ export default async function GroupHomePage() {
 
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">
-			<h1 className="text-2xl lg:text-3xl font-semibold">小組管理</h1>
+			<h1 className="text-2xl lg:text-3xl font-semibold truncate">小組管理</h1>
 			
 			<div className={`grid gap-4 ${isLoggedIn ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
 				{/* 成員管理卡片 */}

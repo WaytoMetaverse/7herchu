@@ -21,7 +21,8 @@ export default function Button({
 	...props
 }: ButtonBaseProps) {
 	const Comp = as || 'button'
-	const base = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99]'
+	// 附加全域 btn 類別，讓行動版統一尺寸
+	const base = 'btn inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99]'
 	const sizes: Record<Size, string> = {
 		sm: 'text-[13px] h-9 px-3',
 		md: 'text-[15px] h-10 px-4',

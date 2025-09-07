@@ -154,19 +154,19 @@ export default async function MenuManagePage() {
 						{/* 餐點統計 */}
 						{event.eventMenu?.hasMealService ? (
 							<div className="bg-blue-50 p-4 rounded-lg">
-								<h4 className="font-medium text-blue-900 mb-2">餐點統計</h4>
+								<h4 className="font-medium text-blue-900 mb-2">餐點統計（A/B/C）</h4>
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 									<div className="text-center">
 										<div className="text-lg font-semibold text-blue-700">{event.mealStats.A}</div>
-										<div className="text-blue-600">{event.eventMenu?.mealCodeA || 'A餐點'}</div>
+										<div className="text-blue-600">A. {event.eventMenu?.mealCodeA ?? ''}</div>
 									</div>
 									<div className="text-center">
 										<div className="text-lg font-semibold text-blue-700">{event.mealStats.B}</div>
-										<div className="text-blue-600">{event.eventMenu?.mealCodeB || 'B餐點'}</div>
+										<div className="text-blue-600">B. {event.eventMenu?.mealCodeB ?? ''}</div>
 									</div>
 									<div className="text-center">
 										<div className="text-lg font-semibold text-blue-700">{event.mealStats.C}</div>
-										<div className="text-blue-600">{event.eventMenu?.mealCodeC || 'C餐點'}</div>
+										<div className="text-blue-600">C. {event.eventMenu?.mealCodeC ?? ''}</div>
 									</div>
 									<div className="text-center">
 										<div className="text-lg font-semibold text-blue-900">{event.mealStats.total}</div>
