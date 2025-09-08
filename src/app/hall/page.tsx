@@ -102,7 +102,7 @@ export default async function HallPage() {
 				<div className="flex items-center gap-2">
 					{canManage && <Button as={Link} href="/admin/events/new" variant="primary" size="sm" className="hidden sm:inline-flex rounded-lg sm:min-h-[44px] sm:text-[16px]">新增活動</Button>}
 					{/* 手機板移除 + 按鈕 */}
-					<Button as={Link} href="/mobile-query" variant="outline" size="sm" className="btn-mobile-sm sm:min-h-[44px] sm:text-[16px]">報名查詢</Button>
+					<Button as={Link} href="/mobile-query" variant="outline" size="sm" className="btn-mobile-xs sm:min-h-[44px] sm:text-[16px]">報名查詢</Button>
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (
