@@ -45,8 +45,8 @@ export default async function GroupHomePage() {
 			</div>
 			
 			<div className={`grid gap-4 ${isLoggedIn ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-				{/* 成員管理卡片 */}
-				{isAdmin && (
+				{/* 成員管理卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+				(
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
@@ -66,10 +66,10 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				)
 
-				{/* 財務管理卡片 */}
-				{canManageFinance && (
+				{/* 財務管理卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+				(
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
@@ -89,10 +89,10 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				)
 
-				{/* 菜單管理卡片 */}
-				{canManageMenu && (
+				{/* 菜單管理卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+				(
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
@@ -112,10 +112,10 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				)
 
-				{/* 邀請管理卡片 */}
-				{isAdmin && (
+				{/* 邀請管理卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+				(
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
@@ -135,10 +135,10 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				)
 
-				{/* 展示設定卡片 */}
-				{isAdmin && (
+				{/* 展示設定卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+				(
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
@@ -158,7 +158,7 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				)
 			</div>
 		</div>
 	)
