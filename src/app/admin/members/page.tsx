@@ -307,7 +307,7 @@ export default async function MembersManagePage({
 			{/* 繳費訊息產生器 */}
 			<div className="bg-blue-50 p-4 rounded-lg">
 				<div className="flex items-center justify-between mb-2">
-					<h2 className="font-medium">繳費訊息（固定成員）</h2>
+					<h2 className="font-medium">繳費訊息<br className="sm:hidden" />（固定成員）</h2>
 					{/* 月份選擇器 */}
 					<MonthSelector currentMonth={selectedMonth} />
 				</div>
@@ -322,11 +322,11 @@ export default async function MembersManagePage({
 			{/* 成員列表 */}
 			<div className="bg-white rounded-lg border overflow-hidden">
 				<div className="overflow-x-auto">
-					<table className="w-full text-sm min-w-max">
+					<table className="w-full text-xs sm:text-sm min-w-max">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-4 py-3 text-left font-medium whitespace-nowrap">姓名</th>
-								<th className="px-4 py-3 text-left font-medium whitespace-nowrap">類型</th>
+								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap">姓名</th>
+								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap">類型</th>
 								{months.map(month => (
 									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap">
 										{month.slice(5)}月
@@ -338,8 +338,8 @@ export default async function MembersManagePage({
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="px-4 py-3 font-medium whitespace-nowrap">{getDisplayName(member)}</td>
-									<td className="px-4 py-3 whitespace-nowrap">
+									<td className="px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap">{getDisplayName(member)}</td>
+									<td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
 										<MemberTypeSelect
 											userId={member.id}
 											defaultValue={member.memberProfile?.memberType || 'SINGLE'}
