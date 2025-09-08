@@ -4,8 +4,8 @@ import Button from '@/components/ui/Button'
 
 export default function SpeakerShareButton({ message, url, imageUrl }: { message: string; url: string; imageUrl?: string }) {
 	const handleShare = async () => {
-		const fullMessage = `${message || '磐石砌好厝誠摯地邀請您一同來參與'}\n\n預約連結: ${url}`
-		const clipboardText = imageUrl ? `${fullMessage}\n圖片: ${imageUrl}` : fullMessage
+		const fullMessage = `${message || '磐石砌好厝誠摯地邀請您一同來參與'}`
+		const clipboardText = imageUrl ? `${fullMessage}\n\n${url}\n圖片: ${imageUrl}` : `${fullMessage}\n\n${url}`
 		try {
 			let files: File[] | undefined
 			if (imageUrl) {
