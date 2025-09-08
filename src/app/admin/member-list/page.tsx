@@ -13,7 +13,6 @@ export default async function MemberListPage() {
 	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const isAdmin = roles.includes('admin')
-	if (!isAdmin) redirect('/hall')
 
 	// 取得所有成員（包含停用的）
 	const allMembers = await prisma.user.findMany({
@@ -70,7 +69,7 @@ export default async function MemberListPage() {
 			{/* 按鈕區 */}
 			<div className="flex items-center gap-3">
 				<Button as={Link} href="/admin/permissions" variant="outline">權限管理</Button>
-				<MemberInvitation />
+				<MemberInvitation tipImageUrl="/tips.jpg" />
 			</div>
 
 			{/* 成員列表 */}
@@ -83,7 +82,10 @@ export default async function MemberListPage() {
 					phone: m.phone || '',
 					isActive: m.isActive,
 					memberType: m.memberProfile?.memberType || 'SINGLE',
-					roles: [] // 角色信息將在權限管理頁面處理
+					roles: [], // 角色信息將在權限管理頁面處理
+					occupation: m.memberProfile?.occupation || '',
+					companyName: m.memberProfile?.companyName || '',
+					workDescription: m.memberProfile?.workDescription || ''
 				}))}
 				deactivateMember={deactivateMember}
 				activateMember={activateMember}

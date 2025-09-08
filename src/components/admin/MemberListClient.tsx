@@ -12,6 +12,9 @@ type Member = {
 	isActive: boolean
 	memberType: 'SINGLE' | 'FIXED'
 	roles: string[]
+	occupation?: string
+	companyName?: string
+	workDescription?: string
 }
 
 export default function MemberListClient({ 
@@ -86,6 +89,24 @@ export default function MemberListClient({
 									<div className="flex items-center gap-1">
 										<Phone className="w-3 h-3" />
 										<span>{member.phone}</span>
+									</div>
+								)}
+								{member.occupation && (
+									<div className="flex items-center gap-1">
+										<span className="inline-block w-10 shrink-0 text-gray-400">職業/代表</span>
+										<span>{member.occupation}</span>
+									</div>
+								)}
+								{member.companyName && (
+									<div className="flex items-center gap-1">
+										<span className="inline-block w-10 shrink-0 text-gray-400">公司</span>
+										<span>{member.companyName}</span>
+									</div>
+								)}
+								{member.workDescription && (
+									<div className="flex items-center gap-1">
+										<span className="inline-block w-10 shrink-0 text-gray-400">服務項目</span>
+										<span>{member.workDescription}</span>
 									</div>
 								)}
 								{member.roles.length > 0 && (
