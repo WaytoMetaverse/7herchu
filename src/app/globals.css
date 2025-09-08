@@ -76,6 +76,17 @@ code, pre, kbd, samp {
     padding-left: 12px !important;
     padding-right: 12px !important;
   }
+
+  /* 全站默認：手機將一般按鈕縮為 36px/14px，排除長條型與明確標記 .btn-long */
+  .btn:not(.btn-long) {
+    min-height: 36px !important;
+    font-size: 14px !important;
+  }
+  /* 長條型：滿版寬或手動標記 .btn-long 維持 44px/16px */
+  .btn.w-full, .btn-long {
+    min-height: 44px !important;
+    font-size: 16px !important;
+  }
   
   /* 手機版卡片間距優化 */
   .card {
