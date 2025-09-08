@@ -79,12 +79,12 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 		<div className="max-w-3xl mx-auto p-4 space-y-6">
 			<div className="flex justify-between items-center">
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2">
 					<OpenOnlyToggle />
 					{session?.user && (
-						<SpeakerShareButton message={speakerMessage} url={shareUrl} />
+						<SpeakerShareButton message={speakerMessage} url={shareUrl} className="btn-mobile-xs" />
 					)}
-					<Link href="/speaker/login"><Button variant="outline" size="sm">報名查詢</Button></Link>
+					<Link href="/speaker/login"><Button variant="outline" size="sm" className="btn-mobile-xs">報名查詢</Button></Link>
 				</div>
 			</div>
 			{Array.from(groups.entries()).map(([key, list]) => (

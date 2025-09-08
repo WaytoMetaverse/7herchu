@@ -95,32 +95,29 @@ export default function AdminEventNewPage() {
 			<h1 className="text-2xl font-semibold leading-tight truncate">新增活動</h1>
 			<form action={createEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<EventTypePricing options={options} initialType={options[0]?.value || 'GENERAL'} />
-				<label className="col-span-2">日期
-					<div className="flex items-center gap-2">
-						<CalendarIcon className="w-4 h-4 text-gray-500" />
-						<DateWithWeekday name="date" />
-					</div>
-				</label>
-				<label>開始時間
-					<div className="flex items-center gap-2">
-						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="startTime" defaultValue="18:30" className="w-full px-4 py-3 rounded-lg border">
-							{timeOptions.map((t) => (
-								<option key={t} value={t}>{t}</option>
-							))}
-						</select>
-					</div>
-				</label>
-				<label>結束時間
-					<div className="flex items-center gap-2">
-						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="endTime" defaultValue="21:00" className="w-full px-4 py-3 rounded-lg border">
-							{timeOptions.map((t) => (
-								<option key={t} value={t}>{t}</option>
-							))}
-						</select>
-					</div>
-				</label>
+				<div className="col-span-2"><DateWithWeekday name="date" /></div>
+				<div className="col-span-2 grid grid-cols-2 gap-3">
+					<label>開始時間
+						<div className="flex items-center gap-2">
+							<Clock className="w-4 h-4 text-gray-500" />
+							<select name="startTime" defaultValue="18:30" className="w-full px-4 py-3 rounded-lg border">
+								{timeOptions.map((t) => (
+									<option key={t} value={t}>{t}</option>
+								))}
+							</select>
+						</div>
+					</label>
+					<label>結束時間
+						<div className="flex items-center gap-2">
+							<Clock className="w-4 h-4 text-gray-500" />
+							<select name="endTime" defaultValue="21:00" className="w-full px-4 py-3 rounded-lg border">
+								{timeOptions.map((t) => (
+									<option key={t} value={t}>{t}</option>
+								))}
+							</select>
+						</div>
+					</label>
+				</div>
 				<label className="col-span-2">地點
 					<div className="flex items-center gap-2">
 						<MapPin className="w-4 h-4" />

@@ -2,7 +2,7 @@
 
 import Button from '@/components/ui/Button'
 
-export default function SpeakerShareButton({ message, url }: { message: string; url: string }) {
+export default function SpeakerShareButton({ message, url, className }: { message: string; url: string; className?: string }) {
 	const handleShare = async () => {
 		const fullMessage = `${message || '磐石砌好厝誠摯地邀請您一同來參與'}`
 		const clipboardText = `${fullMessage}\n\n${url}`
@@ -20,6 +20,6 @@ export default function SpeakerShareButton({ message, url }: { message: string; 
 		}
 	}
 	return (
-		<Button variant="primary" size="sm" onClick={handleShare}>講師邀請</Button>
+		<Button variant="primary" size="sm" onClick={handleShare} className={className}>講師邀請</Button>
 	)
 }
