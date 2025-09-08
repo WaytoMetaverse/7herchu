@@ -148,17 +148,7 @@ textarea {
   }
 }
 
-/* 桌面（≥768px）：一般按鈕統一為與「講師預約-報名查詢」一致（除長條） */
-@media (min-width: 768px) {
-  .btn:not(.btn-long):not(.w-full) {
-    height: 44px !important;
-    min-height: 44px !important;
-    font-size: 16px !important;
-    border-radius: 8px !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-}
+/* 桌面：不強制統一尺寸，沿用元件 sm/md/lg 預設；長條型由頁面自行控制 */
 
 input:focus, select:focus, textarea:focus {
   @apply ring-2 ring-blue-500 border-blue-500 shadow-sm;
