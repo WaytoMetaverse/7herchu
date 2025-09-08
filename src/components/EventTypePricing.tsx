@@ -49,6 +49,7 @@ export default function EventTypePricing({
 					name={typeName}
 					value={selectedType}
 					onChange={(e) => setSelectedType(e.target.value)}
+					className="w-full"
 				>
 					{options.map((o) => (
 						<option key={o.value} value={o.value}>{o.label}</option>
@@ -61,32 +62,33 @@ export default function EventTypePricing({
 					placeholder={labelMap[selectedType] || ''}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
+					className="w-full"
 				/>
 			</label>
 
 			{/* 金額區塊（依類型顯示） */}
 			{showGuestSingle && (
 				<label className="col-span-2">來賓金額（元）
-					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? 250}  />
+					<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? 250} className="w-full" />
 				</label>
 			)}
 			{isBod && (
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+				<div className="col-span-2 grid grid-cols-2 gap-3">
 					<label>成員金額（元）
-						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''}  />
+						<input name="bodMemberPrice" type="number" min={0} defaultValue={initialBodMemberPrice ?? ''} className="w-full" />
 					</label>
 					<label>來賓金額（元）
-						<input name="bodGuestPrice" type="number" min={0} defaultValue={initialBodGuestPrice ?? ''}  />
+						<input name="bodGuestPrice" type="number" min={0} defaultValue={initialBodGuestPrice ?? ''} className="w-full" />
 					</label>
 				</div>
 			)}
 			{(isDinner || isSoft) && (
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+				<div className="col-span-2 grid grid-cols-2 gap-3">
 					<label>成員金額（元）
-						<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''}  />
+						<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''} className="w-full" />
 					</label>
 					<label>來賓金額（元）
-						<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''}  />
+						<input name="guestPrice" type="number" min={0} defaultValue={initialGuestPrice ?? ''} className="w-full" />
 					</label>
 				</div>
 			)}

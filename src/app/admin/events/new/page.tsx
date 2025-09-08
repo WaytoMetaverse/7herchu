@@ -123,8 +123,8 @@ export default function AdminEventNewPage() {
 						<input name="location" placeholder="請輸入地點" className="w-full px-4 py-3 rounded-lg border" />
 					</div>
 				</label>
-				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-					<label>設定講師名額
+				<div className="col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+					<label className="col-span-1">設定講師名額
 						<input name="speakerQuota" type="number" min={0} placeholder="請輸入講師名額" className="w-full px-4 py-3 rounded-lg border" />
 					</label>
 				</div>

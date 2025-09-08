@@ -131,7 +131,7 @@ textarea {
   input:not([type]),
   select {
     @apply px-4; /* 垂直高度固定，不再增加 padding-y */
-    height: 0.7cm;
+    height: 1.05cm;
     font-size: 16px;
     border-radius: 12px;
   }
@@ -145,6 +145,18 @@ textarea {
   
   label {
     @apply text-base font-medium text-gray-800 mb-2 block;
+  }
+}
+
+/* 桌面（≥768px）：一般按鈕統一為與「講師預約-報名查詢」一致（除長條） */
+@media (min-width: 768px) {
+  .btn:not(.btn-long):not(.w-full) {
+    height: 44px !important;
+    min-height: 44px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
 }
 
