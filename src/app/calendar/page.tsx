@@ -73,7 +73,6 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 	const orgSettings = await prisma.orgSettings.findFirst()
 	const speakerMessage = orgSettings?.invitationMessageSpeaker || '磐石砌好厝誠摯地邀請您一同來參與'
 	const shareUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/calendar`
-	const speakerImage = orgSettings?.invitationCardSpeaker || undefined
 
 
 	return (
@@ -83,7 +82,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
 					{session?.user && (
-						<SpeakerShareButton message={speakerMessage} url={shareUrl} imageUrl={speakerImage} />
+						<SpeakerShareButton message={speakerMessage} url={shareUrl} />
 					)}
 					<Link href="/speaker/login"><Button variant="outline" size="sm">報名查詢</Button></Link>
 				</div>

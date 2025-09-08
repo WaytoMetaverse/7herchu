@@ -2,40 +2,20 @@
 
 import Button from '@/components/ui/Button'
 
-export default function SpeakerShareButton({ message, url, imageUrl }: { message: string; url: string; imageUrl?: string }) {
+export default function SpeakerShareButton({ message, url }: { message: string; url: string }) {
 	const handleShare = async () => {
-		const fullMessage = `${message || '磐石砌好厝誠摯地邀請您一同來參與'}\n\n預約連結: ${url}`
-		const clipboardText = imageUrl ? `${fullMessage}\n圖片: ${imageUrl}` : fullMessage
+		const fullMessage = `磐石砌好厝成員邀請\n\n${message || '磐石砌好厝誠摯地邀請您一同來參與'}\n\n預約連結: ${url}`
 		try {
-			// 嘗試製作圖片檔（若提供 imageUrl 且瀏覽器支援檔案分享）
-			let files: File[] | undefined
-			if (imageUrl) {
-				try {
-					const res = await fetch(imageUrl)
-					const blob = await res.blob()
-					const filename = imageUrl.split('/').pop() || 'invite.jpg'
-					const file = new File([blob], filename, { type: blob.type || 'image/jpeg' })
-					if (navigator.canShare && navigator.canShare({ files: [file] })) {
-						files = [file]
-					}
-				} catch {}
-			}
-
-			// Web Share（含圖片，或至少文字+連結）
 			if (navigator.share) {
-				const shareData: ShareData & { files?: File[] } = { title: '講師預約', text: fullMessage, url }
-				if (files) {
-					shareData.files = files
-				}
+				const shareData: ShareData = { title: '講師預約', text: fullMessage, url }
 				await navigator.share(shareData)
 				return
 			}
-			// Fallback：無法 share 時，複製文字（含圖片連結備援）
-			navigator.clipboard.writeText(clipboardText)
+			// Fallback：無法 share 時，複製文字
+			navigator.clipboard.writeText(fullMessage)
 			alert('已複製邀請訊息，請貼上分享')
 		} catch {
-			// 進一步備援
-			navigator.clipboard.writeText(clipboardText)
+			navigator.clipboard.writeText(fullMessage)
 			alert('已複製邀請訊息，請貼上分享')
 		}
 	}
