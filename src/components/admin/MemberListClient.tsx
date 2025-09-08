@@ -93,19 +93,19 @@ export default function MemberListClient({
 								)}
 								{member.occupation && (
 									<div className="flex items-center gap-1">
-										<span className="inline-block w-10 shrink-0 text-gray-400">職業/代表</span>
+										<span className="inline-block w-20 shrink-0 text-gray-400 whitespace-nowrap">職業/代表</span>
 										<span>{member.occupation}</span>
 									</div>
 								)}
 								{member.companyName && (
 									<div className="flex items-center gap-1">
-										<span className="inline-block w-10 shrink-0 text-gray-400">公司</span>
+										<span className="inline-block w-20 shrink-0 text-gray-400 whitespace-nowrap">公司</span>
 										<span>{member.companyName}</span>
 									</div>
 								)}
 								{member.workDescription && (
 									<div className="flex items-center gap-1">
-										<span className="inline-block w-10 shrink-0 text-gray-400">服務項目</span>
+										<span className="inline-block w-20 shrink-0 text-gray-400 whitespace-nowrap">服務項目</span>
 										<span>{member.workDescription}</span>
 									</div>
 								)}
