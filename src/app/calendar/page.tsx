@@ -76,6 +76,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
+					<Button as={Link} href="/admin/invitations" variant="outline" size="sm" className="whitespace-nowrap">講師邀請</Button>
 					<Link href="/speaker/login"><Button variant="outline" size="sm">報名查詢</Button></Link>
 				</div>
 			</div>

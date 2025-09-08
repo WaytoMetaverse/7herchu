@@ -100,7 +100,7 @@ export default function AdminEventNewPage() {
 				<label>開始時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="startTime" className="w-full px-4 py-3 rounded-lg border">
+						<select name="startTime" defaultValue="18:30" className="w-full px-4 py-3 rounded-lg border">
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}
@@ -110,7 +110,7 @@ export default function AdminEventNewPage() {
 				<label>結束時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
-						<select name="endTime" className="w-full px-4 py-3 rounded-lg border">
+						<select name="endTime" defaultValue="21:00" className="w-full px-4 py-3 rounded-lg border">
 							{timeOptions.map((t) => (
 								<option key={t} value={t}>{t}</option>
 							))}

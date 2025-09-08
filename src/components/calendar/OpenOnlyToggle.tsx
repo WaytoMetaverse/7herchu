@@ -17,7 +17,7 @@ export default function OpenOnlyToggle() {
   return (
     <label className="flex items-center gap-1 text-sm text-gray-700">
       <input type="checkbox" checked={openOnly} onChange={toggle} />
-      只看可預約
+      可預約
     </label>
   )
 }

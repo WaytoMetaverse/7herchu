@@ -115,6 +115,19 @@ export default async function InvitationsPage() {
 
 			{/* 邀請卡列表 */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+				{/* 講師邀請（固定連結至 /calendar） */}
+				<div className="bg-white rounded-lg border overflow-hidden">
+					<div className="p-4 bg-teal-50 border-b">
+						<h3 className="font-medium text-teal-900">講師邀請</h3>
+					</div>
+					<div className="p-4 space-y-4">
+						<div className="text-sm text-gray-600">一鍵分享講師邀請（訊息、圖片、連結），連結指向講師預約頁。</div>
+						<div className="flex items-center gap-2">
+							<Button as={Link} href="/calendar" variant="primary" size="sm" className="whitespace-nowrap">分享講師邀請</Button>
+							<Button as={Link} href="/calendar" variant="outline" size="sm" className="whitespace-nowrap">預覽講師頁</Button>
+						</div>
+					</div>
+				</div>
 				{cards.map((card) => (
 					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
 						{/* 標題區 */}

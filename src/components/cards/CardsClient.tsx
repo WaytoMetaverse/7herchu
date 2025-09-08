@@ -64,7 +64,7 @@ export default function CardsClient({ initialQ, initialCategory, initialSubs }: 
           <SubcategoryPicker category={category || ''} initialSubs={subs} inputName="subs" onChange={setSubs} />
           {/* 共用名片庫，無需擁有者過濾 */}
         </div>
-        <Button as={Link} href="/cards/scan" variant="outline">掃描名片</Button>
+        {/* 右側操作移除「掃描名片」按鈕，僅保留標題列上的快速入口 */}
       </div>
 
       {loading ? (
