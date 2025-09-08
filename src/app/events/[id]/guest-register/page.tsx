@@ -41,6 +41,9 @@ export default async function GuestRegisterPage({ params }: { params: Promise<{ 
 			case 'SOFT':
 				invitationCardUrl = orgSettings.invitationCardSoft
 				break
+			case 'VISIT':
+				invitationCardUrl = orgSettings.invitationCardVisit
+				break
 			case 'BOD':
 				invitationCardUrl = orgSettings.invitationCardBod
 				break

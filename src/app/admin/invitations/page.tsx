@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import MessageEditor from './MessageEditor'
 import InvitationUpload from './InvitationUpload'
+import SpeakerShareButton from './SpeakerShareButton'
 
 export default async function InvitationsPage() {
 	const session = await getServerSession(authOptions)
@@ -28,7 +29,8 @@ export default async function InvitationsPage() {
 			general: 'invitationCardGeneral',
 			dinner: 'invitationCardDinner',
 			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod'
+			bod: 'invitationCardBod',
+			visit: 'invitationCardVisit'
 		}[cardType]
 		
 		if (!updateField) return
@@ -55,7 +57,8 @@ export default async function InvitationsPage() {
 			general: 'invitationMessageGeneral',
 			dinner: 'invitationMessageDinner',
 			soft: 'invitationMessageSoft',
-			bod: 'invitationMessageBod'
+			bod: 'invitationMessageBod',
+			visit: 'invitationMessageVisit'
 		}[messageType]
 		
 		if (!updateField) return
@@ -76,6 +79,13 @@ export default async function InvitationsPage() {
 	}
 
 	const cards = [
+		{
+			type: 'speaker',
+			title: '講師預約',
+			imageUrl: orgSettings?.invitationCardSpeaker,
+			message: orgSettings?.invitationMessageSpeaker || '',
+			color: 'teal'
+		},
 		{
 			type: 'general',
 			title: '簡報組聚 / 聯合組聚 / 封閉會議',
@@ -103,6 +113,13 @@ export default async function InvitationsPage() {
 			imageUrl: orgSettings?.invitationCardBod,
 			message: orgSettings?.invitationMessageBod || '',
 			color: 'orange'
+		},
+		{
+			type: 'visit',
+			title: '職業參訪',
+			imageUrl: orgSettings?.invitationCardVisit,
+			message: orgSettings?.invitationMessageVisit || '',
+			color: 'amber'
 		}
 	]
 
@@ -115,19 +132,6 @@ export default async function InvitationsPage() {
 
 			{/* 邀請卡列表 */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				{/* 講師邀請（固定連結至 /calendar） */}
-				<div className="bg-white rounded-lg border overflow-hidden">
-					<div className="p-4 bg-teal-50 border-b">
-						<h3 className="font-medium text-teal-900">講師邀請</h3>
-					</div>
-					<div className="p-4 space-y-4">
-						<div className="text-sm text-gray-600">一鍵分享講師邀請（訊息、圖片、連結），連結指向講師預約頁。</div>
-						<div className="flex items-center gap-2">
-							<Button as={Link} href="/calendar" variant="primary" size="sm" className="whitespace-nowrap">分享講師邀請</Button>
-							<Button as={Link} href="/calendar" variant="outline" size="sm" className="whitespace-nowrap">預覽講師頁</Button>
-						</div>
-					</div>
-				</div>
 				{cards.map((card) => (
 					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
 						{/* 標題區 */}
@@ -178,13 +182,30 @@ export default async function InvitationsPage() {
 									defaultMessage={card.message}
 									updateAction={updateInvitationMessage}
 								/>
+								{card.type === 'speaker' && (
+									<div className="mt-3 flex items-center gap-2">
+										<SpeakerShareButton 
+											message={card.message}
+											url={`${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/speaker/book`}
+										/>
+										<Button as={Link} href="/speaker/book" variant="outline" size="sm">預覽講師頁</Button>
+									</div>
+								)}
 								<div className="mt-2 text-xs text-gray-500">
 									<div>訊息會自動加上活動資訊：</div>
 									<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
-										<div>日期 | 2025/09/04（四）</div>
-										<div>時間 | 18:30</div>
-										<div>地點 | 富興工廠2F</div>
-										<div>報名連結: ...</div>
+										{card.type === 'speaker' ? (
+											<>
+												<div>預約連結: /speaker/book</div>
+											</>
+										) : (
+											<>
+												<div>日期 | 2025/09/04（四）</div>
+												<div>時間 | 18:30</div>
+												<div>地點 | 富興工廠2F</div>
+												<div>報名連結: ...</div>
+											</>
+										)}
 									</div>
 								</div>
 							</div>

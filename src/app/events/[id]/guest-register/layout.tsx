@@ -44,6 +44,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 				invitationCardUrl = orgSettings.invitationCardSoft
 				invitationMessage = orgSettings.invitationMessageSoft || invitationMessage
 				break
+			case 'VISIT':
+				invitationCardUrl = orgSettings.invitationCardVisit
+				invitationMessage = orgSettings.invitationMessageVisit || invitationMessage
+				break
 			case 'BOD':
 				invitationCardUrl = orgSettings.invitationCardBod
 				invitationMessage = orgSettings.invitationMessageBod || invitationMessage

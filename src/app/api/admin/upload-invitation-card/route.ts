@@ -62,7 +62,9 @@ export async function POST(request: NextRequest) {
 			general: 'invitationCardGeneral',
 			dinner: 'invitationCardDinner',
 			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod'
+			bod: 'invitationCardBod',
+			speaker: 'invitationCardSpeaker',
+			visit: 'invitationCardVisit'
 		}[cardType]
 		
 		if (!updateField) {

@@ -68,7 +68,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			return registration.userId ? (event.bodMemberPriceCents || 0) / 100 : (event.bodGuestPriceCents || 0) / 100
 		}
 
-		if (['DINNER', 'SOFT'].includes(eventType)) {
+		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
 			return registration.userId ? (event.defaultPriceCents || 0) / 100 : (event.guestPriceCents || 0) / 100
 		}
 
@@ -101,7 +101,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			}
 		}
 
-		// 變動價格活動（BOD/餐敘/軟性活動）
+		// 變動價格活動（BOD/餐敘/軟性活動/職業參訪）
 		return { 
 			status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', 
 			text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', 
@@ -170,7 +170,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		else if (eventType === 'BOD') {
 			price = registration.userId ? (registration.event.bodMemberPriceCents || 0) / 100 : (registration.event.bodGuestPriceCents || 0) / 100
 		}
-		else if (['DINNER', 'SOFT'].includes(eventType)) {
+		else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
 			price = registration.userId ? (registration.event.defaultPriceCents || 0) / 100 : (registration.event.guestPriceCents || 0) / 100
 		}
 
@@ -279,7 +279,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			price = 250 // 講師固定價格
 		} else if (eventType === 'BOD') {
 			price = (speaker.event?.bodMemberPriceCents || 0) / 100
-		} else if (['DINNER', 'SOFT'].includes(eventType)) {
+		} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
 			price = (speaker.event?.defaultPriceCents || 0) / 100
 		}
 
@@ -541,7 +541,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												return 250 // 講師固定價格
 											} else if (eventType === 'BOD') {
 												return (event?.bodMemberPriceCents || 0) / 100
-											} else if (['DINNER', 'SOFT'].includes(eventType)) {
+											} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
 												return (event?.defaultPriceCents || 0) / 100
 											}
 											return 0

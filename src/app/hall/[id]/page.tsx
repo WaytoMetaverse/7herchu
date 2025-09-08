@@ -22,6 +22,7 @@ const TYPE_LABEL: Record<EventType, string> = {
 	DINNER: '餐敘組聚',
 	JOINT: '聯合組聚',
 	SOFT: '軟性活動',
+	VISIT: '職業參訪',
 }
 
 export default async function HallEventDetailPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
@@ -258,6 +259,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								case 'SOFT':
 									invitationMessage = orgSettings.invitationMessageSoft || invitationMessage
 									invitationCardUrl = orgSettings.invitationCardSoft
+									break
+								case 'VISIT':
+									invitationMessage = orgSettings.invitationMessageVisit || invitationMessage
+									invitationCardUrl = orgSettings.invitationCardVisit
 									break
 								case 'BOD':
 									invitationMessage = orgSettings.invitationMessageBod || invitationMessage

@@ -20,6 +20,7 @@ const TYPE_LABEL: Record<EventType, string> = {
 	DINNER: '餐敘組聚',
 	JOINT: '聯合組聚',
 	SOFT: '軟性活動',
+	VISIT: '職業參訪',
 }
 
 function buildDate(dateStr: string, timeStr: string) {
@@ -66,6 +67,9 @@ async function createEvent(formData: FormData) {
 	} else if (type === 'CLOSED') {
 		data.allowGuests = false
 	} else if (type === 'SOFT') {
+		data.defaultPriceCents = cents(formData.get('defaultPrice'))
+		data.guestPriceCents = cents(formData.get('guestPrice'))
+	} else if (type === 'VISIT') {
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
 	}

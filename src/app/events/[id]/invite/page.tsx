@@ -34,6 +34,9 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 			case 'SOFT':
 				invitationCardUrl = orgSettings.invitationCardSoft
 				break
+			case 'VISIT':
+				invitationCardUrl = orgSettings.invitationCardVisit
+				break
 			case 'BOD':
 				invitationCardUrl = orgSettings.invitationCardBod
 				break

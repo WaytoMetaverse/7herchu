@@ -24,6 +24,7 @@ const TYPE_LABEL: Record<EventType, string> = {
 	DINNER: '餐敘組聚',
 	JOINT: '聯合組聚',
 	SOFT: '軟性活動',
+	VISIT: '職業參訪',
 }
 
 function ym(d: Date) { return format(d, 'yyyy-MM') }

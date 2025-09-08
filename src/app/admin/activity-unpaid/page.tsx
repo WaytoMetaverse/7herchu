@@ -21,7 +21,7 @@ export default async function ActivityUnpaidPage() {
 	// 查詢 BOD/餐敘/軟性活動
 	const events = await prisma.event.findMany({
 		where: {
-			type: { in: ['BOD', 'DINNER', 'SOFT'] },
+			type: { in: ['BOD', 'DINNER', 'SOFT', 'VISIT'] },
 			// 只查詢有設定價格的活動
 			OR: [
 				{ defaultPriceCents: { not: null } },
@@ -49,7 +49,8 @@ export default async function ActivityUnpaidPage() {
 	const TYPE_LABEL = {
 		BOD: 'BOD',
 		DINNER: '餐敘',
-		SOFT: '軟性活動'
+		SOFT: '軟性活動',
+		VISIT: '職業參訪'
 	}
 
 	// 計算活動價格
@@ -60,7 +61,7 @@ export default async function ActivityUnpaidPage() {
 				(event.bodGuestPriceCents || 0) / 100
 		}
 		
-		if (event.type === 'DINNER' || event.type === 'SOFT') {
+		if (event.type === 'DINNER' || event.type === 'SOFT' || event.type === 'VISIT') {
 			return isLoggedIn ? 
 				(event.defaultPriceCents || 0) / 100 : 
 				(event.guestPriceCents || 0) / 100

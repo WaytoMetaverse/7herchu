@@ -45,7 +45,8 @@ export default async function InvitationCardsPage() {
 			general: 'invitationCardGeneral',
 			dinner: 'invitationCardDinner',
 			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod'
+			bod: 'invitationCardBod',
+			visit: 'invitationCardVisit'
 		}[cardType]
 		
 		if (!updateField) return
@@ -119,6 +120,13 @@ export default async function InvitationCardsPage() {
 			description: '用於 BOD 活動的邀請',
 			imageUrl: orgSettings?.invitationCardBod,
 			color: 'orange'
+		},
+		{
+			type: 'visit',
+			title: '職業參訪',
+			description: '用於職業參訪活動的邀請',
+			imageUrl: orgSettings?.invitationCardVisit,
+			color: 'amber'
 		}
 	]
 

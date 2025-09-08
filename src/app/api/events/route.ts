@@ -42,6 +42,11 @@ export async function POST(req: NextRequest) {
 		data.allowGuests = true
 		data.speakerQuota ??= 5
 		data.guestPriceCents ??= 25000
+	} else if (data.type === EventType.SOFT || data.type === EventType.VISIT) {
+		data.allowGuests = true
+		data.pricingMode = PricingMode.DEFAULT
+		if (!data.defaultPriceCents) return NextResponse.json({ error: '活動需填成員價格' }, { status: 400 })
+		if (!data.guestPriceCents) return NextResponse.json({ error: '活動需填來賓價格' }, { status: 400 })
 	}
 
 	const created = await prisma.event.create({ data })

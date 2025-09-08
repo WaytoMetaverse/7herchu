@@ -124,7 +124,7 @@ export default async function GroupHomePage() {
 							</div>
 							<div className="space-y-4">
 								<p className="text-gray-600 text-sm">
-									管理邀請卡片與邀請訊息。
+									管理各活動類別發送來賓邀請訊息時使用的邀請卡片與邀請訊息。
 								</p>
 								<Link
 									href="/admin/invitations"

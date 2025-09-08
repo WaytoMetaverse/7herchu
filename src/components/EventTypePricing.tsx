@@ -39,7 +39,8 @@ export default function EventTypePricing({
 	const isBod = selectedType === 'BOD'
 	const isDinner = selectedType === 'DINNER'
 	const isSoft = selectedType === 'SOFT'
-	const showGuestSingle = !isBod && !isDinner && !isSoft && selectedType !== 'CLOSED'
+	const isVisit = selectedType === 'VISIT'
+	const showGuestSingle = !isBod && !isDinner && !isSoft && !isVisit && selectedType !== 'CLOSED'
 
 
 	return (
@@ -82,7 +83,7 @@ export default function EventTypePricing({
 					</label>
 				</div>
 			)}
-			{(isDinner || isSoft) && (
+			{(isDinner || isSoft || isVisit) && (
 				<div className="col-span-2 grid grid-cols-2 gap-3">
 					<label>成員金額（元）
 						<input name="defaultPrice" type="number" min={0} defaultValue={initialDefaultPrice ?? ''} className="w-full" />

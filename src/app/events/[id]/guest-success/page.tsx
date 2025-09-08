@@ -53,6 +53,7 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 				return event.bodGuestPriceCents ? `NT$ ${event.bodGuestPriceCents / 100}` : '-'
 			case 'DINNER':
 			case 'SOFT':
+			case 'VISIT':
 				return event.guestPriceCents ? `NT$ ${event.guestPriceCents / 100}` : 
 					   event.defaultPriceCents ? `NT$ ${event.defaultPriceCents / 100}` : '-'
 			default:
