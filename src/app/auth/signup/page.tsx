@@ -13,6 +13,7 @@ export default function SignUpPage() {
 	const [loading, setLoading] = useState(false)
 	const [err, setErr] = useState<string | null>(null)
 	const [tokenValid, setTokenValid] = useState<boolean | null>(null)
+	const [showLineTip, setShowLineTip] = useState(false)
 
 	// 檢查邀請 token
 	useEffect(() => {
@@ -38,6 +39,16 @@ export default function SignUpPage() {
 			setTokenValid(false)
 			setErr('驗證邀請連結時發生錯誤')
 		})
+	}, [inviteToken])
+
+	// 偵測手機 LINE 內建瀏覽器，顯示提示圖
+	useEffect(() => {
+		const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || ''
+		const isMobile = /Android|iPhone|iPad|iPod/i.test(ua)
+		const isLine = /Line/i.test(ua)
+		if (isMobile && isLine && inviteToken) {
+			setShowLineTip(true)
+		}
 	}, [inviteToken])
 
 	async function submit() {
@@ -94,7 +105,15 @@ export default function SignUpPage() {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-50">
-			<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow">
+			<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow relative">
+				{/* LINE 提示覆蓋層（僅手機 LINE） */}
+				{showLineTip && (
+					<div className="absolute inset-0 z-10 bg-white">
+						{/* eslint-disable-next-line @next/next/no-img-element */}
+						<img src="/tips.jpg" alt="提示" className="w-full h-full object-contain" />
+						<div className="absolute inset-0 pointer-events-none"></div>
+					</div>
+				)}
 				<div className="text-center space-y-2">
 					<h1 className="text-2xl font-semibold">建立帳號</h1>
 					<p className="text-sm text-gray-600">可使用 Email 註冊，或使用 Google 快速建立</p>

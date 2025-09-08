@@ -3,13 +3,12 @@ import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import { Copy } from 'lucide-react'
 
-export default function MemberInvitation({ tipImageUrl }: { tipImageUrl?: string }) {
+export default function MemberInvitation() {
 	const [inviteUrl, setInviteUrl] = useState<string>('')
 	const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 	const [loading, setLoading] = useState(false)
 	const [showModal, setShowModal] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [showTip, setShowTip] = useState(false)
 
 	const generateInviteLink = async () => {
 		setLoading(true)
@@ -34,13 +33,6 @@ export default function MemberInvitation({ tipImageUrl }: { tipImageUrl?: string
 		}
 	}
 
-	const openModal = () => {
-		setShowModal(true)
-		if (!inviteUrl) {
-			generateInviteLink()
-		}
-	}
-
 	const copyToClipboard = (text: string, buttonElement: HTMLButtonElement) => {
 		navigator.clipboard.writeText(text)
 		const original = buttonElement.textContent
@@ -49,43 +41,15 @@ export default function MemberInvitation({ tipImageUrl }: { tipImageUrl?: string
 	}
 
 	const handleOpenModal = () => {
-		// 僅在手機 LINE 內建瀏覽器顯示提示
-		const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || ''
-		const isMobile = /Android|iPhone|iPad|iPod/i.test(ua)
-		const isLine = /Line/i.test(ua)
-		if (isMobile && isLine) {
-			setShowTip(true)
-			return
+		setShowModal(true)
+		if (!inviteUrl) {
+			generateInviteLink()
 		}
-		openModal()
 	}
 
 	return (
 		<>
 			<Button onClick={handleOpenModal} variant="primary">邀請新成員</Button>
-
-			{/* LINE 內建瀏覽器提示覆蓋層（手機） */}
-			{showTip && (
-				<div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-					<div className="bg-white rounded-lg w-full max-w-sm overflow-hidden">
-						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img 
-							src={tipImageUrl || '/tips.jpg'} 
-							alt="提示" 
-							className="w-full h-auto"
-						/>
-						<div className="p-4 text-center">
-							<Button 
-								onClick={() => { setShowTip(false); openModal() }} 
-								variant="primary" 
-								size="sm"
-							>
-								我知道了
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
 
 			{/* 邀請彈窗 */}
 			{showModal && (

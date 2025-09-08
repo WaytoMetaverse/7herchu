@@ -69,7 +69,7 @@ export default async function MemberListPage() {
 			{/* 按鈕區 */}
 			<div className="flex items-center gap-3">
 				<Button as={Link} href="/admin/permissions" variant="outline">權限管理</Button>
-				<MemberInvitation tipImageUrl="/tips.jpg" />
+				<MemberInvitation />
 			</div>
 
 			{/* 成員列表 */}
