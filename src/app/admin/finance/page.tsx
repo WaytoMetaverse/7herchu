@@ -143,19 +143,21 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				)}
 			</div>
 
-			{/* 篩選區 */}
-			<div className="flex items-center gap-3 flex-wrap">
+			{/* 篩選區（手機直向堆疊，桌面橫排） */}
+			<div className="grid grid-cols-1 sm:flex sm:items-center sm:gap-3 sm:flex-wrap gap-2">
 				<form className="flex items-center gap-2">
-					<label>月份
+					<label className="flex items-center gap-2">月份
 						<input type="month" name="month" defaultValue={month} />
 					</label>
 					<Button type="submit" variant="outline" className="whitespace-nowrap">篩選</Button>
 				</form>
-				<Button as={Link} href="/admin/finance" variant="ghost" className="whitespace-nowrap">取消篩選</Button>
-				<form method="GET">
-					<input type="hidden" name="month" value={month} />
-					<Button type="submit" name="export" value="csv" variant="secondary" className="whitespace-nowrap">匯出</Button>
-				</form>
+				<div className="flex items-center gap-2">
+					<Button as={Link} href="/admin/finance" variant="ghost" className="whitespace-nowrap">取消篩選</Button>
+					<form method="GET" className="flex items-center">
+						<input type="hidden" name="month" value={month} />
+						<Button type="submit" name="export" value="csv" variant="secondary" className="whitespace-nowrap">匯出</Button>
+					</form>
+				</div>
 			</div>
 
 			{/* 小計顯示 */}
