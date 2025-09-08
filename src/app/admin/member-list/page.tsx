@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache'
 
 export default async function MemberListPage() {
 	const session = await getServerSession(authOptions)
+	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const isAdmin = roles.includes('admin')
 	if (!isAdmin) redirect('/hall')
@@ -25,6 +26,9 @@ export default async function MemberListPage() {
 	// 停用成員
 	async function deactivateMember(formData: FormData) {
 		'use server'
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const userId = String(formData.get('userId'))
 		if (!userId) return
 		
@@ -38,6 +42,9 @@ export default async function MemberListPage() {
 	// 啟用成員
 	async function activateMember(formData: FormData) {
 		'use server'
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const userId = String(formData.get('userId'))
 		if (!userId) return
 		

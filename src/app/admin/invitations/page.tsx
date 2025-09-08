@@ -7,13 +7,11 @@ import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import MessageEditor from './MessageEditor'
 import InvitationUpload from './InvitationUpload'
-import SpeakerShareButton from './SpeakerShareButton'
 
 export default async function InvitationsPage() {
 	const session = await getServerSession(authOptions)
+	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
-	const isAdmin = roles.includes('admin')
-	if (!isAdmin) redirect('/hall')
 
 	// 取得組織設定中的邀請卡和訊息
 	const orgSettings = await prisma.orgSettings.findFirst()
@@ -22,6 +20,10 @@ export default async function InvitationsPage() {
 	// 刪除邀請卡
 	async function deleteInvitationCard(formData: FormData) {
 		'use server'
+		// 僅管理者可執行
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const cardType = formData.get('cardType') as string
 		if (!cardType) return
 
@@ -48,6 +50,10 @@ export default async function InvitationsPage() {
 	// 更新邀請訊息
 	async function updateInvitationMessage(formData: FormData) {
 		'use server'
+		// 僅管理者可執行
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const messageType = formData.get('messageType') as string
 		const message = formData.get('message') as string
 		
@@ -182,21 +188,12 @@ export default async function InvitationsPage() {
 									defaultMessage={card.message}
 									updateAction={updateInvitationMessage}
 								/>
-								{card.type === 'speaker' && (
-									<div className="mt-3 flex items-center gap-2">
-										<SpeakerShareButton 
-											message={card.message}
-											url={`${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/speaker/book`}
-										/>
-										<Button as={Link} href="/speaker/book" variant="outline" size="sm">預覽講師頁</Button>
-									</div>
-								)}
 								<div className="mt-2 text-xs text-gray-500">
 									<div>訊息會自動加上活動資訊：</div>
 									<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
 										{card.type === 'speaker' ? (
 											<>
-												<div>預約連結: /speaker/book</div>
+												<div>預約連結: /calendar</div>
 											</>
 										) : (
 											<>

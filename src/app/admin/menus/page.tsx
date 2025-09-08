@@ -7,9 +7,9 @@ import Link from 'next/link'
 
 export default async function MenuManagePage() {
 	const session = await getServerSession(authOptions)
+	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('menu_manager')
-	if (!canManage) redirect('/hall')
 
 	// 取得所有活動及其餐點設定
 	const events = await prisma.event.findMany({
@@ -150,9 +150,11 @@ export default async function MenuManagePage() {
 										未設定餐點
 									</span>
 								)}
-								<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
-									{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
-								</Button>
+								{canManage && (
+									<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
+										{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
+									</Button>
+								)}
 							</div>
 						</div>
 
@@ -260,9 +262,11 @@ export default async function MenuManagePage() {
 												未設定餐點
 											</span>
 										)}
-										<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
-											{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
-										</Button>
+										{canManage && (
+											<Button as={Link} href={`/admin/menus/${event.id}/edit`} variant="outline" size="sm" className="whitespace-nowrap">
+												{event.eventMenu?.hasMealService ? '編輯餐點' : '設定餐點'}
+											</Button>
+										)}
 									</div>
 								</div>
 

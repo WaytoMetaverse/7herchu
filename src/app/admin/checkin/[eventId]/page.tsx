@@ -56,8 +56,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId) {
-				// 登入用戶：單次成員 180，講師 250
-				return registration.role === 'SPEAKER' ? 250 : 180
+				// 登入用戶：講師 250，成員（單次）220（固定成員以月費邏輯處理，不在此顯示金額）
+				return registration.role === 'SPEAKER' ? 250 : 220
 			} else {
 				return 250 // 來賓價格
 			}
@@ -139,7 +139,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 						memberProfile: true,
 						monthlyPayments: {
 							where: { month: currentMonth },
-							select: { isPaid: true }
+							select: { isPaid: true, id: true, amount: true }
 						}
 					} 
 				},
@@ -160,8 +160,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId) {
-				// 登入用戶：單次成員 180，講師 250
-				price = registration.role === 'SPEAKER' ? 250 : 180
+				// 登入用戶：講師 250，成員（單次）220（固定成員以月費邏輯處理）
+				price = registration.role === 'SPEAKER' ? 250 : 220
 			} else {
 				price = 250 // 來賓價格
 			}
@@ -189,6 +189,24 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			})
 		}
 
+		// 對於「單次成員」在（GENERAL/JOINT/CLOSED）情境，累加月度明細，方便成員管理頁同步
+		let monthlyPaymentId: string | undefined = undefined
+		if (
+			registration.role === 'MEMBER' &&
+			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
+			registration.user?.memberProfile?.memberType === 'SINGLE'
+		) {
+			const month = new Date(registration.event!.startAt).toISOString().slice(0,7)
+			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId!, month } } })
+			const newAmount = (existing?.amount || 0) + price * 100
+			const m = await prisma.memberMonthlyPayment.upsert({
+				where: { userId_month: { userId: registration.userId!, month } },
+				create: { userId: registration.userId!, month, isPaid: true, amount: price * 100, paidAt: new Date() },
+				update: { isPaid: true, amount: newAmount, paidAt: new Date() }
+			})
+			monthlyPaymentId = m.id
+		}
+
 		// 新增財務交易記錄
 		const eventDate = registration.event?.startAt ? 
 			new Date(registration.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
@@ -201,7 +219,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				counterparty: registration.user?.name || registration.name || '未命名',
 				note: `${eventDate}${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
 				categoryId: category.id,
-				eventId: eventId
+				eventId: eventId,
+				monthlyPaymentId: monthlyPaymentId
 			}
 		})
 

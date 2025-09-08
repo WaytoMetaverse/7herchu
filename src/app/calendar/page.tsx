@@ -9,6 +9,7 @@ import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import OpenOnlyToggle from '@/components/calendar/OpenOnlyToggle'
+import SpeakerShareButton from '@/app/admin/invitations/SpeakerShareButton'
 
 function statusLabel(allowSpeakers: boolean, quota?: number | null, count?: number) {
 	if (!allowSpeakers) return '已額滿'
@@ -69,6 +70,9 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
+	const orgSettings = await prisma.orgSettings.findFirst()
+	const speakerMessage = orgSettings?.invitationMessageSpeaker || '磐石砌好厝誠摯地邀請您一同來參與'
+	const shareUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/calendar`
 
 
 	return (
@@ -77,7 +81,9 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 				<h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">講師預約</h1>
 				<div className="flex items-center gap-3">
 					<OpenOnlyToggle />
-					<Button as={Link} href="/admin/invitations" variant="outline" size="sm" className="whitespace-nowrap">講師邀請</Button>
+					{session?.user && (
+						<SpeakerShareButton message={speakerMessage} url={shareUrl} />
+					)}
 					<Link href="/speaker/login"><Button variant="outline" size="sm">報名查詢</Button></Link>
 				</div>
 			</div>

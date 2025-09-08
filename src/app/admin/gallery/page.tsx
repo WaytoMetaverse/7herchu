@@ -20,16 +20,15 @@ export default async function GalleryPage() {
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const isAdmin = roles.includes('admin' as Role)
 	
-	if (!isAdmin) {
-		redirect('/group')
-	}
-
 	// 獲取組織設定
 	const orgSettings = await prisma.orgSettings.findFirst()
 
 	// 刪除圖片的 Server Action
 	async function deleteImage(formData: FormData) {
 		'use server'
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin' as Role)) return
 		const imageUrl = String(formData.get('imageUrl'))
 		const imageType = String(formData.get('imageType')) as 'mobile' | 'desktop'
 		
@@ -80,11 +79,13 @@ export default async function GalleryPage() {
 					</span>
 				</div>
 				
-				<GalleryUpload 
-					imageType="mobile"
-					currentImages={orgSettings?.mobileGalleryImages || []}
-					maxImages={8}
-				/>
+				{isAdmin && (
+					<GalleryUpload 
+						imageType="mobile"
+						currentImages={orgSettings?.mobileGalleryImages || []}
+						maxImages={8}
+					/>
+				)}
 
 				{orgSettings?.mobileGalleryImages && orgSettings.mobileGalleryImages.length > 0 && (
 					<div className="mt-6">
@@ -97,17 +98,19 @@ export default async function GalleryPage() {
 										alt={`手機版圖片 ${index + 1}`}
 										className="w-full aspect-[3/4] object-cover rounded-lg border"
 									/>
-									<form action={deleteImage} className="absolute top-2 right-2">
-										<input type="hidden" name="imageUrl" value={imageUrl} />
-										<input type="hidden" name="imageType" value="mobile" />
-										<button
-											type="submit"
-											className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
-											title="刪除圖片"
-										>
-											×
-										</button>
-									</form>
+									{isAdmin && (
+										<form action={deleteImage} className="absolute top-2 right-2">
+											<input type="hidden" name="imageUrl" value={imageUrl} />
+											<input type="hidden" name="imageType" value="mobile" />
+											<button
+												type="submit"
+												className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+												title="刪除圖片"
+											>
+												×
+											</button>
+										</form>
+									)}
 									<div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
 										{index + 1}
 									</div>
@@ -127,11 +130,13 @@ export default async function GalleryPage() {
 					</span>
 				</div>
 				
-				<GalleryUpload 
-					imageType="desktop"
-					currentImages={orgSettings?.desktopGalleryImages || []}
-					maxImages={8}
-				/>
+				{isAdmin && (
+					<GalleryUpload 
+						imageType="desktop"
+						currentImages={orgSettings?.desktopGalleryImages || []}
+						maxImages={8}
+					/>
+				)}
 
 				{orgSettings?.desktopGalleryImages && orgSettings.desktopGalleryImages.length > 0 && (
 					<div className="mt-6">
@@ -144,17 +149,19 @@ export default async function GalleryPage() {
 										alt={`電腦版圖片 ${index + 1}`}
 										className="w-full aspect-[16/9] object-cover rounded-lg border"
 									/>
-									<form action={deleteImage} className="absolute top-2 right-2">
-										<input type="hidden" name="imageUrl" value={imageUrl} />
-										<input type="hidden" name="imageType" value="desktop" />
-										<button
-											type="submit"
-											className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
-											title="刪除圖片"
-										>
-											×
-										</button>
-									</form>
+									{isAdmin && (
+										<form action={deleteImage} className="absolute top-2 right-2">
+											<input type="hidden" name="imageUrl" value={imageUrl} />
+											<input type="hidden" name="imageType" value="desktop" />
+											<button
+												type="submit"
+												className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+												title="刪除圖片"
+											>
+												×
+											</button>
+										</form>
+									)}
 									<div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
 										{index + 1}
 									</div>

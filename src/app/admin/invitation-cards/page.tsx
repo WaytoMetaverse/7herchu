@@ -8,9 +8,7 @@ import { revalidatePath } from 'next/cache'
 
 export default async function InvitationCardsPage() {
 	const session = await getServerSession(authOptions)
-	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
-	const isAdmin = roles.includes('admin')
-	if (!isAdmin) redirect('/hall')
+	if (!session?.user) redirect('/auth/signin')
 
 	// 取得組織設定中的邀請卡
 	const orgSettings = await prisma.orgSettings.findFirst()
@@ -18,6 +16,9 @@ export default async function InvitationCardsPage() {
 	// 上傳邀請卡
 	async function uploadInvitationCard(formData: FormData) {
 		'use server'
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const file = formData.get('file') as File
 		const cardType = formData.get('cardType') as string
 		
@@ -70,6 +71,9 @@ export default async function InvitationCardsPage() {
 	// 刪除邀請卡
 	async function deleteInvitationCard(formData: FormData) {
 		'use server'
+		const session = await getServerSession(authOptions)
+		const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+		if (!roles.includes('admin')) return
 		const cardType = formData.get('cardType') as string
 		if (!cardType) return
 

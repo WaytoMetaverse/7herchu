@@ -17,9 +17,9 @@ export default async function MembersManagePage({
 	searchParams?: Promise<{ month?: string }> 
 }) {
 	const session = await getServerSession(authOptions)
+	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('finance_manager')
-	if (!canManage) redirect('/hall')
 
 	const sp = searchParams ? await searchParams : undefined
 	const selectedMonth = sp?.month || new Date().toISOString().slice(0, 7)
@@ -530,7 +530,7 @@ export default async function MembersManagePage({
 																			const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
 																			return registrationCount - currentPaidCount
 																		})()}
-																		className="w-5 text-xs px-1 py-0.5 border rounded text-center h-7"
+																		className="w-2.5 text-xs px-1 py-0.5 border rounded text-center h-7"
 																		required
 																	/>
 																	<span className="text-xs">次</span>
