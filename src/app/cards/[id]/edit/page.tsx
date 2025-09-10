@@ -7,6 +7,7 @@ export default async function CardEditPage({ params }: { params: Promise<{ id: s
   const { id } = await params
   const card = await prisma.businessCard.findUnique({ where: { id } })
   if (!card) return <div className="max-w-3xl mx-auto p-4">找不到名片</div>
+  if (card.deletedAt) return <div className="max-w-3xl mx-auto p-4">名片已刪除，無法編輯</div>
 
   async function update(formData: FormData) {
     'use server'

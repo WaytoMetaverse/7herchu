@@ -358,6 +358,13 @@ model OrgSettings {
   invitationMessageSpeaker String? @default("磐石砌好厝誠摯地邀請您一同來參與") // 講師預約訊息
   mobileGalleryImages String[] @default([])   // 手機版展示圖片
   desktopGalleryImages String[] @default([])  // 電腦版展示圖片
+  // 名片子分類動態清單
+  cardSubFinance     String[] @default([])
+  cardSubDevelopment String[] @default([])
+  cardSubDesign      String[] @default([])
+  cardSubConstruction String[] @default([])
+  cardSubMaterials   String[] @default([])
+  cardSubManagement  String[] @default([])
 } 
 
 model BusinessCard {
@@ -368,7 +375,7 @@ model BusinessCard {
   company   String?
   title     String?
   email     String?
-  phone     String?
+  phone     String?      @unique
   address   String?
   website   String?
   notes     String?
@@ -376,6 +383,7 @@ model BusinessCard {
   category  CardCategory
   subcategories String[]   @default([])
   createdAt DateTime      @default(now())
+  deletedAt DateTime?
 
   @@index([ownerId, category])
   @@index([name])

@@ -19,7 +19,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     // 共用名片庫：已登入者皆可刪除
     const card = await prisma.businessCard.findUnique({ where: { id: idParam } })
     if (!card) return NextResponse.json({ error: '不存在' }, { status: 404 })
-    await prisma.businessCard.delete({ where: { id: idParam } })
+    await prisma.businessCard.update({ where: { id: idParam }, data: { deletedAt: new Date() } })
     return NextResponse.json({ ok: true })
   }
 

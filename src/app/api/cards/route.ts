@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const category = (searchParams.get('category') || '').trim().toUpperCase()
   const subs = (searchParams.get('subs') || '').split(',').map(s => s.trim()).filter(Boolean)
 
-  const where: Prisma.BusinessCardWhereInput = { }
+  const where: Prisma.BusinessCardWhereInput = { deletedAt: null }
   // 內部成員共享：回傳所有人的卡片
   if (category) where.category = category as CardCategory
   if (q) {
@@ -35,4 +35,16 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ ok: true, data: list })
 }
 
+
+// 手機唯一性檢查
+export async function POST(req: NextRequest) {
+  const { pathname, searchParams } = new URL(req.url)
+  if (pathname.endsWith('/api/cards/phone')) {
+    const phone = (searchParams.get('phone') || '').trim()
+    if (!phone) return NextResponse.json({ exists: false })
+    const exists = await prisma.businessCard.findFirst({ where: { phone, deletedAt: null }, select: { id: true } })
+    return NextResponse.json({ exists: !!exists })
+  }
+  return NextResponse.json({ error: '不支援' }, { status: 404 })
+}
 

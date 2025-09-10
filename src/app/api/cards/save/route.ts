@@ -13,6 +13,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { name, company, title, email, phone, address, website, notes, imageData, category, subcategories } = body || {}
   if (!name) return NextResponse.json({ error: '缺少姓名' }, { status: 400 })
+  if (phone) {
+    const dup = await prisma.businessCard.findFirst({ where: { phone, deletedAt: null }, select: { id: true } })
+    if (dup) return NextResponse.json({ error: '手機已存在' }, { status: 400 })
+  }
   const card = await prisma.businessCard.create({
     data: {
       ownerId: user.id,

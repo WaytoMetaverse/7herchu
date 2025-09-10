@@ -8,6 +8,7 @@ export default async function CardDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const card = await prisma.businessCard.findUnique({ where: { id } })
   if (!card) return <div className="max-w-3xl mx-auto p-4">找不到名片</div>
+  if (card.deletedAt) return <div className="max-w-3xl mx-auto p-4">名片已刪除</div>
   async function deleteCard() {
     'use server'
     await prisma.businessCard.delete({ where: { id } })

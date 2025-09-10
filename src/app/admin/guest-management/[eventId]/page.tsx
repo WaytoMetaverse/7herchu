@@ -25,7 +25,17 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 	const canManage = roles.includes('admin') || roles.includes('event_manager')
 
 	if (!canManage) {
-		redirect('/hall') // 沒有權限則重導向到活動大廳
+		return (
+			<div className="max-w-3xl mx-auto p-4">
+				<div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4">
+					<h1 className="text-lg font-medium mb-1">無權限</h1>
+					<p className="text-sm">您沒有權限進行來賓管理操作。如需調整，請聯繫管理員。</p>
+					<div className="mt-3">
+						<Link href="/group" className="text-blue-600 hover:text-blue-800 underline">返回小組管理</Link>
+					</div>
+				</div>
+			</div>
+		)
 	}
 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })

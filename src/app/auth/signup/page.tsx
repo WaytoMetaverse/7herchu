@@ -51,6 +51,15 @@ export default function SignUpPage() {
 		}
 	}, [inviteToken])
 
+	// 顯示覆蓋層時禁止背景滾動
+	useEffect(() => {
+		if (showLineTip) {
+			const prev = document.body.style.overflow
+			document.body.style.overflow = 'hidden'
+			return () => { document.body.style.overflow = prev }
+		}
+	}, [showLineTip])
+
 	async function submit() {
 		if (!tokenValid) {
 			setErr('需要有效的邀請連結才能註冊')
@@ -108,10 +117,11 @@ export default function SignUpPage() {
 			<div className="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow relative">
 				{/* LINE 提示覆蓋層（僅手機 LINE） */}
 				{showLineTip && (
-					<div className="absolute inset-0 z-10 bg-white">
-						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src="/tips.jpg" alt="提示" className="w-full h-full object-contain" />
-						<div className="absolute inset-0 pointer-events-none"></div>
+					<div className="fixed inset-0 z-50 bg-white flex items-center justify-center p-4">
+						<div className="w-full max-w-sm">
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img src="/tips.jpg" alt="提示" className="w-full h-auto object-contain" />
+						</div>
 					</div>
 				)}
 				<div className="text-center space-y-2">

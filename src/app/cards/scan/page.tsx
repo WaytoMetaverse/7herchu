@@ -16,6 +16,7 @@ const PRESET = [
 export default function CardScanPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [rotatedBlob, setRotatedBlob] = useState<Blob | null>(null)
   const [category, setCategory] = useState('')
   const [subs, setSubs] = useState<string[]>([])
   const [form, setForm] = useState({
@@ -26,6 +27,8 @@ export default function CardScanPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
   const [aiLoading, setAiLoading] = useState(false)
+  const [checkingPhone, setCheckingPhone] = useState(false)
+  const [phoneExists, setPhoneExists] = useState<string | null>(null)
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] || null
@@ -33,9 +36,32 @@ export default function CardScanPage() {
     if (f) {
       const url = URL.createObjectURL(f)
       setImagePreview(url)
+      setRotatedBlob(null)
     } else {
       setImagePreview(null)
+      setRotatedBlob(null)
     }
+  }
+
+  async function rotateLeft() {
+    if (!imagePreview) return
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.src = imagePreview
+    await new Promise(res => { img.onload = () => res(null) })
+    const canvas = document.createElement('canvas')
+    canvas.width = img.height
+    canvas.height = img.width
+    const ctx = canvas.getContext('2d')!
+    ctx.translate(0, canvas.height)
+    ctx.rotate(-Math.PI / 2)
+    ctx.drawImage(img, 0, 0)
+    await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92)).then(b => {
+      if (b) {
+        setRotatedBlob(b)
+        setImagePreview(URL.createObjectURL(b))
+      }
+    })
   }
 
   async function save() {
@@ -43,9 +69,10 @@ export default function CardScanPage() {
     setErr(null)
     try {
       let imageUrl: string | undefined
-      if (imageFile) {
+      const fileToUpload = rotatedBlob ? new File([rotatedBlob], imageFile?.name || 'card.jpg', { type: rotatedBlob.type || 'image/jpeg' }) : imageFile
+      if (fileToUpload) {
         const fd = new FormData()
-        fd.append('file', imageFile)
+        fd.append('file', fileToUpload)
         const up = await fetch('/api/upload', { method: 'POST', body: fd })
         const upData = await up.json()
         if (!up.ok) throw new Error(upData.error || '上傳失敗')
@@ -66,7 +93,7 @@ export default function CardScanPage() {
   }
 
   async function aiExtract() {
-    if (!imageFile) {
+    if (!imageFile && !rotatedBlob) {
       setErr('請先選擇名片圖片')
       return
     }
@@ -75,7 +102,8 @@ export default function CardScanPage() {
     try {
       // 先上傳圖片取得 URL
       const fd = new FormData()
-      fd.append('file', imageFile)
+      const fileToUpload = rotatedBlob ? new File([rotatedBlob], imageFile?.name || 'card.jpg', { type: rotatedBlob.type || 'image/jpeg' }) : imageFile!
+      fd.append('file', fileToUpload)
       const up = await fetch('/api/upload', { method: 'POST', body: fd })
       const upData = await up.json()
       if (!up.ok) throw new Error(upData.error || '上傳失敗')
@@ -100,6 +128,20 @@ export default function CardScanPage() {
       setErr(e instanceof Error ? e.message : '發生錯誤')
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  async function checkPhoneUnique(phone: string) {
+    if (!phone) { setPhoneExists(null); return }
+    setCheckingPhone(true)
+    try {
+      const res = await fetch(`/api/cards/phone?phone=${encodeURIComponent(phone)}`)
+      const data = await res.json()
+      setPhoneExists(data.exists ? phone : null)
+    } catch {
+      // ignore
+    } finally {
+      setCheckingPhone(false)
     }
   }
 
@@ -151,8 +193,10 @@ export default function CardScanPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={aiExtract} variant="secondary" disabled={!imageFile || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
+            <Button onClick={rotateLeft} variant="outline" size="sm">↶ 向左旋轉90°</Button>
+            <Button onClick={aiExtract} variant="secondary" disabled={(!imageFile && !rotatedBlob) || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
           </div>
+          <div className="text-xs text-gray-500">*若名片方向不正，請點擊旋轉按鈕，調整至正確方向以利辨識。</div>
           <label>主類
             <select value={category} onChange={(e)=>setCategory(e.target.value)}>
               <option value="">請選擇</option>
@@ -175,7 +219,9 @@ export default function CardScanPage() {
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label>電話
-              <input value={form.phone} onChange={(e)=>setForm(v=>({ ...v, phone: e.target.value }))} />
+              <input value={form.phone} onChange={(e)=>{ const val=e.target.value; setForm(v=>({ ...v, phone: val })); checkPhoneUnique(val) }} />
+              {checkingPhone && <span className="text-xs text-gray-400">檢查中…</span>}
+              {phoneExists && <div className="text-xs text-red-600">此手機已建立過名片</div>}
             </label>
             <label>Email
               <input value={form.email} onChange={(e)=>setForm(v=>({ ...v, email: e.target.value }))} />

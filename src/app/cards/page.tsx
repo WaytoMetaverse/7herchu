@@ -15,6 +15,7 @@ export default async function CardsPage({ searchParams }: { searchParams: Promis
         <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight truncate">名片庫</h1>
         <div className="flex items-center gap-2">
           <Button as={Link} href="/cards/scan" variant="outline" size="sm" className="whitespace-nowrap">掃描名片</Button>
+          <Button as={Link} href="/cards/manage" variant="primary" size="sm" className="whitespace-nowrap">名片管理</Button>
         </div>
       </div>
       <CardsClient initialQ={q} initialCategory={category || ''} initialSubs={subs} />
