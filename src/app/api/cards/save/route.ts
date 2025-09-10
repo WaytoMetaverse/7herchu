@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { CardCategory } from '@prisma/client'
+import { CardCategory, Prisma } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,15 +19,16 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = (body as Record<string, unknown>) || {}
+    const trimOrNull = (v: unknown) => (typeof v === 'string' ? (v.trim() === '' ? null : v.trim()) : null)
     const name = typeof raw.name === 'string' ? raw.name.trim() : ''
-    const company = typeof raw.company === 'string' ? raw.company.trim() : null
-    const title = typeof raw.title === 'string' ? raw.title.trim() : null
-    const email = typeof raw.email === 'string' ? raw.email.trim() : null
-    const phone = typeof raw.phone === 'string' ? raw.phone.trim() : null
-    const address = typeof raw.address === 'string' ? raw.address.trim() : null
-    const website = typeof raw.website === 'string' ? raw.website.trim() : null
-    const notes = typeof raw.notes === 'string' ? raw.notes : null
-    const imageData = typeof raw.imageData === 'string' ? raw.imageData : null
+    const company = trimOrNull(raw.company)
+    const title = trimOrNull(raw.title)
+    const email = trimOrNull(raw.email)
+    const phone = trimOrNull(raw.phone)
+    const address = trimOrNull(raw.address)
+    const website = trimOrNull(raw.website)
+    const notes = typeof raw.notes === 'string' ? (raw.notes.trim() || null) : null
+    const imageData = trimOrNull(raw.imageData)
     const category = typeof raw.category === 'string' ? raw.category : ''
     const subcategoriesInput = Array.isArray(raw.subcategories) ? raw.subcategories : []
 
@@ -62,6 +63,10 @@ export async function POST(req: NextRequest) {
     })
     return NextResponse.json({ ok: true, id: card.id })
   } catch (err) {
+    // Prisma 唯一鍵錯誤（例如 phone）
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ error: '手機已存在' }, { status: 400 })
+    }
     console.error('cards/save error', err)
     return NextResponse.json({ error: '伺服器錯誤' }, { status: 500 })
   }
