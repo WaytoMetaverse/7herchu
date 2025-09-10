@@ -152,6 +152,7 @@ model Event {
   endAt             DateTime
   location          String?
   agenda            String?
+  content           String?
   cutoffAt          DateTime?
   announcementTitle String?
   allowSpeakers     Boolean

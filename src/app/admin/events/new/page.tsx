@@ -24,11 +24,8 @@ const TYPE_LABEL: Record<EventType, string> = {
 }
 
 function buildDate(dateStr: string, timeStr: string) {
-	// timeStr 形如 "HH:MM"
-	const [hh, mm] = timeStr.split(':').map((s) => Number(s))
-	const d = new Date(`${dateStr}T00:00:00`)
-	d.setHours(hh || 0, mm || 0, 0, 0)
-	return d
+	// 以台北時區 (+08:00) 錨定，避免伺服器時區造成時間偏移
+	return new Date(`${dateStr}T${timeStr}:00+08:00`)
 }
 
 async function createEvent(formData: FormData) {
@@ -45,6 +42,7 @@ async function createEvent(formData: FormData) {
 	// 檢查是否有輸入講師名額
 	const speakerQuotaInput = Number(formData.get('speakerQuota') ?? 0)
 	const hasSpeakerQuota = speakerQuotaInput > 0
+	const content = String(formData.get('content') ?? '').trim()
 	
 	const data: Prisma.EventCreateInput = {
 		type,
@@ -55,6 +53,9 @@ async function createEvent(formData: FormData) {
 		allowSpeakers: hasSpeakerQuota, // 只要有輸入講師名額就開放
 		allowGuests: type !== 'CLOSED',
 		speakerQuota: hasSpeakerQuota ? speakerQuotaInput : null,
+	}
+	if (content) {
+		data.content = content
 	}
 	if (type === 'GENERAL') {
 		data.guestPriceCents = cents(formData.get('guestPrice')) ?? 25000
@@ -73,8 +74,6 @@ async function createEvent(formData: FormData) {
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
 	}
-
-
 
 	await prisma.event.create({ data })
 	revalidatePath('/calendar')
@@ -129,6 +128,10 @@ export default function AdminEventNewPage() {
 						<input name="speakerQuota" type="number" min={0} placeholder="請輸入講師名額" className="w-full px-4 py-3 rounded-lg border" />
 					</label>
 				</div>
+				{/* 活動內容 */}
+				<label className="col-span-2">活動內容
+					<textarea name="content" placeholder="請輸入活動內容" className="w-full px-4 py-3 rounded-lg border min-h-[120px]" />
+				</label>
 				<div className="col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 					<Button type="submit" className="w-full sm:w-auto min-h-[44px]">建立</Button>
 					<Button as={Link} href="/hall" variant="ghost" className="w-full sm:w-auto min-h-[44px]">取消</Button>

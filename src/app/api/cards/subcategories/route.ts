@@ -4,16 +4,114 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { CardCategory, Role, OrgSettings, Prisma } from '@prisma/client'
 
+const DEFAULTS: Record<CardCategory, string[]> = {
+  FINANCE: [
+    '銀行 / 融資公司',
+    '租賃公司',
+    '保險公司（火險、產險、工程險）',
+    '投資基金 / REITs',
+    '資產管理公司',
+    '財務顧問 / 理財規劃顧問',
+  ],
+  DEVELOPMENT: [
+    '土地開發商',
+    '建設公司 / 開發商',
+    '不動產仲介',
+    '建案代銷',
+    '不動產估價師事務所',
+    '拍賣公司',
+    '地政士事務所',
+    '房仲業',
+  ],
+  DESIGN: [
+    '建築師事務所',
+    '室內設計',
+    '景觀設計',
+    '跑照代辦公司',
+    '測量師事務所 / 地政士',
+    '3D建模/渲染',
+    '軟裝設計',
+  ],
+  CONSTRUCTION: [
+    '營造公司（總包 / 統包）',
+    '土方工程',
+    '鋼筋工程',
+    '模板工程',
+    '混凝土 / 水泥',
+    '結構補強',
+    '防水工程',
+    '拆除工程',
+  ],
+  MATERIALS: [
+    '基礎建材供應商（鋼材、不銹鋼、水泥、石材、木材）',
+    '綠建材供應商（節能、環保建材）',
+    '瓷磚工程',
+    '地板工程',
+    '玻璃工程',
+    '鋁門窗工程',
+    '系統櫃工程',
+    '廚具工程',
+    '消防工程',
+    '結構 / 機電工程',
+    '裝修工程（住宅、商空）',
+    '水電工程',
+    '木工裝修',
+    '油漆/藝術塗料工程',
+    '窗簾 / 壁紙供應商',
+    '燈具 / 照明',
+    '冷凍空調工程',
+    '電梯工程',
+    '智能家居',
+    '清潔維護',
+  ],
+  MANAGEMENT: [
+    '物業管理公司',
+    '旅宿管理公司',
+    '包租代管公司',
+    '不動產法律事務所',
+    '稅務 / 會計師事務所',
+    '不動產顧問公司',
+    '仲裁 / 鑑定公司',
+  ],
+}
+
 export async function GET() {
   const s = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
-  return NextResponse.json({
+  let result = {
     FINANCE: s?.cardSubFinance ?? [],
     DEVELOPMENT: s?.cardSubDevelopment ?? [],
     DESIGN: s?.cardSubDesign ?? [],
     CONSTRUCTION: s?.cardSubConstruction ?? [],
     MATERIALS: s?.cardSubMaterials ?? [],
     MANAGEMENT: s?.cardSubManagement ?? [],
-  })
+  }
+  const allEmpty = Object.values(result).every((arr) => (arr as string[]).length === 0)
+  if (allEmpty) {
+    // 首次自動灌入預設清單
+    await prisma.orgSettings.upsert({
+      where: { id: 'singleton' },
+      create: {
+        id: 'singleton',
+        bankInfo: '',
+        cardSubFinance: DEFAULTS.FINANCE,
+        cardSubDevelopment: DEFAULTS.DEVELOPMENT,
+        cardSubDesign: DEFAULTS.DESIGN,
+        cardSubConstruction: DEFAULTS.CONSTRUCTION,
+        cardSubMaterials: DEFAULTS.MATERIALS,
+        cardSubManagement: DEFAULTS.MANAGEMENT,
+      },
+      update: {
+        cardSubFinance: { set: DEFAULTS.FINANCE },
+        cardSubDevelopment: { set: DEFAULTS.DEVELOPMENT },
+        cardSubDesign: { set: DEFAULTS.DESIGN },
+        cardSubConstruction: { set: DEFAULTS.CONSTRUCTION },
+        cardSubMaterials: { set: DEFAULTS.MATERIALS },
+        cardSubManagement: { set: DEFAULTS.MANAGEMENT },
+      },
+    })
+    result = { ...DEFAULTS }
+  }
+  return NextResponse.json(result)
 }
 
 export async function POST(req: NextRequest) {

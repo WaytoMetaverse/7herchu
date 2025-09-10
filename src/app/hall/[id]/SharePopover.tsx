@@ -18,8 +18,8 @@ interface SharePopoverProps {
 export default function SharePopover({ event, invitationMessage }: SharePopoverProps) {
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register`
-	const eventDate = format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
-	const eventTime = format(event.startAt, 'HH:mm')
+	const eventDate = format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
+	const eventTime = format(new Date(event.startAt), 'HH:mm')
 	
 	const fullMessage = `${invitationMessage}
 

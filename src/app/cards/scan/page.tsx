@@ -193,8 +193,8 @@ export default function CardScanPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={rotateLeft} variant="outline" size="sm">↶ 向左旋轉90°</Button>
-            <Button onClick={aiExtract} variant="secondary" disabled={(!imageFile && !rotatedBlob) || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
+            <Button onClick={aiExtract} variant="secondary" size="sm" disabled={(!imageFile && !rotatedBlob) || aiLoading}>{aiLoading ? 'AI 解析中…' : 'AI 辨識'}</Button>
+            <Button onClick={rotateLeft} variant="outline" size="sm">照片旋轉</Button>
           </div>
           <div className="text-xs text-gray-500">*若名片方向不正，請點擊旋轉按鈕，調整至正確方向以利辨識。</div>
           <label>主類
