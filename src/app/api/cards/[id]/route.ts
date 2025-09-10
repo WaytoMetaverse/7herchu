@@ -40,6 +40,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
   const card = await prisma.businessCard.findUnique({ where: { id: idParam } })
   if (!card) return NextResponse.json({ error: '不存在' }, { status: 404 })
 
+  // 手機重複檢查（僅未軟刪除，排除自己）
+  if (phone) {
+    const dup = await prisma.businessCard.findFirst({ where: { phone, deletedAt: null, NOT: { id: idParam } }, select: { id: true } })
+    if (dup) return NextResponse.json({ error: '手機已存在' }, { status: 400 })
+  }
+
   const updated = await prisma.businessCard.update({
     where: { id: idParam },
     data: {

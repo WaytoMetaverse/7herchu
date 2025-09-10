@@ -376,7 +376,7 @@ model BusinessCard {
   company   String?
   title     String?
   email     String?
-  phone     String?      @unique
+  phone     String?
   address   String?
   website   String?
   notes     String?
@@ -388,4 +388,5 @@ model BusinessCard {
 
   @@index([ownerId, category])
   @@index([name])
+  @@index([phone])
 }
