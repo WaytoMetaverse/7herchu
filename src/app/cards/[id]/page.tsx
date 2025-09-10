@@ -11,7 +11,7 @@ export default async function CardDetailPage({ params }: { params: Promise<{ id:
   if (card.deletedAt) return <div className="max-w-3xl mx-auto p-4">名片已刪除</div>
   async function deleteCard() {
     'use server'
-    await prisma.businessCard.delete({ where: { id } })
+    await prisma.businessCard.update({ where: { id }, data: { deletedAt: new Date() } })
     revalidatePath('/cards')
     redirect('/cards')
   }
@@ -21,7 +21,7 @@ export default async function CardDetailPage({ params }: { params: Promise<{ id:
         <h1 className="text-xl font-semibold truncate">{card.name}</h1>
         <div className="flex items-center gap-2">
           <Button as={Link} href={`/cards/${card.id}/edit`} variant="outline" className="whitespace-nowrap">編輯</Button>
-          <form action={deleteCard} onSubmit={(e)=>{ if(!confirm('確定要刪除嗎？')) e.preventDefault() }}>
+          <form action={deleteCard}>
             <Button type="submit" variant="danger" className="whitespace-nowrap">刪除</Button>
           </form>
         </div>

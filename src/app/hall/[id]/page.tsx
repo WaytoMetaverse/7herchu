@@ -329,8 +329,9 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</div>
 				{/* 活動內容（顯示於報名資訊下方） */}
 				{event.content && (
-					<div className="text-sm text-gray-800 whitespace-pre-wrap">
-						{event.content}
+					<div className="text-sm text-gray-800">
+						<span className="font-medium">內容：</span>
+						<span className="whitespace-pre-wrap">{event.content}</span>
 					</div>
 				)}
 			</div>

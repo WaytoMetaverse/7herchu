@@ -7,7 +7,8 @@ interface SharePopoverProps {
 	event: {
 		id: string
 		title: string
-		startAt: Date
+		startAt: Date | string
+		endAt?: Date | string
 		location: string | null
 		type: string
 	}
@@ -18,8 +19,10 @@ interface SharePopoverProps {
 export default function SharePopover({ event, invitationMessage }: SharePopoverProps) {
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register`
-	const eventDate = format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
-	const eventTime = format(new Date(event.startAt), 'HH:mm')
+	const start = new Date(event.startAt)
+	const end = event.endAt ? new Date(event.endAt) : null
+	const eventDate = format(start, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
+	const eventTime = end ? `${format(start, 'HH:mm')}-${format(end, 'HH:mm')}` : `${format(start, 'HH:mm')}`
 	
 	const fullMessage = `${invitationMessage}
 
@@ -34,7 +37,6 @@ export default function SharePopover({ event, invitationMessage }: SharePopoverP
 			navigator.share({
 				title: event.title,
 				text: fullMessage,
-				url: inviteUrl
 			}).catch(() => {
 				// 使用者取消分享，不做任何事
 			})
