@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { pushSolonByEvent } from '@/lib/line'
+import { generateSolonMessage } from '@/lib/solon'
 
 export async function POST(req: NextRequest) {
 	const body = await req.json()
@@ -36,6 +38,8 @@ export async function POST(req: NextRequest) {
 				pptUrl,
 			},
 		})
+		// 推送接龍訊息（忽略失敗）
+		pushSolonByEvent(eventId, generateSolonMessage)
 		return NextResponse.json({ ok: true, id: created.id })
 	} catch {
 		return NextResponse.json({ error: '同一手機已預約或提交錯誤' }, { status: 400 })

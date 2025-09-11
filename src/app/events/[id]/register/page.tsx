@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { pushSolonByEvent } from '@/lib/line'
+import { generateSolonMessage } from '@/lib/solon'
 
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
 	try {
@@ -136,6 +138,9 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				}
 			})
 		}
+
+		// 推送接龍訊息（忽略失敗）
+		pushSolonByEvent(eventId, generateSolonMessage)
 
 		revalidatePath(`/hall/${eventId}`)
 		redirect(`/hall/${eventId}`)

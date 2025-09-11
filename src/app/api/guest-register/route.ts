@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { pushSolonByEvent } from '@/lib/line'
+import { generateSolonMessage } from '@/lib/solon'
 
 export async function POST(req: NextRequest) {
 	try {
@@ -93,6 +95,9 @@ export async function POST(req: NextRequest) {
 				status: 'REGISTERED'
 			}
 		})
+
+		// 推送接龍訊息（忽略失敗）
+		pushSolonByEvent(eventId, generateSolonMessage)
 
 		return NextResponse.json({ 
 			ok: true, 
