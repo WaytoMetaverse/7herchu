@@ -21,14 +21,26 @@ export async function POST(req: NextRequest) {
 		const source = ev.source || {}
 		if (type === 'message' && ev.message?.type === 'text') {
 			const text = (ev.message.text || '').trim()
-			if (text === '綁定' && source.type === 'group' && source.groupId) {
-				await prisma.orgSettings.upsert({
-					where: { id: 'singleton' },
-					create: { id: 'singleton', bankInfo: '', lineGroupId: source.groupId },
-					update: { lineGroupId: source.groupId },
-				})
-				if (ev.replyToken) await replyToLine(ev.replyToken, '綁定成功，之後將自動推送接龍訊息。')
+			if (text === '綁定') {
+				if (source.type === 'group' && source.groupId) {
+					await prisma.orgSettings.upsert({
+						where: { id: 'singleton' },
+						create: { id: 'singleton', bankInfo: '', lineGroupId: source.groupId },
+						update: { lineGroupId: source.groupId },
+					})
+					if (ev.replyToken) await replyToLine(ev.replyToken, '綁定成功，之後將自動推送接龍訊息。')
+				} else if (ev.replyToken) {
+					await replyToLine(ev.replyToken, '請將機器人邀進群組後，在群組內輸入「綁定」。')
+				}
 			}
+		}
+		if (type === 'join' && source.type === 'group' && source.groupId) {
+			await prisma.orgSettings.upsert({
+				where: { id: 'singleton' },
+				create: { id: 'singleton', bankInfo: '', lineGroupId: source.groupId },
+				update: { lineGroupId: source.groupId },
+			})
+			if (ev.replyToken) await replyToLine(ev.replyToken, '已加入群組並綁定成功。')
 		}
 	}
 	return NextResponse.json({ ok: true })
