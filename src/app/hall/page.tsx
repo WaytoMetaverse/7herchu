@@ -106,14 +106,20 @@ export default async function HallPage() {
 										<CardContent className="p-4 hover:bg-[color-mix(in_oklab,_var(--brand-600)_10%,_white)] rounded-xl">
 											<div className="flex justify-between items-start">
 												<div className="flex-1 min-w-0">
-													{/* 行1：日期（手機）/ 日期+標題（桌面） */}
-													<div className="font-medium flex items-center gap-2 mb-1 sm:mb-0">
-														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span className="hidden sm:inline truncate">{e.title}</span>
+													{/* 行1（手機）：標題；（桌面）：日期 + 標題 */}
+													<div className="font-medium mb-1 sm:mb-0">
+														<div className="sm:hidden line-clamp-2">{e.title}</div>
+														<div className="hidden sm:flex items-center gap-2">
+															<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+															<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+															<span className="truncate">{e.title}</span>
+														</div>
 													</div>
-													{/* 行2：標題（僅手機） */}
-													<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
+													{/* 行2（僅手機）：日期 */}
+													<div className="sm:hidden text-sm text-gray-700 flex items-center gap-2 -mt-1 mb-1">
+														<CalendarIcon className="w-4 h-4 flex-shrink-0" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+													</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
 														<MapPin className="w-4 h-4 flex-shrink-0" />
 														<span className="truncate">{e.location ?? ''}</span>
@@ -127,14 +133,20 @@ export default async function HallPage() {
 									<CardContent className="p-4 rounded-xl opacity-90">
 										<div className="flex justify-between items-start">
 											<div className="flex-1 min-w-0">
-												{/* 行1：日期（手機）/ 日期+標題（桌面） */}
-												<div className="font-medium flex items-center gap-2 mb-1 sm:mb-0">
-													<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-													<span className="hidden sm:inline truncate">{e.title}</span>
+												{/* 行1（手機）：標題；（桌面）：日期 + 標題 */}
+												<div className="font-medium mb-1 sm:mb-0">
+													<div className="sm:hidden line-clamp-2">{e.title}</div>
+													<div className="hidden sm:flex items-center gap-2">
+														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span className="truncate">{e.title}</span>
+													</div>
 												</div>
-												{/* 行2：標題（僅手機） */}
-												<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
+												{/* 行2（僅手機）：日期 */}
+												<div className="sm:hidden text-sm text-gray-700 flex items-center gap-2 -mt-1 mb-1">
+													<CalendarIcon className="w-4 h-4 flex-shrink-0" />
+													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+												</div>
 												<div className="text-sm text-gray-700 flex items-center gap-2">
 													<MapPin className="w-4 h-4 flex-shrink-0" />
 													<span className="truncate">{e.location ?? ''}</span>
@@ -161,14 +173,20 @@ export default async function HallPage() {
 										<CardContent className="p-4 hover:bg-[color-mix(in_oklab,_var(--brand-600)_10%,_white)] rounded-xl">
 											<div className="flex justify-between items-start">
 												<div className="flex-1 min-w-0">
-													{/* 行1：日期（手機）/ 日期+標題（桌面） */}
-													<div className="font-medium flex items-center gap-2 mb-1 sm:mb-0">
-														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span className="hidden sm:inline truncate">{e.title}</span>
+													{/* 行1（手機）：標題；（桌面）：日期 + 標題 */}
+													<div className="font-medium mb-1 sm:mb-0">
+														<div className="sm:hidden line-clamp-2">{e.title}</div>
+														<div className="hidden sm:flex items-center gap-2">
+															<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+															<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+															<span className="truncate">{e.title}</span>
+														</div>
 													</div>
-													{/* 行2：標題（僅手機） */}
-													<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
+													{/* 行2（僅手機）：日期 */}
+													<div className="sm:hidden text-sm text-gray-700 flex items-center gap-2 -mt-1 mb-1">
+														<CalendarIcon className="w-4 h-4 flex-shrink-0" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+													</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
 														<MapPin className="w-4 h-4 flex-shrink-0" />
 														<span className="truncate">{e.location ?? ''}</span>
@@ -182,14 +200,20 @@ export default async function HallPage() {
 									<CardContent className="p-4 rounded-xl opacity-90">
 										<div className="flex justify-between items-start">
 											<div className="flex-1 min-w-0">
-												{/* 行1：日期（手機）/ 日期+標題（桌面） */}
-												<div className="font-medium flex items-center gap-2 mb-1 sm:mb-0">
-													<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-													<span className="hidden sm:inline truncate">{e.title}</span>
+												{/* 行1（手機）：標題；（桌面）：日期 + 標題 */}
+												<div className="font-medium mb-1 sm:mb-0">
+													<div className="sm:hidden line-clamp-2">{e.title}</div>
+													<div className="hidden sm:flex items-center gap-2">
+														<CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+														<span className="truncate">{e.title}</span>
+													</div>
 												</div>
-												{/* 行2：標題（僅手機） */}
-												<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
+												{/* 行2（僅手機）：日期 */}
+												<div className="sm:hidden text-sm text-gray-700 flex items-center gap-2 -mt-1 mb-1">
+													<CalendarIcon className="w-4 h-4 flex-shrink-0" />
+													<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
+												</div>
 												<div className="text-sm text-gray-700 flex items-center gap-2">
 													<MapPin className="w-4 h-4 flex-shrink-0" />
 													<span className="truncate">{e.location ?? ''}</span>

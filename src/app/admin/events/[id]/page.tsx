@@ -39,10 +39,11 @@ async function updateEvent(formData: FormData) {
 	const startTime = String(formData.get('startTime') ?? '')
 	const endTime = String(formData.get('endTime') ?? '')
 	const location = String(formData.get('location') ?? '')
+	const content = String(formData.get('content') ?? '').trim()
 	if (!id || !dateStr || !startTime || !endTime || !title) return
 	const startAt = buildDate(dateStr, startTime)
 	const endAt = buildDate(dateStr, endTime)
-	const data: Prisma.EventUpdateInput = { type, title, startAt, endAt, location }
+	const data: Prisma.EventUpdateInput = { type, title, startAt, endAt, location, content: content || null }
 	if (type === 'GENERAL') {
 		data.allowSpeakers = true
 		data.allowGuests = true
@@ -174,6 +175,11 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						<input name="location" defaultValue={e.location ?? ''}  />
 					</div>
 				</label>
+				<div className="col-span-2">
+					<label className="block">活動內容
+						<textarea name="content" defaultValue={e.content ?? ''} rows={5} className="w-full" />
+					</label>
+				</div>
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
 					<label>一般：講師名額
 						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5}  />
