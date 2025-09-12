@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { EventType, Role } from '@prisma/client'
+import { Role } from '@prisma/client'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -16,16 +16,6 @@ function statusLabel(allowSpeakers: boolean, quota?: number | null, count?: numb
 	if (!quota || quota <= 0) return '已額滿'
 	const left = Math.max(0, (quota ?? 0) - (count ?? 0))
 	return left > 0 ? `可預約（剩 ${left} 位）` : '已額滿'
-}
-
-const TYPE_LABEL: Record<EventType, string> = {
-	GENERAL: '簡報組聚',
-	CLOSED: '封閉組聚',
-	BOD: 'BOD 擴大商機日',
-	DINNER: '餐敘組聚',
-	JOINT: '聯合組聚',
-	SOFT: '軟性活動',
-	VISIT: '職業參訪',
 }
 
 function ym(d: Date) { return format(d, 'yyyy-MM') }
@@ -105,20 +95,22 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 										<CardContent className="p-4 rounded-xl">
 											<div className="flex justify-between items-start">
 												<div className="flex-1 min-w-0">
+													{/* 行1：日期（手機）/ 日期+標題（桌面） */}
 													<div className="font-medium flex items-center gap-2">
 														<CalendarIcon className="w-4 h-4 text-gray-500" />
 														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span className="truncate">{e.title}</span>
+														<span className="hidden sm:inline truncate">{e.title}</span>
 													</div>
+													{/* 行2：標題（僅手機） */}
+													<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
 													<div className="text-sm text-gray-700 flex items-center gap-2">
 														<MapPin className="w-4 h-4" />
 														<span className="truncate">{e.location ?? ''}</span>
-														<span className="text-[var(--brand-700)] whitespace-nowrap">· {TYPE_LABEL[e.type as EventType]}</span>
 													</div>
-												</div>
-												<div className="text-sm">{label}</div>
 											</div>
-										</CardContent>
+											<div className="text-sm">{label}</div>
+										</div>
+									</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
 										{canBook ? (
@@ -156,20 +148,22 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 										<CardContent className="p-4">
 											<div className="flex justify-between">
 												<div>
+													{/* 行1：日期（手機）/ 日期+標題（桌面） */}
 													<div className="font-medium flex items-center gap-2">
 														<CalendarIcon className="w-4 h-4 text-gray-500" />
 														<span>{format(e.startAt, 'MM/dd（EEEEE）', { locale: zhTW })}</span>
-														<span>{e.title}</span>
+														<span className="hidden sm:inline truncate">{e.title}</span>
 													</div>
+													{/* 行2：標題（僅手機） */}
+													<div className="sm:hidden font-medium -mt-1 mb-1 line-clamp-2">{e.title}</div>
 													<div className="text-sm text-gray-600 flex items-center gap-2">
 														<MapPin className="w-4 h-4" />
 														<span>{e.location ?? ''}</span>
-														<span>· {TYPE_LABEL[e.type as EventType]}</span>
 													</div>
-												</div>
 											</div>
 											<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">{label}</div>
-										</CardContent>
+										</div>
+									</CardContent>
 									</Link>
 									<div className="px-4 pb-4 mt-2 flex items-center gap-2">
 										{canBook ? (
