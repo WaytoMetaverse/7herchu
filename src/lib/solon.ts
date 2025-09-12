@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { EventType, RegistrationStatus } from '@prisma/client'
+import { EventType, RegistrationStatus, RegRole } from '@prisma/client'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
@@ -10,10 +10,11 @@ function week(date: Date) {
 export async function generateSolonMessage(eventId: string): Promise<string> {
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) return ''
-	const [eventMenu, regs, speakers] = await Promise.all([
+	const [eventMenu, regs, speakers, leaves] = await Promise.all([
 		prisma.eventMenu.findUnique({ where: { eventId } }),
 		prisma.registration.findMany({ where: { eventId, status: 'REGISTERED' as RegistrationStatus }, include: { user: { select: { nickname: true, name: true } } }, orderBy: { createdAt: 'asc' } }),
 		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } }),
+		prisma.registration.findMany({ where: { eventId, status: 'LEAVE' as RegistrationStatus, role: 'MEMBER' as RegRole }, include: { user: { select: { nickname: true, name: true } } }, orderBy: { createdAt: 'asc' } }),
 	])
 
 	// 標題行：MM/DD(週) + 標題
@@ -37,9 +38,27 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	const contentLine = event.content ? `🌟內容：${event.content}` : ''
 
 	// 清單
-	const memberList = regs.filter(r => r.role === 'MEMBER').map((r, idx) => `${idx + 1}.${displayMemberName(r.user?.nickname, r.user?.name || r.name)}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`).join('\n')
-	const guestList = regs.filter(r => r.role === 'GUEST').map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`).join('\n')
-	const speakerList = speakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`).join('\n')
+	const memberListArr = regs.filter(r => r.role === 'MEMBER').map((r, idx) => `${idx + 1}.${displayMemberName(r.user?.nickname, r.user?.name || r.name)}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	const guestListArr = regs.filter(r => r.role === 'GUEST').map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	const speakerListArr = speakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
+
+	// 追加兩個空白序號（僅在已有名單時）
+	const appendPlaceholders = (arr: string[]) => {
+		if (arr.length === 0) return ''
+		const next1 = `${arr.length + 1}.`
+		const next2 = `${arr.length + 2}.`
+		return [...arr, next1, next2].join('\n')
+	}
+
+	const memberList = appendPlaceholders(memberListArr)
+	const guestList = appendPlaceholders(guestListArr)
+	const speakerList = appendPlaceholders(speakerListArr)
+
+	// 請假名單（僅成員，不編號）
+	const leaveList = leaves
+		.map(r => displayMemberName(r.user?.nickname, r.user?.name || r.name))
+		.filter(n => n && n !== '-')
+		.join('\n')
 
 	const lines: string[] = [
 		titleLine,
@@ -54,6 +73,9 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 		memberList,
 	]
 
+	if (leaveList) {
+		lines.push('', '🌟無法參加人員：', leaveList)
+	}
 	if (guestList) {
 		lines.push('', '🌟來賓', guestList)
 	}
