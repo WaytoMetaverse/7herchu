@@ -38,8 +38,13 @@ export async function POST(req: NextRequest) {
 				pptUrl,
 			},
 		})
-		// 推送接龍訊息（忽略失敗）
-		pushSolonByEvent(eventId, generateSolonMessage)
+		// 推送接龍訊息（記錄結果）
+		try {
+			await pushSolonByEvent(eventId, generateSolonMessage)
+			console.log('[speaker/book] pushSolonByEvent ok', { eventId, createdId: created.id })
+		} catch (e) {
+			console.warn('[speaker/book] pushSolonByEvent failed', { eventId, err: (e as Error)?.message })
+		}
 		return NextResponse.json({ ok: true, id: created.id })
 	} catch {
 		return NextResponse.json({ error: '同一手機已預約或提交錯誤' }, { status: 400 })

@@ -23,10 +23,18 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 	})
 	if (!user) redirect('/auth/signin')
 
-	// 檢查是否已報名
-	const existingReg = user.phone ? await prisma.registration.findUnique({
-		where: { eventId_phone: { eventId, phone: user.phone } }
-	}) : null
+	// 檢查是否已報名（以 userId 或 phone 任一，且限定 MEMBER 身分）
+	const existingReg = await prisma.registration.findFirst({
+		where: {
+			eventId,
+			role: 'MEMBER',
+			OR: [
+				{ userId: user.id },
+				...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
+			]
+		},
+		orderBy: { createdAt: 'asc' }
+	})
 
 	// 處理請假
 	async function submitLeave() {
@@ -34,10 +42,23 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 		
 		if (!user) return
 		
-		if (existingReg) {
+		// Server Action 內再查一次，避免前後態或併發造成不一致
+		const prevReg = await prisma.registration.findFirst({
+			where: {
+				eventId,
+				role: 'MEMBER',
+				OR: [
+					{ userId: user.id },
+					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
+				]
+			},
+			orderBy: { createdAt: 'asc' }
+		})
+
+		if (prevReg) {
 			// 更新為請假狀態
 			await prisma.registration.update({
-				where: { id: existingReg.id },
+				where: { id: prevReg.id },
 				data: { status: 'LEAVE' }
 			})
 		} else {
@@ -48,7 +69,7 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 					userId: user.id,
 					role: 'MEMBER',
 					name: user.name || '',
-					phone: user.phone || '',
+					...(user.phone ? { phone: user.phone } : {}),
 					status: 'LEAVE',
 					paymentStatus: 'UNPAID'
 				}

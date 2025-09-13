@@ -40,6 +40,26 @@ export default function MemberInvitation() {
 		setTimeout(() => { buttonElement.textContent = original }, 2000)
 	}
 
+	const shareInvite = async () => {
+		if (!inviteUrl) {
+			await generateInviteLink()
+		}
+		const url = inviteUrl
+		const message = `邀請您加入 磐石砌好厝 平台系統\n\n請使用此連結完成註冊：\n${url}`
+		if (navigator.share) {
+			try {
+				await navigator.share({ title: '成員邀請', text: message, url })
+				return
+			} catch {}
+		}
+		try {
+			await navigator.clipboard.writeText(message)
+			alert('邀請訊息已複製，請貼到要分享的平台')
+		} catch {
+			alert('無法自動分享，請手動複製連結')
+		}
+	}
+
 	const handleOpenModal = () => {
 		setShowModal(true)
 		if (!inviteUrl) {
@@ -86,15 +106,7 @@ export default function MemberInvitation() {
 											readOnly
 											className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm"
 										/>
-										<Button 
-											onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-												copyToClipboard(inviteUrl, e.target as HTMLButtonElement)
-											}}
-											variant="outline"
-											size="sm"
-										>
-											<Copy className="w-4 h-4" />
-										</Button>
+										<Button onClick={shareInvite} variant="primary" size="sm">分享</Button>
 									</div>
 								</div>
 

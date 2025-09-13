@@ -96,8 +96,13 @@ export async function POST(req: NextRequest) {
 			}
 		})
 
-		// 推送接龍訊息（忽略失敗）
-		pushSolonByEvent(eventId, generateSolonMessage)
+		// 推送接龍訊息（記錄結果）
+		try {
+			await pushSolonByEvent(eventId, generateSolonMessage)
+			console.log('[guest-register] pushSolonByEvent ok', { eventId, id: registration.id })
+		} catch (e) {
+			console.warn('[guest-register] pushSolonByEvent failed', { eventId, err: (e as Error)?.message })
+		}
 
 		return NextResponse.json({ 
 			ok: true, 
