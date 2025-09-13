@@ -48,11 +48,19 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		console.log('User:', user ? 'found' : 'not found', 'Phone:', user?.phone)
 		if (!user) redirect('/auth/signin')
 
-		// 檢查是否已報名
-		const existingReg = user.phone ? await prisma.registration.findUnique({
-			where: { eventId_phone: { eventId, phone: user.phone } }
-		}) : null
-		console.log('Existing registration:', existingReg ? 'found' : 'not found')
+		// 檢查是否已報名（以 userId 或 phone 任一，且限定 MEMBER 身分）
+		const existingReg = await prisma.registration.findFirst({
+			where: {
+				eventId,
+				role: 'MEMBER',
+				OR: [
+					{ userId: user.id },
+					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
+				]
+			},
+			orderBy: { createdAt: 'asc' }
+		})
+		console.log('Existing registration (member):', existingReg ? 'found' : 'not found')
 
 		// 取得活動餐點設定
 		const eventMenu = await prisma.eventMenu.findUnique({
@@ -109,16 +117,28 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 			// 沒有餐點設定時，finalMealCode 保持為空字串
 		}
 
-		// 如果已報名則更新，否則新增
-		if (existingReg) {
+		// Server Action 內再查一次，避免前後態或併發造成重複建立
+		const prevReg = await prisma.registration.findFirst({
+			where: {
+				eventId,
+				role: 'MEMBER',
+				OR: [
+					{ userId: user.id },
+					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
+				]
+			},
+			orderBy: { createdAt: 'asc' }
+		})
+
+		if (prevReg) {
 			await prisma.registration.update({
-				where: { id: existingReg.id },
+				where: { id: prevReg.id },
 				data: {
 					mealCode: finalMealCode,
 					diet,
 					noBeef,
 					noPork,
-					status: 'REGISTERED'  // 確保狀態為已報名
+					status: 'REGISTERED'
 				}
 			})
 		} else {
@@ -128,12 +148,12 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					userId: user.id,
 					role: 'MEMBER',
 					name: user.name || '',
-					phone: user.phone || '',
+					...(user.phone ? { phone: user.phone } : {}),
 					mealCode: finalMealCode,
 					diet,
 					noBeef,
 					noPork,
-					status: 'REGISTERED',  // 新報名設為已報名狀態
+					status: 'REGISTERED',
 					paymentStatus: 'UNPAID'
 				}
 			})
