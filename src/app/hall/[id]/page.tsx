@@ -176,10 +176,8 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length
 	const totalCount = registeredMembers.length + guests.length + speakers.length
 
-	// 檢查當前用戶的報名狀態
-	const currentUserRegistration = currentUser?.phone ? regs.find(r => 
-		r.userId === currentUser.id || r.phone === currentUser.phone
-	) : null
+	// 檢查當前用戶的報名狀態（優先以 userId，其次以 phone 比對）
+	const currentUserRegistration = currentUser ? regs.find(r => r.userId === currentUser.id || (currentUser.phone ? r.phone === currentUser.phone : false)) : null
 
 	const hasLocks = regs.length > 0 || speakers.length > 0
 	const memberNames = members.map(r => getDisplayName(r.user) || r.name || '-').slice(0, 30)
@@ -383,7 +381,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						</ul>
 					</CardContent>
 				</Card>
-
+				
 				<Card>
 					<CardContent>
 						<div className="flex items-center justify-between mb-2">
@@ -430,7 +428,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						</ul>
 					</CardContent>
 				</Card>
-
+				
 				{/* 請假名單 */}
 				{leftMembers.length > 0 && (
 					<Card>
