@@ -1,7 +1,5 @@
 'use client'
 import Button from '@/components/ui/Button'
-import { format } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 
 interface SharePopoverProps {
 	event: {
@@ -14,20 +12,18 @@ interface SharePopoverProps {
 	}
 	invitationMessage: string
 	invitationCardUrl: string | null
+	eventDateLabel: string
+	eventTimeLabel: string
 }
 
-export default function SharePopover({ event, invitationMessage }: SharePopoverProps) {
+export default function SharePopover({ event, invitationMessage, eventDateLabel, eventTimeLabel }: SharePopoverProps) {
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register`
-	const start = new Date(event.startAt)
-	const end = event.endAt ? new Date(event.endAt) : null
-	const eventDate = format(start, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
-	const eventTime = end ? `${format(start, 'HH:mm')}-${format(end, 'HH:mm')}` : `${format(start, 'HH:mm')}`
 	
 	const fullMessage = `${invitationMessage}
 
-日期 | ${eventDate}
-時間 | ${eventTime}
+日期 | ${eventDateLabel}
+時間 | ${eventTimeLabel}
 地點 | ${event.location || '地點詳見活動資訊'}
 
 報名連結: ${inviteUrl}`
