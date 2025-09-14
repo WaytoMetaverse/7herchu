@@ -151,8 +151,8 @@ export default async function InvitationsPage() {
 				{cards.map((card) => (
 					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
 						{/* 標題區 */}
-						<div className={`p-4 ${colorStyles[card.color]?.bg} border-b`}>
-							<h3 className={`font-medium ${colorStyles[card.color]?.text}`}>{card.title}</h3>
+						<div className={["p-4", colorStyles[card.color]?.bg, "border-b"].join(" ") }>
+							<h3 className={["font-medium", colorStyles[card.color]?.text].join(" ") }>{card.title}</h3>
 						</div>
 
 						{/* 內容區 */}
