@@ -31,22 +31,22 @@ export default async function GuestSuccessPage({ params, searchParams }: { param
 	const eventTimeLabel = `${format(event.startAt, 'HH:mm', { locale: zhTW })}-${format(event.endAt, 'HH:mm', { locale: zhTW })}`
 
 	// 計算來賓金額（沿用原規則與顯示）
-	function getGuestPrice(): string {
-		switch (event.type) {
+	const guestPriceLabel: string = (() => {
+		switch (event!.type) {
 			case 'GENERAL':
 			case 'JOINT':
 			case 'CLOSED':
 				return 'NT$ 250'
 			case 'BOD':
-				return event.bodGuestPriceCents ? `NT$ ${event.bodGuestPriceCents / 100}` : '-'
+				return event!.bodGuestPriceCents ? `NT$ ${event!.bodGuestPriceCents / 100}` : '-'
 			case 'DINNER':
 			case 'SOFT':
 			case 'VISIT':
-				return event.guestPriceCents ? `NT$ ${event.guestPriceCents / 100}` : (event.defaultPriceCents ? `NT$ ${event.defaultPriceCents / 100}` : '-')
+				return event!.guestPriceCents ? `NT$ ${event!.guestPriceCents / 100}` : (event!.defaultPriceCents ? `NT$ ${event!.defaultPriceCents / 100}` : '-')
 			default:
 				return '-'
 		}
-	}
+	})()
 
 	return (
 		<div className="max-w-lg mx-auto p-4 space-y-6">
@@ -67,7 +67,7 @@ export default async function GuestSuccessPage({ params, searchParams }: { param
 					<div>📅 {event.title}</div>
 					<div>🗓️ {eventDateLabel} {eventTimeLabel}</div>
 					<div>📍 {event.location}</div>
-					<div>💰 活動費用：{getGuestPrice()}</div>
+					<div>💰 活動費用：{guestPriceLabel}</div>
 				</div>
 			</div>
 
