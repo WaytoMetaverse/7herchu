@@ -12,6 +12,7 @@ export default async function InvitationsPage() {
 	const session = await getServerSession(authOptions)
 	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const isAdmin = roles.includes('admin')
 
 	// 取得組織設定中的邀請卡和訊息
 	const orgSettings = await prisma.orgSettings.findFirst()
@@ -158,24 +159,30 @@ export default async function InvitationsPage() {
 											alt={card.title}
 											className="w-full rounded-lg border shadow-sm"
 										/>
-										<form action={deleteInvitationCard} className="text-center">
-											<input type="hidden" name="cardType" value={card.type} />
-											<Button 
-												type="submit" 
-												variant="outline" 
-												size="sm"
-												className="text-red-600 hover:text-red-700"
-											>
-												刪除邀請卡
-											</Button>
-										</form>
+										{isAdmin ? (
+											<form action={deleteInvitationCard} className="text-center">
+												<input type="hidden" name="cardType" value={card.type} />
+												<Button 
+													type="submit" 
+													variant="outline" 
+													size="sm"
+													className="text-red-600 hover:text-red-700"
+												>
+													刪除邀請卡
+												</Button>
+											</form>
+										) : (
+											<div className="h-8" />
+										)}
 									</div>
 								) : (
 									<div className="text-center py-4 text-gray-400 border-2 border-dashed rounded-lg">
 										<div className="mb-2">尚未上傳</div>
-										<InvitationUpload 
-											cardType={card.type}
-										/>
+										{isAdmin ? (
+											<InvitationUpload 
+												cardType={card.type}
+											/>
+										) : null}
 									</div>
 								)}
 							</div>
@@ -183,11 +190,13 @@ export default async function InvitationsPage() {
 							{/* 邀請訊息編輯 */}
 							<div className="border-t pt-4">
 								<h4 className="text-sm font-medium text-gray-700 mb-2">邀請訊息</h4>
-								<MessageEditor 
-									messageType={card.type}
-									defaultMessage={card.message}
-									updateAction={updateInvitationMessage}
-								/>
+								{isAdmin ? (
+									<MessageEditor 
+										messageType={card.type}
+										defaultMessage={card.message}
+										updateAction={updateInvitationMessage}
+									/>
+								) : null}
 								<div className="mt-2 text-xs text-gray-500">
 									<div>訊息會自動加上活動資訊：</div>
 									<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
@@ -207,9 +216,8 @@ export default async function InvitationsPage() {
 								</div>
 							</div>
 						</div>
-					</div>
-				))}
+					))}
+				</div>
 			</div>
-		</div>
 	)
 }

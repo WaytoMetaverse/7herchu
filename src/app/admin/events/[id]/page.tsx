@@ -149,7 +149,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						<DateWithWeekday name="date" defaultValue={dateStr} />
 					</div>
 				</label>
-				<label>開始時間
+				<label className="md:col-span-1">開始時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="startTime" defaultValue={startTime} >
@@ -159,7 +159,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						</select>
 					</div>
 				</label>
-				<label>結束時間
+				<label className="md:col-span-1">結束時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="endTime" defaultValue={endTime} >

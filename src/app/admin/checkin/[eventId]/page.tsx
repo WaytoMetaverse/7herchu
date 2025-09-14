@@ -52,10 +52,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			if (registration.userId && registration.user?.memberProfile?.memberType === 'FIXED') {
-				return 0
+			const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
+			if (registration.role === 'MEMBER') {
+				if (registration.userId && isFixed) return 0
+				return 220
 			}
-			return registration.role === 'GUEST' ? 250 : 250
+			// 來賓
+			return 250
 		}
 		if (eventType === 'BOD') {
 			return registration.role === 'GUEST' 
@@ -393,19 +396,19 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				<Button as={Link} href={`/hall/${eventId}`} variant="outline">返回</Button>
 			</div>
 
-			{/* 統計卡片 */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div className="bg-blue-50 p-4 rounded-lg">
-					<div className="text-blue-600 font-medium">總報名數</div>
-					<div className="text-2xl font-semibold text-blue-700">{totalCount}</div>
+			{/* 統計卡片 - 手機同一行排列 */}
+			<div className="grid grid-cols-3 gap-2 text-xs sm:text-sm">
+				<div className="bg-blue-50 p-3 rounded">
+					<div className="text-blue-600">總報名</div>
+					<div className="text-lg font-semibold text-blue-700">{totalCount}</div>
 				</div>
-				<div className="bg-green-50 p-4 rounded-lg">
-					<div className="text-green-600 font-medium">已簽到</div>
-					<div className="text-2xl font-semibold text-green-700">{checkedInCount}</div>
+				<div className="bg-green-50 p-3 rounded">
+					<div className="text-green-600">已簽到</div>
+					<div className="text-lg font-semibold text-green-700">{checkedInCount}</div>
 				</div>
-				<div className="bg-orange-50 p-4 rounded-lg">
-					<div className="text-orange-600 font-medium">未繳費</div>
-					<div className="text-2xl font-semibold text-orange-700">{unpaidCount}</div>
+				<div className="bg-orange-50 p-3 rounded">
+					<div className="text-orange-600">未繳費</div>
+					<div className="text-lg font-semibold text-orange-700">{unpaidCount}</div>
 				</div>
 			</div>
 
@@ -415,16 +418,16 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 					<h2 className="font-medium">報名列表</h2>
 				</div>
 				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
+					<table className="w-full table-fixed text-xs sm:text-sm">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-4 py-3 text-left font-medium">姓名</th>
-								<th className="px-4 py-3 text-left font-medium">類型</th>
-								<th className="px-4 py-3 text-left font-medium">公司/產業</th>
-								<th className="px-4 py-3 text-left font-medium">聯絡方式</th>
-								<th className="px-4 py-3 text-center font-medium">金額</th>
-								<th className="px-4 py-3 text-center font-medium">簽到狀態</th>
-								<th className="px-4 py-3 text-center font-medium">繳費狀態</th>
+								<th className="w-24 sm:w-auto px-3 py-2 text-left font-medium">姓名</th>
+								<th className="w-16 sm:w-auto px-3 py-2 text-left font-medium">類型</th>
+								<th className="w-40 sm:w-auto px-3 py-2 text-left font-medium">公司/產業</th>
+								<th className="w-36 sm:w-auto px-3 py-2 text-left font-medium">聯絡方式</th>
+								<th className="w-20 sm:w-auto px-3 py-2 text-center font-semibold">金額</th>
+								<th className="w-24 sm:w-auto px-3 py-2 text-center font-medium">簽到</th>
+								<th className="w-24 sm:w-auto px-3 py-2 text-center font-medium">繳費</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
@@ -445,8 +448,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 								
 								return (
 									<tr key={registration.id}>
-										<td className="px-4 py-3 font-medium">{displayName}</td>
-										<td className="px-4 py-3">
+										<td className="px-3 py-2 font-medium">{displayName}</td>
+										<td className="px-3 py-2">
 											<span className={`px-2 py-1 rounded text-xs ${
 												registration.role === 'MEMBER' 
 													? 'bg-blue-100 text-blue-700' 
@@ -455,18 +458,18 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												{registration.role === 'MEMBER' ? '成員' : '來賓'}
 											</span>
 										</td>
-										<td className="px-4 py-3 text-gray-600">
-											<div>{registration.companyName || '-'}</div>
-											<div className="text-xs">{registration.industry || ''}</div>
+										<td className="px-3 py-2 text-gray-500">
+											<div className="truncate">{registration.companyName || '-'}</div>
+											<div className="text-xs truncate">{registration.industry || ''}</div>
 										</td>
-										<td className="px-4 py-3 text-gray-600">
-											<div>{registration.phone || '-'}</div>
+										<td className="px-3 py-2 text-gray-500">
+											<div className="truncate">{registration.phone || '-'}</div>
 											<div className="text-xs">{registration.user?.name ? '會員' : '來賓'}</div>
 										</td>
-										<td className="px-4 py-3 text-center font-medium">
+										<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
 											NT$ {price}
 										</td>
-										<td className="px-4 py-3 text-center">
+										<td className="px-3 py-2 text-center">
 											{registration.checkedInAt ? (
 												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
 													已簽到
@@ -484,7 +487,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												</span>
 											)}
 										</td>
-										<td className="px-4 py-3 text-center">
+										<td className="px-3 py-2 text-center">
 											{(() => {
 												const paymentStatus = getPaymentStatus(registration)
 												
@@ -546,21 +549,21 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							{/* 講師 */}
 							{speakers.map(speaker => (
 								<tr key={`speaker-${speaker.id}`}>
-									<td className="px-4 py-3 font-medium">{speaker.name}</td>
-									<td className="px-4 py-3">
+									<td className="px-3 py-2 font-medium">{speaker.name}</td>
+									<td className="px-3 py-2">
 										<span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
 											講師
 										</span>
 									</td>
-									<td className="px-4 py-3 text-gray-600">
-										<div>{speaker.companyName || '-'}</div>
-										<div className="text-xs">{speaker.industry || ''}</div>
+									<td className="px-3 py-2 text-gray-500">
+										<div className="truncate">{speaker.companyName || '-'}</div>
+										<div className="text-xs truncate">{speaker.industry || ''}</div>
 									</td>
-									<td className="px-4 py-3 text-gray-600">
-										<div>{speaker.phone || '-'}</div>
+									<td className="px-3 py-2 text-gray-500">
+										<div className="truncate">{speaker.phone || '-'}</div>
 										<div className="text-xs">講師</div>
 									</td>
-									<td className="px-4 py-3 text-center font-medium">
+									<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
 										NT$ {(() => {
 											const eventType = event?.type as EventType
 											if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
@@ -573,7 +576,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 											return 0
 										})()}
 									</td>
-									<td className="px-4 py-3 text-center">
+									<td className="px-3 py-2 text-center">
 										{speaker.checkedInAt ? (
 											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
 												已簽到
@@ -591,7 +594,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 											</span>
 										)}
 									</td>
-									<td className="px-4 py-3 text-center">
+									<td className="px-3 py-2 text-center">
 										{speaker.paymentStatus === 'PAID' ? (
 											canPayment ? (
 												<form action={markSpeakerUnpaid} className="inline">

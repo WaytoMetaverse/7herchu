@@ -56,7 +56,7 @@ export default async function CardsManagePage({ searchParams }: { searchParams: 
             {isAdmin ? (
               <form action={remove}>
                 <input type="hidden" name="id" value={c.id} />
-                <Button type="submit" variant="outline" size="sm" className="text-red-600">刪除</Button>
+                <Button type="submit" variant="outline" size="sm" className="text-red-600 whitespace-nowrap">刪除</Button>
               </form>
             ) : (
               <div className="w-[64px]" />

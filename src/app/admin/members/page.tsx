@@ -302,7 +302,7 @@ export default async function MembersManagePage({
 			</div>
 
 			{/* 繳費訊息產生器 */}
-			<div className="bg-blue-50 p-4 rounded-lg">
+			<div className="bg-blue-50 p-4 rounded-lg text-xs sm:text-sm">
 				<div className="flex items-center justify-between mb-2">
 					<h2 className="font-medium">繳費訊息<br className="sm:hidden" />（固定成員）</h2>
 					{/* 月份選擇器 */}
@@ -317,7 +317,7 @@ export default async function MembersManagePage({
 			</div>
 
 			{/* 成員列表 */}
-			<div className="bg-white rounded-lg border overflow-hidden">
+			<div className="bg-white rounded-lg border overflow-hidden text-xs sm:text-sm">
 				<div className="overflow-x-auto">
 					<table className="w-full text-xs sm:text-sm min-w-max">
 						<thead className="bg-gray-50">

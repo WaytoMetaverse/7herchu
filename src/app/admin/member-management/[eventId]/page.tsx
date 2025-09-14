@@ -118,19 +118,19 @@ export default async function MemberManagementPage({ params }: { params: Promise
 				</Button>
 			</div>
 
-			{/* 統計資訊 */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div className="bg-blue-50 p-4 rounded-lg">
-					<div className="text-2xl font-bold text-blue-600">{registeredMembers.length}</div>
-					<div className="text-sm text-blue-700">已報名成員</div>
+			{/* 統計資訊：同一行呈現 */}
+			<div className="grid grid-cols-3 gap-2 text-xs sm:text-sm">
+				<div className="bg-blue-50 p-3 rounded">
+					<div className="text-blue-600">已報名</div>
+					<div className="text-lg font-semibold text-blue-700">{registeredMembers.length}</div>
 				</div>
-				<div className="bg-yellow-50 p-4 rounded-lg">
-					<div className="text-2xl font-bold text-yellow-600">{leftMembers.length}</div>
-					<div className="text-sm text-yellow-700">請假成員</div>
+				<div className="bg-yellow-50 p-3 rounded">
+					<div className="text-yellow-600">請假</div>
+					<div className="text-lg font-semibold text-yellow-700">{leftMembers.length}</div>
 				</div>
-				<div className="bg-gray-50 p-4 rounded-lg">
-					<div className="text-2xl font-bold text-gray-600">{registrations.length}</div>
-					<div className="text-sm text-gray-700">總成員數</div>
+				<div className="bg-gray-50 p-3 rounded">
+					<div className="text-gray-600">總成員</div>
+					<div className="text-lg font-semibold text-gray-700">{registrations.length}</div>
 				</div>
 			</div>
 
@@ -168,15 +168,15 @@ export default async function MemberManagementPage({ params }: { params: Promise
 								}
 
 								return (
-									<div key={reg.id} className="flex items-center justify-between p-3 border rounded-lg">
+									<div key={reg.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg">
 										<div className="flex-1">
-											<div className="font-medium">
+											<div className="font-medium text-sm sm:text-base">
 												{getDisplayName(reg.user) || reg.name || '-'}{mealInfo}
 											</div>
-											<div className="text-sm text-gray-600">
+											<div className="text-xs sm:text-sm text-gray-600">
 												{reg.user?.email} · {reg.phone}
 											</div>
-											<div className="text-xs text-gray-500">
+											<div className="text-[10px] sm:text-xs text-gray-500">
 												報名時間：{format(reg.createdAt, 'MM/dd HH:mm')}
 												{reg.checkedInAt && (
 													<span> · 簽到時間：{format(reg.checkedInAt, 'MM/dd HH:mm')}</span>
@@ -187,13 +187,13 @@ export default async function MemberManagementPage({ params }: { params: Promise
 											<form action={toggleRegistrationStatus}>
 												<input type="hidden" name="registrationId" value={reg.id} />
 												<input type="hidden" name="newStatus" value="LEAVE" />
-												<Button type="submit" variant="outline" size="sm">
+												<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap">
 													設為請假
 												</Button>
 											</form>
 											<form action={deleteRegistration}>
 												<input type="hidden" name="registrationId" value={reg.id} />
-												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700 whitespace-nowrap">
 													刪除
 												</Button>
 											</form>

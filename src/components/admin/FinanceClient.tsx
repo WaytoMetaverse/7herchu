@@ -49,7 +49,7 @@ export default function FinanceClient({
 				</div>
 			)}
 			<div className="overflow-x-auto">
-				<table className="w-full text-sm">
+				<table className="w-full text-xs sm:text-sm">
 					<thead className="bg-gray-50">
 						<tr>
 							<th className="px-4 py-3 text-left font-medium">日期</th>

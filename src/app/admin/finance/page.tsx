@@ -130,6 +130,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-semibold truncate">財務管理</h1>
+				<Button as={Link} href="/group" variant="outline" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
 			{/* 按鈕區 */}

@@ -58,7 +58,7 @@ export default async function MemberListPage() {
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-semibold">成員管理</h1>
-				<Button as={Link} href="/group" variant="ghost">返回小組管理</Button>
+				<Button as={Link} href="/group" variant="outline">返回小組管理</Button>
 			</div>
 
 			{/* 描述 */}

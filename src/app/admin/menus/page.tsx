@@ -120,7 +120,7 @@ export default async function MenuManagePage() {
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-semibold truncate">活動餐點管理</h1>
-				<Button as={Link} href="/group" variant="ghost" className="whitespace-nowrap">返回小組管理</Button>
+				<Button as={Link} href="/group" variant="outline" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
 			<p className="text-gray-600 line-clamp-2">管理所有活動的餐點設定，Ai機器人輔助判斷餐點。</p>

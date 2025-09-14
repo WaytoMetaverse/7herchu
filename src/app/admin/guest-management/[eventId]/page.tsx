@@ -87,17 +87,15 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 				</Button>
 			</div>
 
-			{/* 統計資訊 */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div className="bg-green-50 p-4 rounded-lg">
-					<div className="text-2xl font-bold text-green-600">{guests.length}</div>
-					<div className="text-sm text-green-700">來賓總數</div>
+			{/* 統計資訊：同一行呈現 */}
+			<div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+				<div className="bg-green-50 p-3 rounded">
+					<div className="text-green-600">來賓總數</div>
+					<div className="text-lg font-semibold text-green-700">{guests.length}</div>
 				</div>
-				<div className="bg-blue-50 p-4 rounded-lg">
-					<div className="text-2xl font-bold text-blue-600">
-						{guests.filter(g => g.checkedInAt != null).length}
-					</div>
-					<div className="text-sm text-blue-700">已簽到來賓</div>
+				<div className="bg-blue-50 p-3 rounded">
+					<div className="text-blue-600">已簽到</div>
+					<div className="text-lg font-semibold text-blue-700">{guests.filter(g => g.checkedInAt != null).length}</div>
 				</div>
 			</div>
 
@@ -135,15 +133,15 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 								}
 
 								return (
-									<div key={guest.id} className="flex items-center justify-between p-3 border rounded-lg">
+									<div key={guest.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg">
 										<div className="flex-1">
-											<div className="font-medium">
+											<div className="font-medium text-sm sm:text-base">
 												{[guest.name, guest.companyName, guest.industry, guest.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
 											</div>
-											<div className="text-sm text-gray-600">
+											<div className="text-xs sm:text-sm text-gray-600">
 												手機：{guest.phone} · 邀請人：{guest.invitedBy}
 											</div>
-											<div className="text-xs text-gray-500">
+											<div className="text-[10px] sm:text-xs text-gray-500">
 												報名時間：{format(guest.createdAt, 'MM/dd HH:mm')}
 												{guest.checkedInAt && (
 													<span> · 簽到時間：{format(guest.checkedInAt, 'MM/dd HH:mm')}</span>
@@ -153,7 +151,7 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 										<div className="flex items-center gap-2">
 											<form action={deleteGuest}>
 												<input type="hidden" name="registrationId" value={guest.id} />
-												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700 whitespace-nowrap">
 													刪除
 												</Button>
 											</form>
