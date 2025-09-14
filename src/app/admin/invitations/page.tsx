@@ -226,6 +226,7 @@ export default async function InvitationsPage() {
 									</div>
 								</div>
 							</div>
+						</div>
 					)
 				})}
 			</div>
