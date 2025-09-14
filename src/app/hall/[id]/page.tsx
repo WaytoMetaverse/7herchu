@@ -11,7 +11,7 @@ import { Role } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import ConfirmDelete from '@/components/ConfirmDelete'
-import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
+import { Calendar as CalendarIcon, MapPin, Ticket } from 'lucide-react'
 import { getDisplayName } from '@/lib/displayName'
 import SharePopover from './SharePopover'
 
@@ -184,6 +184,35 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const guestNames = guests.map(r => r.name || '-').slice(0, 30)
 	const speakerNames = speakers.map(s => s.name).slice(0, 30)
 
+	// 顯示費用資訊（僅在有設定金額時顯示）
+	const formatCents = (v?: number | null) => {
+		if (v == null || v <= 0) return ''
+		const amt = v / 100
+		const formatted = Number(amt).toLocaleString('zh-TW')
+		return `${formatted} 元`
+	}
+	const priceParts: string[] = []
+	// 一般活動類型：使用 defaultPriceCents / guestPriceCents
+	if (event.type === 'GENERAL' || event.type === 'JOINT' || event.type === 'CLOSED' || event.type === 'DINNER' || event.type === 'SOFT' || event.type === 'VISIT') {
+		const member = formatCents(event.defaultPriceCents)
+		const guest = formatCents(event.guestPriceCents)
+		if (member) priceParts.push(`成員 ${member}`)
+		if (guest) priceParts.push(`來賓 ${guest}`)
+	}
+	// BOD 類型：支援 bod 專屬金額
+	if (event.type === 'BOD') {
+		const bodMember = formatCents(event.bodMemberPriceCents)
+		const bodGuest = formatCents(event.bodGuestPriceCents)
+		if (bodMember) priceParts.push(`成員 ${bodMember}`)
+		if (bodGuest) priceParts.push(`來賓 ${bodGuest}`)
+		// 若同時有一般欄位也一併顯示
+		const member = formatCents(event.defaultPriceCents)
+		const guest = formatCents(event.guestPriceCents)
+		if (!bodMember && member) priceParts.push(`成員 ${member}`)
+		if (!bodGuest && guest) priceParts.push(`來賓 ${guest}`)
+	}
+	const priceLabel = priceParts.join(' · ')
+
 	async function deleteEvent(formData: FormData) {
 		'use server'
 		const eventId = String(formData.get('id'))
@@ -272,6 +301,17 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						// 採用與 LINE 推播一致的日期/時間格式（伺服端產生，避免時區誤差）
 						const eventDateLabel = format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
 						const eventTimeLabel = `${format(event.startAt, 'HH:mm', { locale: zhTW })}-${format(event.endAt, 'HH:mm', { locale: zhTW })}`
+						// 來賓費用：GENERAL/JOINT 固定 250；其他依 event.guestPriceCents
+						const guestPriceLabel = (() => {
+							if (event.type === 'GENERAL' || event.type === 'JOINT') return '來賓 250 元'
+							const cents = event.guestPriceCents
+							if (cents && cents > 0) {
+								const amt = (cents / 100).toLocaleString('zh-TW')
+								return `來賓 ${amt} 元`
+							}
+							return ''
+						})()
+						if (event.type === 'CLOSED') return null
 						return (
 							<SharePopover 
 								event={event}
@@ -279,6 +319,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								invitationCardUrl={invitationCardUrl}
 								eventDateLabel={eventDateLabel}
 								eventTimeLabel={eventTimeLabel}
+								guestPriceLabel={guestPriceLabel}
 							/>
 						)
 					})()}
@@ -314,6 +355,12 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 			<div className="space-y-2 text-sm text-gray-700">
 				<div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-500" />{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })} - {format(event.endAt, 'HH:mm', { locale: zhTW })}</div>
+				{priceLabel && (
+					<div className="flex items-center gap-2 text-gray-800">
+						<Ticket className="w-4 h-4 text-gray-500" />
+						<span>費用：{priceLabel}</span>
+					</div>
+				)}
 				<div className="flex items-center gap-2"><MapPin className="w-4 h-4" />{event.location ?? '-'}</div>
 				<div>類別：{TYPE_LABEL[event.type as EventType]}</div>
 				<div className="flex items-center gap-3">

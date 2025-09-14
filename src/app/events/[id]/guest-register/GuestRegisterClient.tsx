@@ -27,6 +27,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		mealBHasBeef: boolean
 		mealBHasPork: boolean
 	} | null>(null)
+	const [guestPriceLabel, setGuestPriceLabel] = useState<string>('')
 	const [form, setForm] = useState({
 		name: '',
 		phone: '',
@@ -54,6 +55,17 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		]).then(([eventData, menuData]) => {
 			if (eventData?.data) setEvent(eventData.data)
 			if (menuData?.data) setMenu(menuData.data)
+			// 來賓費用：GENERAL/JOINT 固定 250；其他依設定
+			if (eventData?.data) {
+				const e = eventData.data as { type?: string; guestPriceCents?: number | null }
+				if (e.type === 'GENERAL' || e.type === 'JOINT') {
+					setGuestPriceLabel('來賓 250 元')
+				} else if (e.guestPriceCents && e.guestPriceCents > 0) {
+					setGuestPriceLabel(`來賓 ${(e.guestPriceCents / 100).toLocaleString('zh-TW')} 元`)
+				} else {
+					setGuestPriceLabel('')
+				}
+			}
 		}).catch(() => {
 			setErr('載入活動資訊失敗')
 		})
@@ -166,6 +178,9 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 					<div className="font-medium">{event.title}</div>
 					<div className="text-sm">{format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
 					<div className="text-sm">{event.location}</div>
+					{guestPriceLabel && (
+						<div className="text-sm text-gray-800">費用：{guestPriceLabel}</div>
+					)}
 				</div>
 			</div>
 

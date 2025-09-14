@@ -24,11 +24,8 @@ export default async function MembersManagePage({
 	const sp = searchParams ? await searchParams : undefined
 	const selectedMonth = sp?.month || new Date().toISOString().slice(0, 7)
 
-	// 取得所有成員及其類型
+	// 取得所有已註冊使用者（不論是否有報名/是否已有 memberProfile）
 	const members = await prisma.user.findMany({
-		where: {
-			memberProfile: { isNot: null }
-		},
 		include: {
 			memberProfile: true,
 			monthlyPayments: {

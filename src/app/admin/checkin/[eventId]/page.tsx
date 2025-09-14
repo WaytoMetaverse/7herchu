@@ -51,27 +51,20 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	// 計算活動價格
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
-		if (!event) return 0
-
-		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			if (registration.userId) {
-				// 登入用戶：講師 250，成員（單次）220（固定成員以月費邏輯處理，不在此顯示金額）
-				return registration.role === 'SPEAKER' ? 250 : 220
-			} else {
-				return 250 // 來賓價格
+			if (registration.userId && registration.user?.memberProfile?.memberType === 'FIXED') {
+				return 0
 			}
+			return registration.role === 'GUEST' ? 250 : 250
 		}
-
-		// 變動價格活動（BOD/餐敘/軟性活動）
 		if (eventType === 'BOD') {
-			return registration.userId ? (event.bodMemberPriceCents || 0) / 100 : (event.bodGuestPriceCents || 0) / 100
+			return registration.role === 'GUEST' 
+				? (event.bodGuestPriceCents || 0) / 100 
+				: (event.bodMemberPriceCents || 0) / 100
 		}
-
 		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-			return registration.userId ? (event.defaultPriceCents || 0) / 100 : (event.guestPriceCents || 0) / 100
+			return (event.defaultPriceCents || 0) / 100
 		}
-
 		return 0
 	}
 
@@ -391,9 +384,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-semibold">簽到管理</h1>
-					<p className="text-gray-600">{event.title} · {format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</p>
+					<div className="text-gray-600">
+						<div className="font-medium">{event.title}</div>
+						<div className="text-sm">{format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })}</div>
+						<div className="text-sm">{format(event.startAt, 'HH:mm', { locale: zhTW })} - {format(event.endAt, 'HH:mm', { locale: zhTW })}</div>
+					</div>
 				</div>
-				<Button as={Link} href={`/hall/${eventId}`} variant="outline">返回活動</Button>
+				<Button as={Link} href={`/hall/${eventId}`} variant="outline">返回</Button>
 			</div>
 
 			{/* 統計卡片 */}
@@ -434,7 +431,17 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							{/* 成員和來賓 */}
 							{registrations.map(registration => {
 								const price = getPrice(registration)
-								const displayName = registration.user?.name || registration.name || '未命名'
+								const displayName = (() => {
+									if (registration.role === 'MEMBER') {
+										const nick = (registration.user as { nickname?: string } | null | undefined)?.nickname?.trim()
+										if (nick) return nick
+										const nm = (registration.user?.name || registration.name || '').trim()
+										if (!nm) return '未命名'
+										return nm.length >= 2 ? nm.slice(-2) : nm
+									}
+									// 來賓與其他角色：直接用姓名欄位
+									return (registration.name || '').trim() || '未命名'
+								})()
 								
 								return (
 									<tr key={registration.id}>
@@ -444,7 +451,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												registration.role === 'MEMBER' 
 													? 'bg-blue-100 text-blue-700' 
 													: 'bg-purple-100 text-purple-700'
-											}`}>
+											}` }>
 												{registration.role === 'MEMBER' ? '成員' : '來賓'}
 											</span>
 										</td>

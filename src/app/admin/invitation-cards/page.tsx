@@ -9,6 +9,8 @@ import { revalidatePath } from 'next/cache'
 export default async function InvitationCardsPage() {
 	const session = await getServerSession(authOptions)
 	if (!session?.user) redirect('/auth/signin')
+	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+	const isAdmin = roles.includes('admin')
 
 	// 取得組織設定中的邀請卡
 	const orgSettings = await prisma.orgSettings.findFirst()
@@ -161,34 +163,38 @@ export default async function InvitationCardsPage() {
 										alt={card.title}
 										className="w-full rounded-lg border shadow-sm"
 									/>
-									<form action={deleteInvitationCard} className="text-center">
-										<input type="hidden" name="cardType" value={card.type} />
-										<Button 
-											type="submit" 
-											variant="outline" 
-											size="sm"
-											className="text-red-600 hover:text-red-700"
-										>
-											刪除邀請卡
-										</Button>
-									</form>
+									{isAdmin ? (
+										<form action={deleteInvitationCard} className="text-center">
+											<input type="hidden" name="cardType" value={card.type} />
+											<Button 
+												type="submit" 
+												variant="outline" 
+												size="sm"
+												className="text-red-600 hover:text-red-700"
+											>
+												刪除邀請卡
+											</Button>
+										</form>
+									) : null}
 								</div>
 							) : (
 								<div className="text-center py-8 text-gray-400">
 									<div className="mb-2">尚未上傳</div>
-									<form action={uploadInvitationCard} className="space-y-3">
-										<input type="hidden" name="cardType" value={card.type} />
-										<input 
-											type="file" 
-											name="file" 
-											accept="image/*" 
-											required
-											className="w-full text-sm"
-										/>
-										<Button type="submit" variant="primary" size="sm">
-											上傳圖片
-										</Button>
-									</form>
+									{isAdmin ? (
+										<form action={uploadInvitationCard} className="space-y-3">
+											<input type="hidden" name="cardType" value={card.type} />
+											<input 
+												type="file" 
+												name="file" 
+												accept="image/*" 
+												required
+												className="w-full text-sm"
+											/>
+											<Button type="submit" variant="primary" size="sm">
+												上傳圖片
+											</Button>
+										</form>
+									) : null}
 								</div>
 							)}
 						</div>

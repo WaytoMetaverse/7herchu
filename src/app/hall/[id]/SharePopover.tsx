@@ -14,9 +14,10 @@ interface SharePopoverProps {
 	invitationCardUrl: string | null
 	eventDateLabel: string
 	eventTimeLabel: string
+	guestPriceLabel?: string
 }
 
-export default function SharePopover({ event, invitationMessage, eventDateLabel, eventTimeLabel }: SharePopoverProps) {
+export default function SharePopover({ event, invitationMessage, eventDateLabel, eventTimeLabel, guestPriceLabel }: SharePopoverProps) {
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register`
 	
@@ -25,6 +26,7 @@ export default function SharePopover({ event, invitationMessage, eventDateLabel,
 日期 | ${eventDateLabel}
 時間 | ${eventTimeLabel}
 地點 | ${event.location || '地點詳見活動資訊'}
+${guestPriceLabel ? `\n費用 | ${guestPriceLabel}` : ''}
 
 報名連結: ${inviteUrl}`
 

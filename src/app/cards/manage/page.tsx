@@ -22,6 +22,10 @@ export default async function CardsManagePage({ searchParams }: { searchParams: 
 
   async function remove(formData: FormData) {
     'use server'
+    const session = await getServerSession(authOptions)
+    const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
+    const isAdmin = roles.includes('admin')
+    if (!isAdmin) return
     const id = String(formData.get('id'))
     if (!id) return
     await prisma.businessCard.update({ where: { id }, data: { deletedAt: new Date() } })
@@ -49,10 +53,14 @@ export default async function CardsManagePage({ searchParams }: { searchParams: 
               <div className="font-medium">{c.name} {c.company ? `· ${c.company}` : ''}</div>
               <div className="text-sm text-gray-600">{c.phone || '-'} {c.email ? `· ${c.email}` : ''}</div>
             </div>
-            <form action={remove}>
-              <input type="hidden" name="id" value={c.id} />
-              <Button type="submit" variant="outline" size="sm" className="text-red-600">刪除</Button>
-            </form>
+            {isAdmin ? (
+              <form action={remove}>
+                <input type="hidden" name="id" value={c.id} />
+                <Button type="submit" variant="outline" size="sm" className="text-red-600">刪除</Button>
+              </form>
+            ) : (
+              <div className="w-[64px]" />
+            )}
           </div>
         ))}
         {cards.length === 0 && (

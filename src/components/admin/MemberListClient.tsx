@@ -20,11 +20,13 @@ type Member = {
 export default function MemberListClient({ 
 	members, 
 	deactivateMember, 
-	activateMember 
+	activateMember,
+	canEdit = false,
 }: { 
 	members: Member[]
 	deactivateMember: (formData: FormData) => void
 	activateMember: (formData: FormData) => void
+	canEdit?: boolean
 }) {
 	const [editMode, setEditMode] = useState(false)
 
@@ -48,13 +50,17 @@ export default function MemberListClient({
 						<span className="text-gray-400">• 停用：{inactiveMembers.length} 人</span>
 					)}
 				</div>
-				<Button 
-					onClick={() => setEditMode(!editMode)}
-					variant={editMode ? 'danger' : 'outline'}
-					size="sm"
-				>
-					{editMode ? '取消編輯' : '編輯成員'}
-				</Button>
+				{canEdit ? (
+					<Button 
+						onClick={() => setEditMode(!editMode)}
+						variant={editMode ? 'danger' : 'outline'}
+						size="sm"
+					>
+						{editMode ? '取消編輯' : '編輯成員'}
+					</Button>
+				) : (
+					<div className="w-[96px]" />
+				)}
 			</div>
 
 			{/* 活躍成員 */}
@@ -122,7 +128,7 @@ export default function MemberListClient({
 									member.memberType === 'FIXED' 
 										? 'bg-blue-100 text-blue-700' 
 										: 'bg-gray-100 text-gray-700'
-								}`}>
+								}` }>
 									{member.memberType === 'FIXED' ? '固定成員' : '單次成員'}
 								</span>
 							</div>

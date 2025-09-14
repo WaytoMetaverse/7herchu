@@ -32,6 +32,7 @@ export default function SpeakerBookPage() {
     	const [eventDateLabel, setEventDateLabel] = useState<string>('')
     const [eventTitle, setEventTitle] = useState<string>('')
     const [eventLocation, setEventLocation] = useState<string>('')
+    const [guestPriceLabel, setGuestPriceLabel] = useState<string>('')
 	const [eventMenu, setEventMenu] = useState<{
 		hasMealService: boolean
 		mealCodeA?: string
@@ -116,12 +117,21 @@ export default function SpeakerBookPage() {
             }
             // 也從事件列表補上標題與地點
             if (Array.isArray(eventList)) {
-                const e = eventList.find((x): x is { id: string; title?: string; location?: string; startAt?: string | Date } => 
+                const e = eventList.find((x): x is { id: string; title?: string; location?: string; startAt?: string | Date; type?: string; guestPriceCents?: number | null } => 
                     typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
                 )
                 if (e) {
                     setEventTitle(e.title || '')
                     setEventLocation((e as { location?: string }).location || '')
+                    // 來賓費用：GENERAL/JOINT 固定 250；其他依設定
+                    if ((e as { type?: string }).type === 'GENERAL' || (e as { type?: string }).type === 'JOINT') {
+                        setGuestPriceLabel('來賓 250 元')
+                    } else if ((e as { guestPriceCents?: number | null }).guestPriceCents && (e as { guestPriceCents?: number | null }).guestPriceCents! > 0) {
+                        const amt = (((e as { guestPriceCents?: number | null }).guestPriceCents!) / 100).toLocaleString('zh-TW')
+                        setGuestPriceLabel(`來賓 ${amt} 元`)
+                    } else {
+                        setGuestPriceLabel('')
+                    }
                 }
             }
         }).catch(() => {
@@ -235,11 +245,12 @@ export default function SpeakerBookPage() {
 		<div className="max-w-lg mx-auto p-4 space-y-3">
 			<div className="text-center space-y-2">
 				<h1 className="text-2xl font-semibold">講師預約</h1>
-				{(eventTitle || eventDateLabel || eventLocation) && (
+				{(eventTitle || eventDateLabel || eventLocation || guestPriceLabel) && (
 					<div className="text-gray-600">
 						{eventTitle && <div className="font-medium">{eventTitle}</div>}
 						{eventDateLabel && <div className="text-sm">{eventDateLabel}</div>}
 						{eventLocation && <div className="text-sm">{eventLocation}</div>}
+						{guestPriceLabel && <div className="text-sm text-gray-800">費用：{guestPriceLabel}</div>}
 					</div>
 				)}
 			</div>

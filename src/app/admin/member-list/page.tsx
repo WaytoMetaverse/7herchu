@@ -66,10 +66,10 @@ export default async function MemberListPage() {
 				<p className="text-sm text-blue-800">管理組織成員的基本資料、啟用狀態，以及邀請新成員加入。</p>
 			</div>
 
-			{/* 按鈕區 */}
+			{/* 按鈕區（非 admin 不顯示，保持空白不調整版位） */}
 			<div className="flex items-center gap-3">
-				<Button as={Link} href="/admin/permissions" variant="outline">權限管理</Button>
-				<MemberInvitation />
+				{isAdmin ? <Button as={Link} href="/admin/permissions" variant="outline">權限管理</Button> : null}
+				{isAdmin ? <MemberInvitation /> : null}
 			</div>
 
 			{/* 成員列表 */}
@@ -89,6 +89,7 @@ export default async function MemberListPage() {
 				}))}
 				deactivateMember={deactivateMember}
 				activateMember={activateMember}
+				canEdit={isAdmin}
 			/>
 		</div>
 	)
