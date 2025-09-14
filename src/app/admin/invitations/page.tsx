@@ -148,85 +148,87 @@ export default async function InvitationsPage() {
 
 			{/* 邀請卡列表 */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				{cards.map((card) => (
-					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
-						{/* 標題區 */}
-						<div className={["p-4", colorStyles[card.color]?.bg, "border-b"].join(" ") }>
-							<h3 className={["font-medium", colorStyles[card.color]?.text].join(" ") }>{card.title}</h3>
-						</div>
-
-						{/* 內容區 */}
-						<div className="p-4 space-y-4">
-							{/* 邀請卡管理 */}
-							<div>
-								<h4 className="text-sm font-medium text-gray-700 mb-2">邀請卡</h4>
-								{card.imageUrl ? (
-									<div className="space-y-3">
-										{/* eslint-disable-next-line @next/next/no-img-element */}
-										<img 
-											src={card.imageUrl} 
-											alt={card.title}
-											className="w-full rounded-lg border shadow-sm"
-										/>
-										{isAdmin ? (
-											<form action={deleteInvitationCard} className="text-center">
-												<input type="hidden" name="cardType" value={card.type} />
-												<Button 
-													type="submit" 
-													variant="outline" 
-													size="sm"
-													className="text-red-600 hover:text-red-700"
-												>
-													刪除邀請卡
-												</Button>
-											</form>
-										) : (
-											<div className="h-8" />
-										)}
-									</div>
-								) : (
-									<div className="text-center py-4 text-gray-400 border-2 border-dashed rounded-lg">
-										<div className="mb-2">尚未上傳</div>
-										{isAdmin ? (
-											<InvitationUpload 
-												cardType={card.type}
-											/>
-										) : null}
-									</div>
-								)}
+				{cards.map((card) => {
+					return (
+						<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
+							{/* 標題區 */}
+							<div className={["p-4", colorStyles[card.color]?.bg, "border-b"].join(" ") }>
+								<h3 className={["font-medium", colorStyles[card.color]?.text].join(" ") }>{card.title}</h3>
 							</div>
 
-							{/* 邀請訊息編輯 */}
-							<div className="border-t pt-4">
-								<h4 className="text-sm font-medium text-gray-700 mb-2">邀請訊息</h4>
-								{isAdmin ? (
-									<MessageEditor 
-										messageType={card.type}
-										defaultMessage={card.message}
-										updateAction={updateInvitationMessage}
-									/>
-								) : null}
-								<div className="mt-2 text-xs text-gray-500">
-									<div>訊息會自動加上活動資訊：</div>
-									<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
-										{card.type === 'speaker' ? (
-											<>
-												<div>預約連結: /calendar</div>
-											</>
-										) : (
-											<>
-												<div>日期 | 2025/09/04（四）</div>
-												<div>時間 | 18:30</div>
-												<div>地點 | 富興工廠2F</div>
-												<div>報名連結: ...</div>
-											</>
-										)}
+							{/* 內容區 */}
+							<div className="p-4 space-y-4">
+								{/* 邀請卡管理 */}
+								<div>
+									<h4 className="text-sm font-medium text-gray-700 mb-2">邀請卡</h4>
+									{card.imageUrl ? (
+										<div className="space-y-3">
+											{/* eslint-disable-next-line @next/next/no-img-element */}
+											<img 
+												src={card.imageUrl} 
+												alt={card.title}
+												className="w-full rounded-lg border shadow-sm"
+											/>
+											{isAdmin ? (
+												<form action={deleteInvitationCard} className="text-center">
+													<input type="hidden" name="cardType" value={card.type} />
+													<Button 
+														type="submit" 
+														variant="outline" 
+														size="sm"
+														className="text-red-600 hover:text-red-700"
+													>
+														刪除邀請卡
+													</Button>
+												</form>
+											) : (
+												<div className="h-8" />
+											)}
+										</div>
+									) : (
+										<div className="text-center py-4 text-gray-400 border-2 border-dashed rounded-lg">
+											<div className="mb-2">尚未上傳</div>
+											{isAdmin ? (
+													<InvitationUpload 
+														cardType={card.type}
+													/>
+												) : null}
+										</div>
+									)}
+								</div>
+
+								{/* 邀請訊息編輯 */}
+								<div className="border-t pt-4">
+									<h4 className="text-sm font-medium text-gray-700 mb-2">邀請訊息</h4>
+									{isAdmin ? (
+										<MessageEditor 
+											messageType={card.type}
+											defaultMessage={card.message}
+											updateAction={updateInvitationMessage}
+										/>
+									) : null}
+									<div className="mt-2 text-xs text-gray-500">
+										<div>訊息會自動加上活動資訊：</div>
+										<div className="font-mono mt-1 p-2 bg-gray-50 rounded">
+											{card.type === 'speaker' ? (
+												<div>
+													<div>預約連結: /calendar</div>
+												</div>
+											) : (
+												<div>
+													<div>日期 | 2025/09/04（四）</div>
+													<div>時間 | 18:30</div>
+													<div>地點 | 富興工廠2F</div>
+													<div>報名連結: ...</div>
+												</div>
+											)}
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					))}
-				</div>
+					)
+				})}
 			</div>
+		</div>
 	)
 }
