@@ -59,11 +59,11 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 		if (eventType === 'BOD') {
 			return registration.role === 'GUEST' 
-				? (event.bodGuestPriceCents || 0) / 100 
-				: (event.bodMemberPriceCents || 0) / 100
+				? ((event?.bodGuestPriceCents ?? 0) / 100) 
+				: ((event?.bodMemberPriceCents ?? 0) / 100)
 		}
 		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-			return (event.defaultPriceCents || 0) / 100
+			return (event?.defaultPriceCents ?? 0) / 100
 		}
 		return 0
 	}
