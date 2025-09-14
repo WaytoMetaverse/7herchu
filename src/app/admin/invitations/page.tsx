@@ -130,6 +130,15 @@ export default async function InvitationsPage() {
 		}
 	]
 
+	const colorStyles: Record<string, { bg: string; text: string }> = {
+		teal: { bg: 'bg-teal-50', text: 'text-teal-900' },
+		blue: { bg: 'bg-blue-50', text: 'text-blue-900' },
+		green: { bg: 'bg-green-50', text: 'text-green-900' },
+		purple: { bg: 'bg-purple-50', text: 'text-purple-900' },
+		orange: { bg: 'bg-orange-50', text: 'text-orange-900' },
+		amber: { bg: 'bg-amber-50', text: 'text-amber-900' },
+	}
+
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
@@ -142,8 +151,8 @@ export default async function InvitationsPage() {
 				{cards.map((card) => (
 					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
 						{/* 標題區 */}
-						<div className={`p-4 bg-${card.color}-50 border-b`}>
-							<h3 className={`font-medium text-${card.color}-900`}>{card.title}</h3>
+						<div className={`p-4 ${colorStyles[card.color]?.bg} border-b`}>
+							<h3 className={`font-medium ${colorStyles[card.color]?.text}`}>{card.title}</h3>
 						</div>
 
 						{/* 內容區 */}
