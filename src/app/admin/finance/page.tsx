@@ -167,16 +167,16 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 					<div>
 						<div className="text-gray-600">收入</div>
-						<div className="text-lg font-semibold text-green-600">NT$ {(totalIncome / 100).toLocaleString()}</div>
+						<div className="text-lg font-semibold text-green-600">{(totalIncome / 100).toLocaleString()}</div>
 					</div>
 					<div>
 						<div className="text-gray-600">支出</div>
-						<div className="text-lg font-semibold text-red-600">NT$ {(totalExpense / 100).toLocaleString()}</div>
+						<div className="text-lg font-semibold text-red-600">{(totalExpense / 100).toLocaleString()}</div>
 					</div>
 					<div>
 						<div className="text-gray-600">累積餘額</div>
 						<div className={`text-lg font-semibold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-							NT$ {(balance / 100).toLocaleString()}
+							{(balance / 100).toLocaleString()}
 						</div>
 					</div>
 				</div>
@@ -186,15 +186,12 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			<FinanceClient 
 				transactions={txns.map(t => ({
 					id: t.id,
-					date: t.date.toISOString(),
+					date: new Date(t.date).toLocaleDateString('zh-TW'),
 					type: t.type,
 					amountCents: t.amountCents,
-					counterparty: t.counterparty,
-					note: t.note,
-					category: t.category
+					note: t.note || undefined,
+					categoryName: t.category?.name || ''
 				}))}
-				canManage={canManage}
-				deleteTxn={deleteTxn}
 			/>
 
 			{/* 新增交易表單 */}

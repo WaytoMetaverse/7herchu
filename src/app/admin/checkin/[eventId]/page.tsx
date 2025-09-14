@@ -421,7 +421,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 					<table className="w-full table-fixed text-xs sm:text-sm">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="w-24 sm:w-auto px-3 py-2 text-left font-medium">姓名</th>
+								<th className="w-24 sm:w-auto px-3 py-2 text-left font-medium sticky left-0 z-20 bg-gray-50">姓名</th>
 								<th className="w-16 sm:w-auto px-3 py-2 text-left font-medium">類型</th>
 								<th className="w-40 sm:w-auto px-3 py-2 text-left font-medium">公司/產業</th>
 								<th className="w-36 sm:w-auto px-3 py-2 text-left font-medium">聯絡方式</th>
@@ -448,7 +448,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 								
 								return (
 									<tr key={registration.id}>
-										<td className="px-3 py-2 font-medium">{displayName}</td>
+										<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{displayName}</td>
 										<td className="px-3 py-2">
 											<span className={`px-2 py-1 rounded text-xs ${
 												registration.role === 'MEMBER' 
@@ -540,107 +540,107 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 														</span>
 													)
 												}
-											})()}
-										</td>
-									</tr>
-								)
-							})}
-							
-							{/* 講師 */}
-							{speakers.map(speaker => (
-								<tr key={`speaker-${speaker.id}`}>
-									<td className="px-3 py-2 font-medium">{speaker.name}</td>
-									<td className="px-3 py-2">
-										<span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
-											講師
-										</span>
-									</td>
-									<td className="px-3 py-2 text-gray-500">
-										<div className="truncate">{speaker.companyName || '-'}</div>
-										<div className="text-xs truncate">{speaker.industry || ''}</div>
-									</td>
-									<td className="px-3 py-2 text-gray-500">
-										<div className="truncate">{speaker.phone || '-'}</div>
-										<div className="text-xs">講師</div>
-									</td>
-									<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
-										NT$ {(() => {
-											const eventType = event?.type as EventType
-											if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-												return 250 // 講師固定價格
-											} else if (eventType === 'BOD') {
-												return (event?.bodMemberPriceCents || 0) / 100
-											} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-												return (event?.defaultPriceCents || 0) / 100
-											}
-											return 0
 										})()}
 									</td>
-									<td className="px-3 py-2 text-center">
-										{speaker.checkedInAt ? (
-											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-												已簽到
-											</span>
-										) : canCheckin ? (
-											<form action={checkInSpeaker} className="inline">
-												<input type="hidden" name="speakerId" value={speaker.id} />
-												<Button type="submit" variant="outline" size="sm">
-													未簽到
-												</Button>
-											</form>
-										) : (
-											<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+								</tr>
+							)
+						})}
+						
+						{/* 講師 */}
+						{speakers.map(speaker => (
+							<tr key={`speaker-${speaker.id}`}>
+								<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{speaker.name}</td>
+								<td className="px-3 py-2">
+									<span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+										講師
+									</span>
+								</td>
+								<td className="px-3 py-2 text-gray-500">
+									<div className="truncate">{speaker.companyName || '-'}</div>
+									<div className="text-xs truncate">{speaker.industry || ''}</div>
+								</td>
+								<td className="px-3 py-2 text-gray-500">
+									<div className="truncate">{speaker.phone || '-'}</div>
+									<div className="text-xs">講師</div>
+								</td>
+								<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
+									NT$ {(() => {
+										const eventType = event?.type as EventType
+										if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
+											return 250 // 講師固定價格
+										} else if (eventType === 'BOD') {
+											return (event?.bodMemberPriceCents || 0) / 100
+										} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
+											return (event?.defaultPriceCents || 0) / 100
+										}
+										return 0
+									})()}
+								</td>
+								<td className="px-3 py-2 text-center">
+									{speaker.checkedInAt ? (
+										<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+											已簽到
+										</span>
+									) : canCheckin ? (
+										<form action={checkInSpeaker} className="inline">
+											<input type="hidden" name="speakerId" value={speaker.id} />
+											<Button type="submit" variant="outline" size="sm">
 												未簽到
-											</span>
-										)}
-									</td>
-									<td className="px-3 py-2 text-center">
-										{speaker.paymentStatus === 'PAID' ? (
-											canPayment ? (
-												<form action={markSpeakerUnpaid} className="inline">
-													<input type="hidden" name="speakerId" value={speaker.id} />
-													<Button 
-														type="submit" 
-														variant="secondary" 
-														size="sm"
-														className="bg-green-100 text-green-700 hover:bg-green-200"
-													>
-														已繳費
-													</Button>
-												</form>
-											) : (
-												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-													已繳費
-												</span>
-											)
-										) : canPayment ? (
-											<form action={markSpeakerPaid} className="inline">
+											</Button>
+										</form>
+									) : (
+										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+											未簽到
+										</span>
+									)}
+								</td>
+								<td className="px-3 py-2 text-center">
+									{speaker.paymentStatus === 'PAID' ? (
+										canPayment ? (
+											<form action={markSpeakerUnpaid} className="inline">
 												<input type="hidden" name="speakerId" value={speaker.id} />
 												<Button 
 													type="submit" 
 													variant="secondary" 
 													size="sm"
-													className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+													className="bg-green-100 text-green-700 hover:bg-green-200"
 												>
-													未繳費
+													已繳費
 												</Button>
 											</form>
 										) : (
-											<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-												未繳費
+											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+												已繳費
 											</span>
-										)}
-									</td>
-								</tr>
-							))}
-							
-							{registrations.length === 0 && speakers.length === 0 && (
-								<tr>
-									<td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-										暫無報名記錄
-									</td>
-								</tr>
-							)}
+										)
+									) : canPayment ? (
+										<form action={markSpeakerPaid} className="inline">
+											<input type="hidden" name="speakerId" value={speaker.id} />
+											<Button 
+												type="submit" 
+												variant="secondary" 
+												size="sm"
+												className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+											>
+												未繳費
+											</Button>
+										</form>
+									) : (
+										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+											未繳費
+										</span>
+									)}
+								</td>
+							</tr>
+						))}
+						
+						{registrations.length === 0 && speakers.length === 0 && (
+							<tr>
+								<td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+									暫無報名記錄
+								</td>
+							</tr>
+						)}
 						</tbody>
 					</table>
 				</div>

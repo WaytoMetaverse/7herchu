@@ -1,49 +1,37 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { notFound } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
-export default function GuestSuccessPage({ params }: { params: Promise<{ id: string }> }) {
-	const [eventId, setEventId] = useState('')
-	const [event, setEvent] = useState<{
-		id: string
-		title: string
-		startAt: string
-		location: string
-		type: string
-		defaultPriceCents?: number
-		guestPriceCents?: number
-		bodGuestPriceCents?: number
-	} | null>(null)
-	const searchParams = useSearchParams()
-	const phone = searchParams.get('phone')
+export default async function GuestSuccessPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams?: Promise<{ phone?: string; updated?: string }> }) {
+	const { id: eventId } = await params
+	const sp = searchParams ? await searchParams : undefined
+	const phone = sp?.phone
 
-	// 解析 params
-	useEffect(() => {
-		params.then(p => setEventId(p.id))
-	}, [params])
+	const event = await prisma.event.findUnique({
+		where: { id: eventId },
+		select: {
+			id: true,
+			title: true,
+			startAt: true,
+			endAt: true,
+			location: true,
+			type: true,
+			defaultPriceCents: true,
+			guestPriceCents: true,
+			bodGuestPriceCents: true,
+		}
+	})
+	if (!event) notFound()
 
-	// 載入活動資訊
-	useEffect(() => {
-		if (!eventId) return
-		
-		fetch(`/api/events?id=${eventId}`)
-			.then(res => res.json())
-			.then(data => {
-				if (data?.data) setEvent(data.data)
-			})
-			.catch(() => {
-				// 錯誤處理
-			})
-	}, [eventId])
+	// 與「來賓邀請」一致：伺服端預先格式化避免時區跳動
+	const eventDateLabel = format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
+	const eventTimeLabel = `${format(event.startAt, 'HH:mm', { locale: zhTW })}-${format(event.endAt, 'HH:mm', { locale: zhTW })}`
 
-	// 計算來賓金額
-	const getGuestPrice = () => {
-		if (!event) return '-'
-		
+	// 計算來賓金額（沿用原規則與顯示）
+	function getGuestPrice(): string {
 		switch (event.type) {
 			case 'GENERAL':
 			case 'JOINT':
@@ -54,19 +42,10 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 			case 'DINNER':
 			case 'SOFT':
 			case 'VISIT':
-				return event.guestPriceCents ? `NT$ ${event.guestPriceCents / 100}` : 
-					   event.defaultPriceCents ? `NT$ ${event.defaultPriceCents / 100}` : '-'
+				return event.guestPriceCents ? `NT$ ${event.guestPriceCents / 100}` : (event.defaultPriceCents ? `NT$ ${event.defaultPriceCents / 100}` : '-')
 			default:
 				return '-'
 		}
-	}
-
-	if (!event) {
-		return (
-			<div className="max-w-lg mx-auto p-4 space-y-4">
-				<div className="text-center">載入中...</div>
-			</div>
-		)
 	}
 
 	return (
@@ -86,7 +65,7 @@ export default function GuestSuccessPage({ params }: { params: Promise<{ id: str
 				<h2 className="font-medium text-gray-900">活動資訊</h2>
 				<div className="text-sm text-gray-600 space-y-1">
 					<div>📅 {event.title}</div>
-					<div>🗓️ {format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
+					<div>🗓️ {eventDateLabel} {eventTimeLabel}</div>
 					<div>📍 {event.location}</div>
 					<div>💰 活動費用：{getGuestPrice()}</div>
 				</div>

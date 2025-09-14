@@ -143,7 +143,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 					{registeredMembers.length === 0 ? (
 						<div className="text-gray-500 text-center py-8">尚無成員報名</div>
 					) : (
-						<div className="space-y-3">
+						<div className="space-y-2.5">
 							{registeredMembers.map(reg => {
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
@@ -215,15 +215,15 @@ export default async function MemberManagementPage({ params }: { params: Promise
 					<div className="p-4">
 						<div className="space-y-3">
 							{leftMembers.map(reg => (
-								<div key={reg.id} className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50">
+								<div key={reg.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg bg-yellow-50">
 									<div className="flex-1">
-										<div className="font-medium">
+										<div className="font-medium text-sm sm:text-base">
 											{getDisplayName(reg.user) || reg.name || '-'}
 										</div>
-										<div className="text-sm text-gray-600">
+										<div className="text-xs sm:text-sm text-gray-600">
 											{reg.user?.email} · {reg.phone}
 										</div>
-										<div className="text-xs text-gray-500">
+										<div className="text-[10px] sm:text-xs text-gray-500">
 											請假時間：{format(reg.createdAt, 'MM/dd HH:mm')}
 										</div>
 									</div>
