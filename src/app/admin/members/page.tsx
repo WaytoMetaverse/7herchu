@@ -355,7 +355,7 @@ export default async function MembersManagePage({
 														<form action={markPaid} className="inline">
 															<input type="hidden" name="userId" value={member.id} />
 															<input type="hidden" name="month" value={month} />
-															<button type="submit" className="text-red-600 hover:text-red-800 text-xs whitespace-nowrap">未繳費</button>
+															<button type="submit" className="text-red-600 hover:text-red-800 text-xs">未繳費</button>
 														</form>
 													)}
 												</td>
@@ -461,10 +461,10 @@ export default async function MembersManagePage({
 															const currentPaidAmount = payment?.amount || 0
 															const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
 															return registrationCount - currentPaidCount
-														})()} className="w-8 text-[10px] px-1 py-0.5 border rounded text-center h-6" required />
+														})()} className="w-5 h-5 text-[9px] px-0.5 py-0 border rounded text-center" required />
 															<span className="text-xs">次</span>
 														</div>
-														<button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded whitespace-nowrap">繳費 $220/次</button>
+														<button type="submit" className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-1.5 py-0.5 rounded whitespace-nowrap">繳費 $220/次</button>
 													</form>
 													) : (
 														<div className="text-xs text-gray-400">無報名記錄</div>
