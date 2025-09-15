@@ -477,7 +477,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 											) : canCheckin ? (
 												<form action={checkIn} className="inline">
 													<input type="hidden" name="registrationId" value={registration.id} />
-													<Button type="submit" variant="outline" size="sm">
+													<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">
 														未簽到
 													</Button>
 												</form>
@@ -529,7 +529,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 																type="submit" 
 																variant="secondary" 
 																size="sm"
-																className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+																className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm"
 															>
 																{paymentStatus.text}
 															</Button>
@@ -540,8 +540,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 														</span>
 													)
 												}
-										})()}
-									</td>
+											})()}
+										</td>
 								</tr>
 							)
 						})}
@@ -584,7 +584,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 									) : canCheckin ? (
 										<form action={checkInSpeaker} className="inline">
 											<input type="hidden" name="speakerId" value={speaker.id} />
-											<Button type="submit" variant="outline" size="sm">
+											<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">
 												未簽到
 											</Button>
 										</form>
@@ -620,7 +620,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 												type="submit" 
 												variant="secondary" 
 												size="sm"
-												className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+												className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm"
 											>
 												未繳費
 											</Button>

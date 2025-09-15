@@ -132,7 +132,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 	return (
 		<div className="max-w-3xl mx-auto p-4 space-y-5">
 			<h1 className="text-2xl font-semibold">編輯活動</h1>
-			<form action={updateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<form action={updateEvent} className="grid grid-cols-2 gap-4">
 				<input type="hidden" name="id" defaultValue={e.id} />
 				<EventTypePricing
 					options={options}
@@ -149,7 +149,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						<DateWithWeekday name="date" defaultValue={dateStr} />
 					</div>
 				</label>
-				<label className="md:col-span-1">開始時間
+				<label className="col-span-1">開始時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="startTime" defaultValue={startTime} >
@@ -159,7 +159,7 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 						</select>
 					</div>
 				</label>
-				<label className="md:col-span-1">結束時間
+				<label className="col-span-1">結束時間
 					<div className="flex items-center gap-2">
 						<Clock className="w-4 h-4 text-gray-500" />
 						<select name="endTime" defaultValue={endTime} >
