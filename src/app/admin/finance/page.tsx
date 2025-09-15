@@ -7,12 +7,14 @@ import { authOptions } from '@/lib/auth'
 import Link from 'next/link'
 import FinanceClient from '@/components/admin/FinanceClient'
 
-export default async function FinancePage({ searchParams }: { searchParams?: Promise<{ month?: string; export?: string }> }) {
+export default async function FinancePage({ searchParams }: { searchParams?: Promise<{ month?: string; export?: string; delete?: string }> }) {
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('finance_manager')
 	const sp = searchParams ? await searchParams : undefined
 	const month = (sp?.month || new Date().toISOString().slice(0,7))
+	const deleteMode = sp?.delete === '1'
+	const showAddForm = false
 
 	const where: Prisma.FinanceTransactionWhereInput = {}
 	if (month) {
@@ -137,7 +139,11 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			<div className="flex items-center gap-3 flex-wrap">
 				{canManage && (
 					<>
-						<Button as={Link} href="#add-form" variant="primary" className="whitespace-nowrap">新增交易</Button>
+						{!deleteMode ? (
+							<Button as={Link} href={`/admin/finance?month=${month}&delete=1`} variant="outline" className="whitespace-nowrap text-red-600 border-red-300">刪除</Button>
+						) : (
+							<Button as={Link} href={`/admin/finance?month=${month}`} variant="primary" className="whitespace-nowrap">完成</Button>
+						)}
 						<Button as={Link} href="/admin/members" variant="outline" className="whitespace-nowrap">成員管理</Button>
 						<Button as={Link} href="/admin/activity-unpaid" variant="outline" className="whitespace-nowrap">活動未繳費</Button>
 					</>
@@ -193,10 +199,13 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					counterparty: t.counterparty || '-',
 					note: t.note || undefined,
 				}))}
+				canManage={canManage}
+				showDelete={deleteMode}
+				deleteAction={deleteTxn}
 			/>
 
-			{/* 新增交易表單 */}
-			{canManage && (
+			{/* 新增交易表單（暫時隱藏） */}
+			{canManage && showAddForm && (
 				<div id="add-form" className="bg-white rounded-lg border p-4">
 					<h2 className="font-medium mb-4">新增交易</h2>
 					<form action={createTxn} className="grid grid-cols-1 md:grid-cols-3 gap-4">

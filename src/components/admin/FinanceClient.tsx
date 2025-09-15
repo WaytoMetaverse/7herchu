@@ -11,7 +11,17 @@ type Txn = {
 	note?: string
 }
 
-export default function FinanceClient({ transactions }: { transactions: Txn[] }) {
+export default function FinanceClient({ 
+	transactions,
+	canManage,
+	showDelete,
+	deleteAction,
+}: { 
+	transactions: Txn[]
+	canManage?: boolean
+	showDelete?: boolean
+	deleteAction?: (formData: FormData) => Promise<{ success: boolean; error?: string }>
+}) {
 	return (
 		<div className="space-y-2">
 			{/* 標題列：與新增交易相同欄位順序 */}
@@ -22,6 +32,9 @@ export default function FinanceClient({ transactions }: { transactions: Txn[] })
 				<div className="col-span-2 sm:col-span-2">對象</div>
 				<div className="col-span-2 sm:col-span-2 text-right">金額（元）</div>
 				<div className="col-span-3 sm:col-span-2 sm:text-right">摘要</div>
+				{canManage && showDelete ? (
+					<div className="hidden sm:block text-right">操作</div>
+				) : null}
 			</div>
 
 			{transactions.map((txn) => (
@@ -44,6 +57,19 @@ export default function FinanceClient({ transactions }: { transactions: Txn[] })
 					<div className="col-span-3 sm:col-span-2 px-2 sm:text-right truncate text-gray-600">
 						{txn.note || '-'}
 					</div>
+					{/* 刪除操作（僅管理且刪除模式） */}
+					{canManage && showDelete && deleteAction ? (
+						<form action={deleteAction} className="col-span-12 sm:col-span-2 px-2 sm:text-right mt-1 sm:mt-0">
+							<input type="hidden" name="id" value={txn.id} />
+							<button
+								type="submit"
+								className="inline-flex items-center text-[11px] sm:text-xs text-red-600 hover:text-red-700 whitespace-nowrap"
+								onClick={(e) => { if (!confirm('確定刪除此交易？')) e.preventDefault() }}
+							>
+								刪除
+							</button>
+						</form>
+					) : null}
 				</div>
 			))}
 		</div>
