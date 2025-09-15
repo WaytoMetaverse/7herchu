@@ -134,16 +134,17 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 			<h1 className="text-2xl font-semibold">編輯活動</h1>
 			<form action={updateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<input type="hidden" name="id" defaultValue={e.id} />
-				<EventTypePricing
-					options={options}
-					initialType={e.type}
-					initialTitle={e.title}
-					initialGuestPrice={e.guestPriceCents ? e.guestPriceCents / 100 : null}
-					initialBodMemberPrice={e.bodMemberPriceCents ? e.bodMemberPriceCents / 100 : null}
-					initialBodGuestPrice={e.bodGuestPriceCents ? e.bodGuestPriceCents / 100 : null}
-					initialDefaultPrice={e.defaultPriceCents ? e.defaultPriceCents / 100 : null}
-					className="col-span-1 md:col-span-2"
-				/>
+				<div className="col-span-1 md:col-span-2">
+					<EventTypePricing
+						options={options}
+						initialType={e.type}
+						initialTitle={e.title}
+						initialGuestPrice={e.guestPriceCents ? e.guestPriceCents / 100 : null}
+						initialBodMemberPrice={e.bodMemberPriceCents ? e.bodMemberPriceCents / 100 : null}
+						initialBodGuestPrice={e.bodGuestPriceCents ? e.bodGuestPriceCents / 100 : null}
+						initialDefaultPrice={e.defaultPriceCents ? e.defaultPriceCents / 100 : null}
+					/>
+				</div>
 				<label className="col-span-2">日期
 					<div className="flex items-center gap-2">
 						<CalendarIcon className="w-4 h-4 text-gray-500" />
