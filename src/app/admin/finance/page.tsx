@@ -14,7 +14,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	const sp = searchParams ? await searchParams : undefined
 	const month = (sp?.month || new Date().toISOString().slice(0,7))
 	const deleteMode = sp?.delete === '1'
-	const showAddForm = false
+	const showAddForm = true
 
 	const where: Prisma.FinanceTransactionWhereInput = {}
 	if (month) {
@@ -193,6 +193,9 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					</div>
 				</div>
 			</div>
+
+			{/* 交易紀錄標題 */}
+			<h2 className="font-medium mb-4">交易紀錄</h2>
 
 			{/* 交易清單 */}
 			<FinanceClient 
