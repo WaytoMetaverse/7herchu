@@ -13,42 +13,25 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	const { eventId } = await params
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
-	// 所有人都可以進入簽到管理查看
-	// 但操作權限在頁面內控制
 	const canCheckin = roles.includes('admin') || roles.includes('event_manager') || roles.includes('checkin_manager') || roles.includes('finance_manager')
 	const canPayment = roles.includes('admin') || roles.includes('event_manager') || roles.includes('finance_manager')
 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) notFound()
 
-	// 獲取當月月份
-	const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+	const currentMonth = new Date().toISOString().slice(0, 7)
 
 	const [registrations, speakers] = await Promise.all([
 		prisma.registration.findMany({
-			where: { eventId, status: 'REGISTERED' },  // 只查詢已報名狀態
+			where: { eventId, status: 'REGISTERED' },
 			include: { 
-				user: { 
-					select: { 
-						name: true, 
-						nickname: true,
-						memberProfile: true,
-						monthlyPayments: {
-							where: { month: currentMonth },
-							select: { isPaid: true }
-						}
-					} 
-				} 
+				user: { select: { name: true, nickname: true, memberProfile: true, monthlyPayments: { where: { month: currentMonth }, select: { isPaid: true } } } }
 			},
 			orderBy: [{ role: 'asc' }, { createdAt: 'asc' }]
 		}),
-		prisma.speakerBooking.findMany({
-			where: { eventId },
-			orderBy: { createdAt: 'asc' }
-		})
+		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } })
 	])
 
-	// 計算活動價格
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
@@ -57,64 +40,59 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				if (registration.userId && isFixed) return 0
 				return 220
 			}
-			// 來賓
 			return 250
 		}
 		if (eventType === 'BOD') {
-			return registration.role === 'GUEST' 
-				? ((event?.bodGuestPriceCents ?? 0) / 100) 
-				: ((event?.bodMemberPriceCents ?? 0) / 100)
+			return registration.role === 'GUEST' ? ((event?.bodGuestPriceCents ?? 0) / 100) : ((event?.bodMemberPriceCents ?? 0) / 100)
 		}
-		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-			return (event?.defaultPriceCents ?? 0) / 100
-		}
+		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) return (event?.defaultPriceCents ?? 0) / 100
 		return 0
 	}
 
-	// 判斷繳費狀態和顯示邏輯
 	function getPaymentStatus(registration: typeof registrations[0]) {
 		const eventType = event?.type as EventType
 		const isFixedMember = registration.user?.memberProfile?.memberType === 'FIXED'
 		const monthlyPayment = registration.user?.monthlyPayments?.[0]
 		const isMonthlyPaid = monthlyPayment?.isPaid || false
-
-		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId && isFixedMember) {
-				// 固定成員
-				if (isMonthlyPaid) {
-					return { status: 'monthly_paid', text: '月費已繳', clickable: false }
-				} else {
-					return { status: 'monthly_unpaid', text: '月費未繳', clickable: false }
-				}
+				return { status: 'monthly_paid', text: '月費已繳', clickable: false }
 			} else {
-				// 單次成員、來賓、講師
-				return { 
-					status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', 
-					text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', 
-					clickable: true 
-				}
+				return { status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', clickable: true }
 			}
 		}
-
-		// 變動價格活動（BOD/餐敘/軟性活動/職業參訪）
-		return { 
-			status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', 
-			text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', 
-			clickable: true 
-		}
+		return { status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', clickable: true }
 	}
 
-	// 簽到
+	// 簽到 / 取消簽到
 	async function checkIn(formData: FormData) {
 		'use server'
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
+		await prisma.registration.update({ where: { id: registrationId }, data: { checkedInAt: new Date() } })
+		revalidatePath(`/admin/checkin/${eventId}`)
+	}
+	async function uncheckIn(formData: FormData) {
+		'use server'
+		const registrationId = String(formData.get('registrationId'))
+		if (!registrationId) return
+		await prisma.registration.update({ where: { id: registrationId }, data: { checkedInAt: null } })
+		revalidatePath(`/admin/checkin/${eventId}`)
+	}
 
-		await prisma.registration.update({
-			where: { id: registrationId },
-			data: { checkedInAt: new Date() }
-		})
+	// 講師簽到 / 取消簽到
+	async function checkInSpeaker(formData: FormData) {
+		'use server'
+		const speakerId = String(formData.get('speakerId'))
+		if (!speakerId) return
+		await prisma.speakerBooking.update({ where: { id: speakerId }, data: { checkedInAt: new Date() } })
+		revalidatePath(`/admin/checkin/${eventId}`)
+	}
+	async function uncheckInSpeaker(formData: FormData) {
+		'use server'
+		const speakerId = String(formData.get('speakerId'))
+		if (!speakerId) return
+		await prisma.speakerBooking.update({ where: { id: speakerId }, data: { checkedInAt: null } })
 		revalidatePath(`/admin/checkin/${eventId}`)
 	}
 
@@ -267,6 +245,29 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			}
 		})
 
+		// 同步「成員管理」月度單次繳費累計（若為單次成員且屬固定價格活動）
+		const eventType = registration.event?.type as EventType
+		if (
+			registration.role === 'MEMBER' &&
+			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
+			registration.user?.memberProfile?.memberType === 'SINGLE' &&
+			registration.userId
+		) {
+			// 該活動月份
+			const month = new Date(registration.event!.startAt).toISOString().slice(0,7)
+			// 單次成員固定價格 220 元
+			const deductCents = 220 * 100
+			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId, month } } })
+			if (existing) {
+				const newAmount = Math.max(0, (existing.amount || 0) - deductCents)
+				if (newAmount === 0) {
+					await prisma.memberMonthlyPayment.delete({ where: { userId_month: { userId: registration.userId, month } } })
+				} else {
+					await prisma.memberMonthlyPayment.update({ where: { userId_month: { userId: registration.userId, month } }, data: { amount: newAmount, paidAt: new Date() } })
+				}
+			}
+		}
+
 		revalidatePath(`/admin/checkin/${eventId}`)
 	}
 
@@ -364,20 +365,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		revalidatePath(`/admin/checkin/${eventId}`)
 	}
 
-	// 講師簽到
-	async function checkInSpeaker(formData: FormData) {
-		'use server'
-		const speakerId = String(formData.get('speakerId'))
-		if (!speakerId) return
-
-		await prisma.speakerBooking.update({
-			where: { id: speakerId },
-			data: { checkedInAt: new Date() }
-		})
-		revalidatePath(`/admin/checkin/${eventId}`)
-	}
-
-	// 統計資料
 	const totalCount = registrations.length + speakers.length
 	const checkedInCount = registrations.filter(r => r.checkedInAt).length + speakers.filter(s => s.checkedInAt).length
 	const unpaidCount = registrations.filter(r => r.paymentStatus === 'UNPAID').length + speakers.filter(s => s.paymentStatus === 'UNPAID').length
@@ -396,7 +383,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				<Button as={Link} href={`/hall/${eventId}`} variant="outline">返回</Button>
 			</div>
 
-			{/* 統計卡片 - 手機同一行排列 */}
 			<div className="grid grid-cols-3 gap-2 text-xs sm:text-sm">
 				<div className="bg-blue-50 p-3 rounded">
 					<div className="text-blue-600">總報名</div>
@@ -412,7 +398,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 				</div>
 			</div>
 
-			{/* 報名列表 */}
 			<div className="bg-white rounded-lg border">
 				<div className="p-4 border-b">
 					<h2 className="font-medium">報名列表</h2>
@@ -431,7 +416,6 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
-							{/* 成員和來賓 */}
 							{registrations.map(registration => {
 								const price = getPrice(registration)
 								const displayName = (() => {
@@ -442,156 +426,102 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 										if (!nm) return '未命名'
 										return nm.length >= 2 ? nm.slice(-2) : nm
 									}
-									// 來賓與其他角色：直接用姓名欄位
 									return (registration.name || '').trim() || '未命名'
 								})()
-								
+
 								return (
 									<tr key={registration.id}>
 										<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{displayName}</td>
 										<td className="px-3 py-2">
-											<span className={`px-2 py-1 rounded text-xs ${
-												registration.role === 'MEMBER' 
-													? 'bg-blue-100 text-blue-700' 
-													: 'bg-purple-100 text-purple-700'
-											}` }>
+											<span className={`px-2 py-1 rounded text-xs ${registration.role === 'MEMBER' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}` }>
 												{registration.role === 'MEMBER' ? '成員' : '來賓'}
 											</span>
 										</td>
-										<td className="px-3 py-2 text-gray-500">
-											<div className="truncate">{registration.companyName || '-'}</div>
-											<div className="text-xs truncate">{registration.industry || ''}</div>
-										</td>
-										<td className="px-3 py-2 text-gray-500">
-											<div className="truncate">{registration.phone || '-'}</div>
-											<div className="text-xs">{registration.user?.name ? '會員' : '來賓'}</div>
-										</td>
-										<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
-											NT$ {price}
-										</td>
+										<td className="px-3 py-2 text-gray-500"><div className="truncate">{registration.companyName || '-'}</div><div className="text-xs truncate">{registration.industry || ''}</div></td>
+										<td className="px-3 py-2 text-gray-500"><div className="truncate">{registration.phone || '-'}</div><div className="text-xs">{registration.user?.name ? '會員' : '來賓'}</div></td>
+										<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {price}</td>
 										<td className="px-3 py-2 text-center">
 											{registration.checkedInAt ? (
-												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-													已簽到
-												</span>
+												canCheckin ? (
+													<form action={uncheckIn} className="inline">
+														<input type="hidden" name="registrationId" value={registration.id} />
+														<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm">已簽到</Button>
+													</form>
+												) : (
+													<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">已簽到</span>
+												)
 											) : canCheckin ? (
 												<form action={checkIn} className="inline">
 													<input type="hidden" name="registrationId" value={registration.id} />
-													<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">
-														未簽到
-													</Button>
+													<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">未簽到</Button>
 												</form>
 											) : (
-												<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-													未簽到
-												</span>
+												<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">未簽到</span>
 											)}
 										</td>
 										<td className="px-3 py-2 text-center">
 											{(() => {
 												const paymentStatus = getPaymentStatus(registration)
-												
 												if (paymentStatus.status === 'monthly_paid') {
-													return (
-														<span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-															{paymentStatus.text}
-														</span>
-													)
+													return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{paymentStatus.text}</span>
 												} else if (paymentStatus.status === 'monthly_unpaid') {
-													return (
-														<span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
-															{paymentStatus.text}
-														</span>
-													)
+													return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">{paymentStatus.text}</span>
 												} else if (paymentStatus.status === 'paid') {
 													return canPayment ? (
 														<form action={markUnpaid} className="inline">
 															<input type="hidden" name="registrationId" value={registration.id} />
-															<Button 
-																type="submit" 
-																variant="secondary" 
-																size="sm"
-																className="bg-green-100 text-green-700 hover:bg-green-200"
-															>
-																{paymentStatus.text}
-															</Button>
+															<Button type="submit" variant="secondary" size="sm" className="bg-green-100 text-green-700 hover:bg-green-200 whitespace-nowrap text-xs sm:text-sm">已繳費</Button>
 														</form>
 													) : (
-														<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-															{paymentStatus.text}
-														</span>
+														<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{paymentStatus.text}</span>
 													)
 												} else {
 													return canPayment ? (
 														<form action={markPaid} className="inline">
 															<input type="hidden" name="registrationId" value={registration.id} />
-															<Button 
-																type="submit" 
-																variant="secondary" 
-																size="sm"
-																className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm"
-															>
-																{paymentStatus.text}
-															</Button>
+															<Button type="submit" variant="secondary" size="sm" className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm">未繳費</Button>
 														</form>
 													) : (
-														<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-															{paymentStatus.text}
-														</span>
+														<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">{paymentStatus.text}</span>
 													)
 												}
 											})()}
 										</td>
 								</tr>
 							)
-						})}
-						
+							})}
+
 						{/* 講師 */}
 						{speakers.map(speaker => (
 							<tr key={`speaker-${speaker.id}`}>
 								<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{speaker.name}</td>
-								<td className="px-3 py-2">
-									<span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">
-										講師
-									</span>
-								</td>
-								<td className="px-3 py-2 text-gray-500">
-									<div className="truncate">{speaker.companyName || '-'}</div>
-									<div className="text-xs truncate">{speaker.industry || ''}</div>
-								</td>
-								<td className="px-3 py-2 text-gray-500">
-									<div className="truncate">{speaker.phone || '-'}</div>
-									<div className="text-xs">講師</div>
-								</td>
-								<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">
-									NT$ {(() => {
-										const eventType = event?.type as EventType
-										if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-											return 250 // 講師固定價格
-										} else if (eventType === 'BOD') {
-											return (event?.bodMemberPriceCents || 0) / 100
-										} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-											return (event?.defaultPriceCents || 0) / 100
-										}
-										return 0
-									})()}
-								</td>
+								<td className="px-3 py-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">講師</span></td>
+								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.companyName || '-'}</div><div className="text-xs truncate">{speaker.industry || ''}</div></td>
+								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.phone || '-'}</div><div className="text-xs">講師</div></td>
+								<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {(() => {
+									const eventType = event?.type as EventType
+									if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) return 250
+									if (eventType === 'BOD') return (event?.bodMemberPriceCents || 0) / 100
+									if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) return (event?.defaultPriceCents || 0) / 100
+									return 0
+								})()}</td>
 								<td className="px-3 py-2 text-center">
 									{speaker.checkedInAt ? (
-										<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-											已簽到
-										</span>
+										canCheckin ? (
+											<form action={uncheckInSpeaker} className="inline">
+												<input type="hidden" name="speakerId" value={speaker.id} />
+												<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm">已簽到</Button>
+											</form>
+										) : (
+											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">已簽到</span>
+										)
 									) : canCheckin ? (
 										<form action={checkInSpeaker} className="inline">
 											<input type="hidden" name="speakerId" value={speaker.id} />
-											<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">
-												未簽到
-											</Button>
+											<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">未簽到</Button>
 										</form>
 									) : (
-										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-											未簽到
-										</span>
+										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">未簽到</span>
 									)}
 								</td>
 								<td className="px-3 py-2 text-center">
@@ -599,47 +529,25 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 										canPayment ? (
 											<form action={markSpeakerUnpaid} className="inline">
 												<input type="hidden" name="speakerId" value={speaker.id} />
-												<Button 
-													type="submit" 
-													variant="secondary" 
-													size="sm"
-													className="bg-green-100 text-green-700 hover:bg-green-200"
-												>
-													已繳費
-												</Button>
+												<Button type="submit" variant="secondary" size="sm" className="bg-green-100 text-green-700 hover:bg-green-200 whitespace-nowrap text-xs sm:text-sm">已繳費</Button>
 											</form>
 										) : (
-											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-												已繳費
-											</span>
+											<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">已繳費</span>
 										)
 									) : canPayment ? (
 										<form action={markSpeakerPaid} className="inline">
 											<input type="hidden" name="speakerId" value={speaker.id} />
-											<Button 
-												type="submit" 
-												variant="secondary" 
-												size="sm"
-												className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm"
-											>
-												未繳費
-											</Button>
+											<Button type="submit" variant="secondary" size="sm" className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm">未繳費</Button>
 										</form>
 									) : (
-										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-											未繳費
-										</span>
+										<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">未繳費</span>
 									)}
 								</td>
 							</tr>
 						))}
-						
+
 						{registrations.length === 0 && speakers.length === 0 && (
-							<tr>
-								<td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-									暫無報名記錄
-								</td>
-							</tr>
+							<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">暫無報名記錄</td></tr>
 						)}
 						</tbody>
 					</table>

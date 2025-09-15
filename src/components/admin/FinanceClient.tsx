@@ -1,27 +1,48 @@
 'use client'
 import React from 'react'
 
-export default function FinanceClient({ transactions }: { transactions: { id: string, date: string, type: 'INCOME' | 'EXPENSE', amountCents: number, categoryName: string, note?: string }[] }) {
+type Txn = {
+	id: string
+	date: string
+	type: 'INCOME' | 'EXPENSE'
+	amountCents: number
+	categoryName: string
+	counterparty: string
+	note?: string
+}
+
+export default function FinanceClient({ transactions }: { transactions: Txn[] }) {
 	return (
-		<div className="space-y-2 text-xs sm:text-sm">
+		<div className="space-y-2">
+			{/* 標題列：與新增交易相同欄位順序 */}
+			<div className="grid grid-cols-12 items-center px-2 text-[11px] sm:text-xs text-gray-500">
+				<div className="col-span-2 sm:col-span-2">日期</div>
+				<div className="col-span-2 sm:col-span-1">類型</div>
+				<div className="col-span-3 sm:col-span-3">項目</div>
+				<div className="col-span-2 sm:col-span-2">對象</div>
+				<div className="col-span-2 sm:col-span-2 text-right">金額（元）</div>
+				<div className="col-span-3 sm:col-span-2 sm:text-right">摘要</div>
+			</div>
+
 			{transactions.map((txn) => (
-				<div key={txn.id} className="flex items-center justify-between py-1 border-b border-gray-100">
-					<div className="flex-1 min-w-0 pr-2">
-						{/* 手機版：顯示標題（category）在第一行，第二行輔助資訊 */}
-						<div className="sm:hidden">
-							<div className="truncate text-gray-800 font-medium leading-tight">{txn.categoryName || '-'}</div>
-							<div className="text-[11px] text-gray-500 leading-tight truncate">{txn.date}{txn.note ? ` · ${txn.note}` : ''}</div>
-						</div>
-						{/* 桌面版：維持原有 note 為主，下一行顯示日期與分類 */}
-						<div className="hidden sm:block">
-							<div className="truncate text-gray-700 leading-tight">{txn.note || '-'}</div>
-							<div className="text-[11px] text-gray-500 leading-tight">{txn.date} · {txn.categoryName}</div>
-						</div>
-					</div>
-					<div className="shrink-0 ml-2">
-						<span className={(txn.type === 'INCOME' ? 'text-green-600' : 'text-red-600') + ' text-xs sm:text-sm'}>
+				<div key={txn.id} className="grid grid-cols-12 items-center gap-x-2 py-1 border-b border-gray-100 text-xs sm:text-sm">
+					{/* 日期 */}
+					<div className="col-span-2 sm:col-span-2 px-2 text-gray-700">{txn.date}</div>
+					{/* 類型 */}
+					<div className="col-span-2 sm:col-span-1 px-2 text-gray-700">{txn.type === 'INCOME' ? '收入' : '支出'}</div>
+					{/* 項目（分類） */}
+					<div className="col-span-3 sm:col-span-3 px-2 truncate text-gray-800 font-medium">{txn.categoryName || '-'}</div>
+					{/* 對象 */}
+					<div className="col-span-2 sm:col-span-2 px-2 truncate text-gray-700">{txn.counterparty || '-'}</div>
+					{/* 金額 */}
+					<div className="col-span-2 sm:col-span-2 px-2 text-right">
+						<span className={txn.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}>
 							{txn.type === 'INCOME' ? '+' : '-'}{(txn.amountCents / 100).toLocaleString()}
 						</span>
+					</div>
+					{/* 摘要 */}
+					<div className="col-span-3 sm:col-span-2 px-2 sm:text-right truncate text-gray-600">
+						{txn.note || '-'}
 					</div>
 				</div>
 			))}

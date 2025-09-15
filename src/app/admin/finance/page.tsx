@@ -189,8 +189,9 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					date: new Date(t.date).toLocaleDateString('zh-TW'),
 					type: t.type,
 					amountCents: t.amountCents,
+					categoryName: t.category?.name || '',
+					counterparty: t.counterparty || '-',
 					note: t.note || undefined,
-					categoryName: t.category?.name || ''
 				}))}
 			/>
 

@@ -461,10 +461,10 @@ export default async function MembersManagePage({
 															const currentPaidAmount = payment?.amount || 0
 															const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
 															return registrationCount - currentPaidCount
-														})()} className="w-3 text-[10px] px-1 py-0.5 border rounded text-center h-6" required />
+														})()} className="w-8 text-[10px] px-1 py-0.5 border rounded text-center h-6" required />
 															<span className="text-xs">次</span>
 														</div>
-														<button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded">繳費 $220/次</button>
+														<button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded whitespace-nowrap">繳費 $220/次</button>
 													</form>
 													) : (
 														<div className="text-xs text-gray-400">無報名記錄</div>
