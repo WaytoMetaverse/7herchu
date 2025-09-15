@@ -45,27 +45,29 @@ export default function EventTypePricing({
 
 	return (
 		<div className="contents">
-			<label>類型
-				<select
-					name={typeName}
-					value={selectedType}
-					onChange={(e) => setSelectedType(e.target.value)}
-					className="w-full"
-				>
-					{options.map((o) => (
-						<option key={o.value} value={o.value}>{o.label}</option>
-					))}
-				</select>
-			</label>
-			<label>標題
-				<input
-					name={titleName}
-					placeholder={labelMap[selectedType] || ''}
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
-					className="w-full"
-				/>
-			</label>
+			<div className="grid grid-cols-5 gap-3 md:contents">
+				<label className="col-span-2 md:col-span-1">類型
+					<select
+						name={typeName}
+						value={selectedType}
+						onChange={(e) => setSelectedType(e.target.value)}
+						className="w-full"
+					>
+						{options.map((o) => (
+							<option key={o.value} value={o.value}>{o.label}</option>
+						))}
+					</select>
+				</label>
+				<label className="col-span-3 md:col-span-1">標題
+					<input
+						name={titleName}
+						placeholder={labelMap[selectedType] || ''}
+						value={title}
+						onChange={(e) => setTitle(e.target.value)}
+						className="w-full"
+					/>
+				</label>
+			</div>
 
 			{/* 金額區塊（依類型顯示） */}
 			{showGuestSingle && (
