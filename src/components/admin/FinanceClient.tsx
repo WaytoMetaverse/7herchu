@@ -20,7 +20,7 @@ export default function FinanceClient({
 	transactions: Txn[]
 	canManage?: boolean
 	showDelete?: boolean
-	deleteAction?: (formData: FormData) => Promise<{ success: boolean; error?: string }>
+	deleteAction?: (formData: FormData) => void | Promise<void>
 }) {
 	return (
 		<div className="space-y-2">
