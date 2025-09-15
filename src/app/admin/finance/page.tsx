@@ -128,6 +128,12 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		}
 	}
 
+	// 包裝成不回傳值的動作，符合 <form action> 型別
+	async function deleteTxnAction(formData: FormData) {
+		'use server'
+		await deleteTxn(formData)
+	}
+
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
@@ -201,7 +207,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				}))}
 				canManage={canManage}
 				showDelete={deleteMode}
-				deleteAction={deleteTxn}
+				deleteAction={deleteTxnAction}
 			/>
 
 			{/* 新增交易表單（暫時隱藏） */}
