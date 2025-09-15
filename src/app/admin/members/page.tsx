@@ -321,17 +321,17 @@ export default async function MembersManagePage({
 					<table className="w-full text-xs sm:text-sm min-w-max">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap">姓名</th>
-								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap">類型</th>
+								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm">姓名</th>
+								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm">類型</th>
 								{months.map(month => (
-									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap">{month.slice(5)}月</th>
+									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap text-xs sm:text-sm">{month.slice(5)}月</th>
 								))}
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap">{getDisplayName(member)}</td>
+									<td className="px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap text-xs sm:text-sm">{getDisplayName(member)}</td>
 									<td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
 										<MemberTypeSelect
 											userId={member.id}
@@ -355,7 +355,7 @@ export default async function MembersManagePage({
 														<form action={markPaid} className="inline">
 															<input type="hidden" name="userId" value={member.id} />
 															<input type="hidden" name="month" value={month} />
-															<button type="submit" className="text-red-600 hover:text-red-800 text-xs">未繳費</button>
+															<button type="submit" className="text-red-600 hover:text-red-800 text-xs whitespace-nowrap">未繳費</button>
 														</form>
 													)}
 												</td>
@@ -364,8 +364,8 @@ export default async function MembersManagePage({
 											if (isJulyOrAug2025) {
 												return (
 													<td key={month} className="px-2 py-2 text-center text-gray-600">
-														<div className="space-y-1.5">
-															<div className="text-xs">報名 {registrationCount} 次</div>
+														<div className="space-y-1.5 text-xs">
+															<div>報名 {registrationCount} 次</div>
 															<span className="text-green-600 font-medium">已繳費</span>
 														</div>
 													</td>
@@ -373,8 +373,8 @@ export default async function MembersManagePage({
 											}
 											return (
 												<td key={month} className="px-2 py-2 text-center text-gray-600">
-													<div className="space-y-1.5">
-														<div className="text-xs">報名 {registrationCount} 次</div>
+													<div className="space-y-1.5 text-xs">
+														<div>報名 {registrationCount} 次</div>
 														{payment?.isPaid ? (
 															<CancelPaymentButton
 																userId={member.id}

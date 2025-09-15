@@ -23,7 +23,7 @@ export default function MemberTypeSelect({
 						formRef.current.requestSubmit()
 					}
 				}}
-				className="text-sm border-0 bg-transparent cursor-pointer hover:bg-gray-50 rounded px-1"
+				className="text-xs sm:text-sm border-0 bg-transparent cursor-pointer hover:bg-gray-50 rounded px-1"
 			>
 				<option value="FIXED">固定</option>
 				<option value="SINGLE">單次</option>

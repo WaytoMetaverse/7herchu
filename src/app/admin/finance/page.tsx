@@ -176,7 +176,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			{/* 小計顯示 */}
 			<div className="bg-gray-50 p-4 rounded-lg">
 				<h2 className="font-medium mb-2">小計</h2>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+				<div className="grid grid-cols-3 gap-4 text-sm">
 					<div>
 						<div className="text-gray-600">收入</div>
 						<div className="text-lg font-semibold text-green-600">{(totalIncome / 100).toLocaleString()}</div>
