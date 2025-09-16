@@ -10,6 +10,7 @@ import CopyButton from '@/components/admin/CopyButton'
 import MemberTypeSelect from '@/components/admin/MemberTypeSelect'
 import MonthSelector from '@/components/admin/MonthSelector'
 import CancelPaymentButton from './CancelPaymentButton'
+import CancelFixedPaymentButton from './CancelFixedPaymentButton'
 
 export default async function MembersManagePage({ 
 	searchParams 
@@ -190,7 +191,72 @@ export default async function MembersManagePage({
 	revalidatePath('/admin/members')
 }
 
-	// 取消繳費（固定成員）
+	// 取消固定成員繳費
+	async function cancelFixedPayment(formData: FormData) {
+		'use server'
+		const userId = String(formData.get('userId'))
+		const month = String(formData.get('month'))
+		if (!userId || !month) return
+
+		// 找到該成員該月份的繳費記錄
+		const monthlyPayment = await prisma.memberMonthlyPayment.findUnique({
+			where: { userId_month: { userId, month } }
+		})
+		
+		if (!monthlyPayment || !monthlyPayment.isPaid) return
+
+		// 找到最後一筆財務交易記錄（按創建時間降序）
+		const lastTransaction = await prisma.financeTransaction.findFirst({
+			where: {
+				monthlyPaymentId: monthlyPayment.id
+			},
+			orderBy: { createdAt: 'desc' }
+		})
+
+		if (!lastTransaction) return
+
+		// 刪除最後一筆財務交易
+		await prisma.financeTransaction.delete({
+			where: { id: lastTransaction.id }
+		})
+
+		// 刪除月費記錄
+		await prisma.memberMonthlyPayment.delete({
+			where: { id: monthlyPayment.id }
+		})
+
+		// 找到該次繳費對應的活動註冊記錄，將其改回 UNPAID
+		const startDate = new Date(`${month}-01`)
+		const endDate = new Date(startDate)
+		endDate.setMonth(endDate.getMonth() + 1)
+
+		// 找出該成員當月所有已繳費的活動，按時間倒序排序（最晚的優先取消）
+		const paidRegistrations = await prisma.registration.findMany({
+			where: {
+				userId: userId,
+				status: 'REGISTERED',
+				paymentStatus: 'PAID',
+				event: {
+					type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
+					startAt: { gte: startDate, lt: endDate }
+				}
+			},
+			include: { event: true },
+			orderBy: { event: { startAt: 'desc' } }
+		})
+
+		// 取消所有活動的繳費狀態
+		for (const registration of paidRegistrations) {
+			await prisma.registration.update({
+				where: { id: registration.id },
+				data: { paymentStatus: 'UNPAID' }
+			})
+		}
+
+		revalidatePath('/admin/members')
+	}
+
+	// 取消繳費（單次成員）
 	async function cancelLastPayment(formData: FormData) {
 		'use server'
 		const userId = String(formData.get('userId'))
@@ -349,7 +415,17 @@ export default async function MembersManagePage({
 											return (
 												<td key={month} className="px-2 py-2 text-center">
 													{treatAsPaid ? (
-														<span className="text-green-600 font-medium">已繳費</span>
+														payment?.isPaid && !isJulyOrAug2025 ? (
+															<CancelFixedPaymentButton
+																userId={member.id}
+																month={month}
+																amount={payment.amount || 0}
+																activityCount={currentMonthEventCount}
+																onCancel={cancelFixedPayment}
+															/>
+														) : (
+															<span className="text-green-600 font-medium">已繳費</span>
+														)
 													) : (
 														<form action={markPaid} className="inline">
 															<input type="hidden" name="userId" value={member.id} />
