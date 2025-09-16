@@ -257,7 +257,9 @@ export default async function MembersManagePage({
 				}
 			})
 
+			console.log('Fixed payment cancelled successfully for user:', userId, 'month:', month)
 			revalidatePath('/admin/members')
+			revalidatePath('/admin/finance')
 		} catch (error) {
 			console.error('Cancel fixed payment error:', error)
 		}

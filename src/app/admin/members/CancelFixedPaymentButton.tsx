@@ -20,11 +20,18 @@ export default function CancelFixedPaymentButton({
 	const [showConfirm, setShowConfirm] = useState(false)
 
 	const handleCancel = async () => {
-		const formData = new FormData()
-		formData.append('userId', userId)
-		formData.append('month', month)
-		await onCancel(formData)
-		setShowConfirm(false)
+		try {
+			const formData = new FormData()
+			formData.append('userId', userId)
+			formData.append('month', month)
+			await onCancel(formData)
+			setShowConfirm(false)
+			// 強制重新載入頁面
+			window.location.reload()
+		} catch (error) {
+			console.error('Cancel payment error:', error)
+			setShowConfirm(false)
+		}
 	}
 
 	return (
