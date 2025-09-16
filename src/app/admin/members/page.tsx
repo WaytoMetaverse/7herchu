@@ -280,8 +280,7 @@ export default async function MembersManagePage({
 		return !payment?.isPaid
 	})
 
-	const selectedDate = new Date(selectedMonth + '-01')
-	const displayMonth = selectedDate.getMonth() + 1
+	const displayMonth = parseInt(selectedMonth.split('-')[1])
 	
 	// 顯示暱稱，沒有暱稱則用姓名後兩字
 	const getDisplayName = (member: typeof members[0]) => {
