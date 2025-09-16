@@ -6,6 +6,7 @@ import { MemberType } from '@prisma/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import CopyButton from '@/components/admin/CopyButton'
 import MemberTypeSelect from '@/components/admin/MemberTypeSelect'
 import MonthSelector from '@/components/admin/MonthSelector'
@@ -260,6 +261,7 @@ export default async function MembersManagePage({
 			console.log('Fixed payment cancelled successfully for user:', userId, 'month:', month)
 			revalidatePath('/admin/members')
 			revalidatePath('/admin/finance')
+			redirect('/admin/members')
 		} catch (error) {
 			console.error('Cancel fixed payment error:', error)
 		}
