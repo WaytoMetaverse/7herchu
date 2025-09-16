@@ -186,9 +186,7 @@ export default async function MembersManagePage({
 		})
 
 		// 同步更新該成員當月所有活動的繳費狀態
-		const startDate = new Date(`${month}-01`)
-		const endDate = new Date(startDate)
-		endDate.setMonth(endDate.getMonth() + 1)
+		// 使用上面已經計算的 startDate 和 endDate
 
 		await prisma.registration.updateMany({
 			where: {
