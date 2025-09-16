@@ -126,6 +126,18 @@ export default async function MembersManagePage({
 		const user = await prisma.user.findUnique({ where: { id: userId } })
 		if (!user) return
 
+		// 計算當月活動次數
+		const startDate = new Date(`${month}-01`)
+		const endDate = new Date(startDate)
+		endDate.setMonth(endDate.getMonth() + 1)
+
+		const currentMonthEventCount = await prisma.event.count({
+			where: {
+				type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
+				startAt: { gte: startDate, lt: endDate }
+			}
+		})
+
 		const amount = 180 * currentMonthEventCount // 固定成員月費計算
 		const amountCents = amount * 100 // 轉換為分
 
@@ -141,6 +153,7 @@ export default async function MembersManagePage({
 			},
 			update: {
 				isPaid: true,
+				amount: amountCents,
 				paidAt: new Date()
 			}
 		})
@@ -408,17 +421,18 @@ export default async function MembersManagePage({
 											return (
 												<td key={month} className="px-2 py-2 text-center">
 													{isPaid ? (
-														payment?.isPaid && !isJulyOrAug2025 ? (
-															<CancelFixedPaymentButton
-																userId={member.id}
-																month={month}
-																amount={payment.amount || 0}
-																activityCount={currentMonthEventCount}
-																onCancel={cancelFixedPayment}
-															/>
-														) : (
-															<span className="text-green-600 font-medium">已繳費</span>
-														)
+														<div className="flex flex-col items-center gap-1">
+															<span className="text-green-600 font-medium text-xs">已繳費</span>
+															{payment?.isPaid && !isJulyOrAug2025 && (
+																<CancelFixedPaymentButton
+																	userId={member.id}
+																	month={month}
+																	amount={payment.amount || 0}
+																	activityCount={currentMonthEventCount}
+																	onCancel={cancelFixedPayment}
+																/>
+															)}
+														</div>
 													) : (
 														<form action={markPaid} className="inline">
 															<input type="hidden" name="userId" value={member.id} />

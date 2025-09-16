@@ -38,16 +38,10 @@ export default function CancelFixedPaymentButton({
 		<>
 			<button
 				onClick={() => setShowConfirm(true)}
-				className="text-xs sm:text-sm text-green-600 hover:text-green-800 underline cursor-pointer"
-				style={{ fontSize: '12px', lineHeight: '16px' }}
+				className="text-xs text-red-600 hover:text-red-700 underline cursor-pointer"
+				style={{ fontSize: '10px', lineHeight: '14px' }}
 			>
-				已繳費 ${amount / 100}
-				<div className="text-xs sm:text-sm text-gray-500" style={{ fontSize: '12px', lineHeight: '16px' }}>
-					({activityCount}次活動)
-				</div>
-				<div className="text-xs text-red-600 hover:text-red-700 underline">
-					取消繳費
-				</div>
+				取消繳費
 			</button>
 
 			{showConfirm && (
