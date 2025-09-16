@@ -452,7 +452,7 @@ export default async function MembersManagePage({
 														}} className="inline space-y-1">
 														<input type="hidden" name="userId" value={member.id} />
 														<input type="hidden" name="month" value={month} />
-														<div className="flex items-center gap-1">
+                                                        <div className="flex items-center justify-center gap-1">
                                                             <input type="tel" inputMode="numeric" pattern="[0-9]*" name="inputCount" min="1" max={(() => {
                                                                 const currentPaidAmount = payment?.amount || 0
                                                                 const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
@@ -462,8 +462,8 @@ export default async function MembersManagePage({
                                                             const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
                                                             return registrationCount - currentPaidCount
                                                         })()} className="w-10 h-6 text-[12px] px-1 py-0 border rounded text-center appearance-none" required />
-															<span className="text-xs">次</span>
-														</div>
+                                                            <span className="text-xs">次</span>
+                                                        </div>
                                                         <button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded whitespace-nowrap" style={{ fontSize: '12px', lineHeight: '14px', height: '20px !important', padding: '1px 3px !important', minHeight: '20px' }}>繳費 $220/次</button>
 													</form>
 													) : (
