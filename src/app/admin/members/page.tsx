@@ -159,7 +159,7 @@ export default async function MembersManagePage({
 			})
 		}
 
-		// 新增財務交易記錄
+		// 新增財務交易記錄，並關聯到月費記錄
 		await prisma.financeTransaction.create({
 			data: {
 				date: new Date(),
@@ -167,7 +167,8 @@ export default async function MembersManagePage({
 				amountCents: amountCents,
 				counterparty: user.name || '未命名',
 				note: `${month} 固定成員月費 (${currentMonthEventCount}次活動 × $180)`,
-				categoryId: category.id
+				categoryId: category.id,
+				monthlyPaymentId: monthlyPayment.id
 			}
 		})
 
@@ -205,71 +206,45 @@ export default async function MembersManagePage({
 		
 		if (!monthlyPayment || !monthlyPayment.isPaid) return
 
-		// 找到最後一筆財務交易記錄（按創建時間降序）
-		const lastTransaction = await prisma.financeTransaction.findFirst({
+		// 找到對應的財務交易記錄
+		const transaction = await prisma.financeTransaction.findFirst({
 			where: {
 				monthlyPaymentId: monthlyPayment.id
-			},
-			orderBy: { createdAt: 'desc' }
+			}
 		})
 
-		if (!lastTransaction) return
+		if (!transaction) return
 
-		// 計算回滾後的金額
-		const currentAmount = monthlyPayment.amount || 0
-		const rollbackAmount = currentAmount - lastTransaction.amountCents
-		const rollbackCount = Math.round(lastTransaction.amountCents / 100 / 180) // 固定成員是 180 元/次
-
-		// 刪除最後一筆財務交易
-		await prisma.financeTransaction.delete({
-			where: { id: lastTransaction.id }
-		})
-
-		if (rollbackAmount > 0) {
-			// 更新月費記錄為新的金額
-			await prisma.memberMonthlyPayment.update({
-				where: { id: monthlyPayment.id },
-				data: {
-					amount: rollbackAmount,
-					paidAt: new Date()
-				}
+		// 使用事務確保所有操作都成功
+		await prisma.$transaction(async (tx) => {
+			// 刪除財務交易記錄
+			await tx.financeTransaction.delete({
+				where: { id: transaction.id }
 			})
-		} else {
-			// 如果金額歸零，刪除月費記錄
-			await prisma.memberMonthlyPayment.delete({
+
+			// 刪除月費記錄
+			await tx.memberMonthlyPayment.delete({
 				where: { id: monthlyPayment.id }
 			})
-		}
 
-		// 找到該次繳費對應的活動註冊記錄，將其改回 UNPAID
-		const startDate = new Date(`${month}-01`)
-		const endDate = new Date(startDate)
-		endDate.setMonth(endDate.getMonth() + 1)
+			// 找到該次繳費對應的活動註冊記錄，將其改回 UNPAID
+			const startDate = new Date(`${month}-01`)
+			const endDate = new Date(startDate)
+			endDate.setMonth(endDate.getMonth() + 1)
 
-		// 找出該成員當月所有已繳費的活動，按時間倒序排序（最晚的優先取消）
-		const paidRegistrations = await prisma.registration.findMany({
-			where: {
-				userId: userId,
-				status: 'REGISTERED',
-				paymentStatus: 'PAID',
-				event: {
-					type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
-					startAt: { gte: startDate, lt: endDate }
-				}
-			},
-			include: { event: true },
-			orderBy: { event: { startAt: 'desc' } }
-		})
-
-		// 只取消對應次數的活動繳費狀態
-		const registrationsToCancel = paidRegistrations.slice(0, rollbackCount)
-		
-		for (const registration of registrationsToCancel) {
-			await prisma.registration.update({
-				where: { id: registration.id },
+			await tx.registration.updateMany({
+				where: {
+					userId: userId,
+					status: 'REGISTERED',
+					paymentStatus: 'PAID',
+					event: {
+						type: { in: ['GENERAL', 'JOINT', 'CLOSED'] },
+						startAt: { gte: startDate, lt: endDate }
+					}
+				},
 				data: { paymentStatus: 'UNPAID' }
 			})
-		}
+		})
 
 		revalidatePath('/admin/members')
 	}
@@ -576,3 +551,4 @@ export default async function MembersManagePage({
 		</div>
 	)
 }
+
