@@ -31,10 +31,11 @@ export default function CancelPaymentButton({
 		<>
 			<button
 				onClick={() => setShowConfirm(true)}
-				className="text-[10px] text-green-600 hover:text-green-800 underline cursor-pointer"
+				className="text-[9px] leading-4 tracking-tight text-green-600 hover:text-green-800 underline cursor-pointer"
+				style={{ fontSize: '9px', lineHeight: '14px' }}
 			>
 				已繳月費 ${amount / 100}
-				<div className="text-[10px] text-gray-500">
+				<div className="text-[9px] leading-4 tracking-tight text-gray-500" style={{ fontSize: '9px', lineHeight: '14px' }}>
 					({activityCount}次活動)
 				</div>
 			</button>
