@@ -130,7 +130,7 @@ export default async function MembersManagePage({
 		const amountCents = amount * 100 // 轉換為分
 
 		// 更新月費記錄
-		await prisma.memberMonthlyPayment.upsert({
+		const monthlyPayment = await prisma.memberMonthlyPayment.upsert({
 			where: { userId_month: { userId, month } },
 			create: {
 				userId,
