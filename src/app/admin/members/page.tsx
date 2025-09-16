@@ -464,7 +464,7 @@ export default async function MembersManagePage({
                                                         })()} className="w-10 h-6 text-[12px] px-1 py-0 border rounded text-center appearance-none" required />
 															<span className="text-xs">次</span>
 														</div>
-                                                        <button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-1 py-0 h-6 rounded whitespace-nowrap" style={{ fontSize: '12px', lineHeight: '16px' }}>繳費 $220/次</button>
+                                                        <button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded whitespace-nowrap" style={{ fontSize: '12px', lineHeight: '16px', height: '24px', padding: '2px 4px' }}>繳費 $220/次</button>
 													</form>
 													) : (
 														<div className="text-xs text-gray-400">無報名記錄</div>
