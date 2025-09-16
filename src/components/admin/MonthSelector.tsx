@@ -13,7 +13,9 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 		const d = new Date(base)
 		d.setMonth(d.getMonth() + offset)
 		const monthStr = d.toISOString().slice(0, 7)
-		const displayName = `${d.getFullYear()}年${d.getMonth() + 1}月`
+		const year = d.getFullYear()
+		const month = d.getMonth() + 1
+		const displayName = `${year}年${month}月`
 		monthOptions.push({ value: monthStr, label: displayName })
 	}
 
