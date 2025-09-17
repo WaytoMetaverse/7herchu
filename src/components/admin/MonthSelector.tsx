@@ -7,21 +7,37 @@ export default function MonthSelector({ currentMonth }: { currentMonth: string }
 
 	// 生成 6 個月視窗：當月為中心，顯示 -2、-1、0、+1、+2、+3（可跨年）
 	const now = new Date()
-	const base = new Date(now.getFullYear(), now.getMonth(), 1)
+	const currentYear = now.getFullYear()
+	const currentMonthNum = now.getMonth() + 1 // 1-12
 	const monthOptions: { value: string; label: string }[] = []
+	
 	for (let offset = -2; offset <= 3; offset++) {
-		const d = new Date(base)
-		d.setMonth(d.getMonth() + offset)
-		const monthStr = d.toISOString().slice(0, 7)
-		const year = d.getFullYear()
-		const month = d.getMonth() + 1
+		const targetMonth = currentMonthNum + offset
+		let year = currentYear
+		let month = targetMonth
+		
+		// 處理跨年情況
+		if (month <= 0) {
+			year -= 1
+			month += 12
+		} else if (month > 12) {
+			year += 1
+			month -= 12
+		}
+		
+		const monthStr = `${year}-${month.toString().padStart(2, '0')}`
 		const displayName = `${year}年${month}月`
 		monthOptions.push({ value: monthStr, label: displayName })
 	}
 
 	const handleMonthChange = (month: string) => {
 		const params = new URLSearchParams(searchParams.toString())
-		if (month === new Date().toISOString().slice(0, 7)) {
+		const now = new Date()
+		const currentYear = now.getFullYear()
+		const currentMonthNum = now.getMonth() + 1
+		const currentMonthStr = `${currentYear}-${currentMonthNum.toString().padStart(2, '0')}`
+		
+		if (month === currentMonthStr) {
 			params.delete('month')
 		} else {
 			params.set('month', month)
