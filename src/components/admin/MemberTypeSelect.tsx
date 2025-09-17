@@ -8,7 +8,7 @@ export default function MemberTypeSelect({
 }: { 
 	userId: string
 	defaultValue: string
-	updateMemberType: (formData: FormData) => void
+	updateMemberType: (formData: FormData) => Promise<void>
 }) {
 	const formRef = useRef<HTMLFormElement>(null)
 
