@@ -108,9 +108,14 @@ export default async function MembersManagePage({
 		const memberType = String(formData.get('memberType')) as MemberType
 		if (!userId || !memberType) return
 
-		await prisma.memberProfile.update({
+		await prisma.memberProfile.upsert({
 			where: { userId },
-			data: { memberType }
+			update: { memberType },
+			create: { 
+				userId, 
+				memberType,
+				active: true
+			}
 		})
 		revalidatePath('/admin/members')
 	}
