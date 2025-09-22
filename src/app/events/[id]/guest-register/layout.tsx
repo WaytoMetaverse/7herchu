@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { unstable_noStore as noStore } from 'next/cache'
 
 type Props = {
 	params: Promise<{ id: string }>
@@ -9,6 +10,9 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+	// 禁用快取，確保邀請卡更新能即時反映在分享縮圖中
+	noStore()
+	
 	const { id } = await params
 	
 	// 獲取活動資訊和組織設定
