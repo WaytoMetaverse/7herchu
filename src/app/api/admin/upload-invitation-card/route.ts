@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { put } from '@vercel/blob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
 	try {
@@ -83,6 +84,12 @@ export async function POST(request: NextRequest) {
 				[updateField]: uploadUrl
 			}
 		})
+
+		// 清除相關頁面的快取
+		revalidatePath('/admin/invitation-cards')
+		revalidatePath('/admin/invitations')
+		// 清除所有活動相關頁面的快取，因為邀請卡會影響活動邀請頁面
+		revalidatePath('/events', 'layout')
 
 		return NextResponse.json({ 
 			success: true, 

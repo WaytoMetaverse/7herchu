@@ -31,43 +31,23 @@ export default async function InvitationCardsPage() {
 			return // 應該要有錯誤處理，這裡簡化
 		}
 
-		// 上傳檔案
+		// 使用統一的邀請卡上傳 API
 		const uploadFormData = new FormData()
 		uploadFormData.append('file', file)
+		uploadFormData.append('cardType', cardType)
 		
-		const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upload`, {
+		const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/admin/upload-invitation-card`, {
 			method: 'POST',
 			body: uploadFormData
 		})
 		
 		const uploadData = await uploadRes.json()
-		if (!uploadRes.ok || !uploadData?.url) return
-
-		// 根據卡片類型更新不同欄位
-		const updateField = {
-			general: 'invitationCardGeneral',
-			dinner: 'invitationCardDinner',
-			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod',
-			visit: 'invitationCardVisit'
-		}[cardType]
-		
-		if (!updateField) return
-
-		// 更新組織設定
-		await prisma.orgSettings.upsert({
-			where: { id: 'singleton' },
-			create: {
-				id: 'singleton',
-				bankInfo: '',
-				[updateField]: uploadData.url
-			},
-			update: {
-				[updateField]: uploadData.url
-			}
-		})
+		if (!uploadRes.ok || !uploadData?.success) return
 
 		revalidatePath('/admin/invitation-cards')
+		revalidatePath('/admin/invitations')
+		// 清除所有活動相關頁面的快取，因為邀請卡會影響活動邀請頁面
+		revalidatePath('/events', 'layout')
 	}
 
 	// 刪除邀請卡
@@ -83,7 +63,9 @@ export default async function InvitationCardsPage() {
 			general: 'invitationCardGeneral',
 			dinner: 'invitationCardDinner',
 			soft: 'invitationCardSoft',
-			bod: 'invitationCardBod'
+			bod: 'invitationCardBod',
+			visit: 'invitationCardVisit',
+			speaker: 'invitationCardSpeaker'
 		}[cardType]
 		
 		if (!updateField) return
@@ -96,6 +78,9 @@ export default async function InvitationCardsPage() {
 		})
 
 		revalidatePath('/admin/invitation-cards')
+		revalidatePath('/admin/invitations')
+		// 清除所有活動相關頁面的快取，因為邀請卡會影響活動邀請頁面
+		revalidatePath('/events', 'layout')
 	}
 
 	const cards = [
@@ -133,8 +118,24 @@ export default async function InvitationCardsPage() {
 			description: '用於職業參訪活動的邀請',
 			imageUrl: orgSettings?.invitationCardVisit,
 			color: 'amber'
+		},
+		{
+			type: 'speaker',
+			title: '講師預約',
+			description: '用於講師預約活動的邀請',
+			imageUrl: orgSettings?.invitationCardSpeaker,
+			color: 'teal'
 		}
 	]
+
+	const colorStyles: Record<string, { bg: string; text: string }> = {
+		blue: { bg: 'bg-blue-50', text: 'text-blue-900' },
+		green: { bg: 'bg-green-50', text: 'text-green-900' },
+		purple: { bg: 'bg-purple-50', text: 'text-purple-900' },
+		orange: { bg: 'bg-orange-50', text: 'text-orange-900' },
+		amber: { bg: 'bg-amber-50', text: 'text-amber-900' },
+		teal: { bg: 'bg-teal-50', text: 'text-teal-900' },
+	}
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -148,9 +149,9 @@ export default async function InvitationCardsPage() {
 				{cards.map((card) => (
 					<div key={card.type} className="bg-white rounded-lg border overflow-hidden">
 						{/* 標題區 */}
-						<div className={`p-4 bg-${card.color}-50 border-b`}>
-							<h3 className={`font-medium text-${card.color}-900`}>{card.title}</h3>
-							<p className={`text-sm text-${card.color}-700 mt-1`}>{card.description}</p>
+						<div className={["p-4", colorStyles[card.color]?.bg, "border-b"].join(" ")}>
+							<h3 className={["font-medium", colorStyles[card.color]?.text].join(" ")}>{card.title}</h3>
+							<p className={["text-sm", colorStyles[card.color]?.text.replace('900', '700'), "mt-1"].join(" ")}>{card.description}</p>
 						</div>
 
 						{/* 圖片區 */}

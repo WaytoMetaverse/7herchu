@@ -1,8 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import GuestRegisterClient from './GuestRegisterClient'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export default async function GuestRegisterPage({ params }: { params: Promise<{ id: string }> }) {
+	// 禁用快取，確保邀請卡更新能即時反映
+	noStore()
+	
 	const { id: eventId } = await params
 	
 	// 檢查活動是否存在

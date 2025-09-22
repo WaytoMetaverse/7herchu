@@ -7,8 +7,12 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import InviteClient from './InviteClient'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export default async function EventInvitePage({ params }: { params: Promise<{ id: string }> }) {
+	// 禁用快取，確保邀請卡更新能即時反映
+	noStore()
+	
 	const { id: eventId } = await params
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) redirect('/auth/signin')
