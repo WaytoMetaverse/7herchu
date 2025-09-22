@@ -30,19 +30,19 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 			case 'GENERAL':
 			case 'JOINT':
 			case 'CLOSED':
-				invitationCardUrl = orgSettings.invitationCardGeneral
+				invitationCardUrl = orgSettings.invitationCardGeneral || orgSettings.invitationCardUrl
 				break
 			case 'DINNER':
-				invitationCardUrl = orgSettings.invitationCardDinner
+				invitationCardUrl = orgSettings.invitationCardDinner || orgSettings.invitationCardUrl
 				break
 			case 'SOFT':
-				invitationCardUrl = orgSettings.invitationCardSoft
+				invitationCardUrl = orgSettings.invitationCardSoft || orgSettings.invitationCardUrl
 				break
 			case 'VISIT':
-				invitationCardUrl = orgSettings.invitationCardVisit
+				invitationCardUrl = orgSettings.invitationCardVisit || orgSettings.invitationCardUrl
 				break
 			case 'BOD':
-				invitationCardUrl = orgSettings.invitationCardBod
+				invitationCardUrl = orgSettings.invitationCardBod || orgSettings.invitationCardUrl
 				break
 		}
 	}

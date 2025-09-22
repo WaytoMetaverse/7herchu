@@ -37,23 +37,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			case 'GENERAL':
 			case 'JOINT':
 			case 'CLOSED':
-				invitationCardUrl = orgSettings.invitationCardGeneral
+				invitationCardUrl = orgSettings.invitationCardGeneral || orgSettings.invitationCardUrl
 				invitationMessage = orgSettings.invitationMessageGeneral || invitationMessage
 				break
 			case 'DINNER':
-				invitationCardUrl = orgSettings.invitationCardDinner
+				invitationCardUrl = orgSettings.invitationCardDinner || orgSettings.invitationCardUrl
 				invitationMessage = orgSettings.invitationMessageDinner || invitationMessage
 				break
 			case 'SOFT':
-				invitationCardUrl = orgSettings.invitationCardSoft
+				invitationCardUrl = orgSettings.invitationCardSoft || orgSettings.invitationCardUrl
 				invitationMessage = orgSettings.invitationMessageSoft || invitationMessage
 				break
 			case 'VISIT':
-				invitationCardUrl = orgSettings.invitationCardVisit
+				invitationCardUrl = orgSettings.invitationCardVisit || orgSettings.invitationCardUrl
 				invitationMessage = orgSettings.invitationMessageVisit || invitationMessage
 				break
 			case 'BOD':
-				invitationCardUrl = orgSettings.invitationCardBod
+				invitationCardUrl = orgSettings.invitationCardBod || orgSettings.invitationCardUrl
 				invitationMessage = orgSettings.invitationMessageBod || invitationMessage
 				break
 		}
