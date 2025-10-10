@@ -14,6 +14,8 @@ import ConfirmDelete from '@/components/ConfirmDelete'
 import { Calendar as CalendarIcon, MapPin, Ticket } from 'lucide-react'
 import { getDisplayName } from '@/lib/displayName'
 import SharePopover from './SharePopover'
+import ChecklistButton from './ChecklistButton'
+import { hasChecklistTemplate } from '@/lib/checklistTemplates'
 
 const TYPE_LABEL: Record<EventType, string> = {
 	GENERAL: '簡報組聚',
@@ -264,8 +266,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			)}
 			<div className="flex items-start justify-between">
 				<div className="flex-1 min-w-0">
-					<h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold mb-2 pr-2">{event.title}</h1>
-					{/* 來賓邀請按鈕 - 放在標題旁邊 */}
+					<div className="flex items-start gap-2 mb-2">
+						<h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold flex-1">{event.title}</h1>
+						{/* 檢核清單按鈕 - BOD和聯合組聚顯示 */}
+						{isLoggedIn && hasChecklistTemplate(event.type) && (
+							<ChecklistButton eventId={event.id} />
+						)}
+					</div>
+					{/* 來賓邀請按鈕 - 放在標題下方 */}
 					{isLoggedIn && (() => {
 						// 根據活動類型選擇對應的邀請訊息和卡片
 						let invitationMessage = '磐石砌好厝誠摯地邀請您一同來參與'

@@ -173,7 +173,7 @@ model Event {
   financeLineItems  FinanceLineItem[]
   transactions      FinanceTransaction[]
   eventMenu         EventMenu?
-
+  checklistItems    EventChecklistItem[]
 
   createdAt         DateTime @default(now())
 }
@@ -390,4 +390,19 @@ model BusinessCard {
   @@index([ownerId, category])
   @@index([name])
   @@index([phone])
+}
+
+// 活動檢核清單項目
+model EventChecklistItem {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  order       Int      // 排序順序
+  content     String   // 檢核項目內容
+  isCompleted Boolean  @default(false) // 是否完成
+  completedAt DateTime? // 完成時間
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventId, order])
 }
