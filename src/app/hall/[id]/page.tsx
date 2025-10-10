@@ -402,8 +402,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
 									if (s.mealCode) {
-										// 有餐點設定且有 mealCode：顯示 A/B/C
-										mealInfo = ` · ${s.mealCode}餐`
+										// 有餐點設定且有 mealCode：顯示 A/B/C 及餐點名稱
+										const mealName = s.mealCode === 'A' ? eventMenu.mealCodeA :
+														 s.mealCode === 'B' ? eventMenu.mealCodeB :
+														 s.mealCode === 'C' ? eventMenu.mealCodeC : null
+										mealInfo = mealName ? ` · ${s.mealCode}餐（${mealName}）` : ` · ${s.mealCode}餐`
 									} else {
 										// 有餐點設定但沒有 mealCode（理論上不會發生）
 										mealInfo = ' · 待分配'
@@ -449,8 +452,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
 									if (m.mealCode) {
-										// 有餐點設定且有 mealCode：顯示 A/B/C
-										mealInfo = ` - ${m.mealCode}餐`
+										// 有餐點設定且有 mealCode：顯示 A/B/C 及餐點名稱
+										const mealName = m.mealCode === 'A' ? eventMenu.mealCodeA :
+														 m.mealCode === 'B' ? eventMenu.mealCodeB :
+														 m.mealCode === 'C' ? eventMenu.mealCodeC : null
+										mealInfo = mealName ? ` - ${m.mealCode}餐（${mealName}）` : ` - ${m.mealCode}餐`
 									} else {
 										// 有餐點設定但沒有 mealCode（理論上不會發生）
 										mealInfo = ' - 待分配'
@@ -512,8 +518,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
 									if (g.mealCode) {
-										// 有餐點設定且有 mealCode：顯示 A/B/C
-										mealInfo = ` · ${g.mealCode}餐`
+										// 有餐點設定且有 mealCode：顯示 A/B/C 及餐點名稱
+										const mealName = g.mealCode === 'A' ? eventMenu.mealCodeA :
+														 g.mealCode === 'B' ? eventMenu.mealCodeB :
+														 g.mealCode === 'C' ? eventMenu.mealCodeC : null
+										mealInfo = mealName ? ` · ${g.mealCode}餐（${mealName}）` : ` · ${g.mealCode}餐`
 									} else {
 										// 有餐點設定但沒有 mealCode（理論上不會發生）
 										mealInfo = ' · 待分配'
