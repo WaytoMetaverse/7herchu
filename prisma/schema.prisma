@@ -399,6 +399,7 @@ model EventChecklistItem {
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   order       Int      // 排序順序
   content     String   // 檢核項目內容
+  note        String?  // 備註說明
   isCompleted Boolean  @default(false) // 是否完成
   completedAt DateTime? // 完成時間
   createdAt   DateTime @default(now())
