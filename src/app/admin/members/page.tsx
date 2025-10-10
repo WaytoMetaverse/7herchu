@@ -404,8 +404,8 @@ export default async function MembersManagePage({
 					<table className="w-full text-xs sm:text-sm min-w-max">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm">姓名</th>
-								<th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm">類型</th>
+								<th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm border-r">姓名</th>
+								<th className="sticky left-[60px] sm:left-[80px] z-20 bg-gray-50 px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm border-r">類型</th>
 								{months.map(month => (
 									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap text-xs sm:text-sm">{month.slice(5)}月</th>
 								))}
@@ -414,8 +414,8 @@ export default async function MembersManagePage({
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap text-xs sm:text-sm">{getDisplayName(member)}</td>
-									<td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+									<td className="sticky left-0 z-10 bg-white px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap text-xs sm:text-sm border-r">{getDisplayName(member)}</td>
+									<td className="sticky left-[60px] sm:left-[80px] z-10 bg-white px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap border-r">
 										{canManage ? (
 											<MemberTypeSelect
 												userId={member.id}
@@ -432,16 +432,16 @@ export default async function MembersManagePage({
 										const payment = member.monthlyPayments.find(p => p.month === month)
 										const isFixed = member.memberProfile?.memberType === 'FIXED'
 										const registrationCount = memberRegistrationCounts.get(member.id)?.get(month) || 0
-										const isJulyOrAug2025 = month === '2025-07' || month === '2025-08'
+										const isJulyAugSep2025 = month === '2025-07' || month === '2025-08' || month === '2025-09'
 										
 										if (isFixed) {
-											const isPaid = Boolean(payment?.isPaid) || isJulyOrAug2025
+											const isPaid = Boolean(payment?.isPaid) || isJulyAugSep2025
 											return (
 												<td key={month} className="px-2 py-2 text-center">
 													{isPaid ? (
 														<div className="flex flex-col items-center gap-1">
 															<span className="text-green-600 font-medium text-xs">已繳費</span>
-															{canManage && payment?.isPaid && !isJulyOrAug2025 && (
+															{canManage && payment?.isPaid && !isJulyAugSep2025 && (
 																<CancelFixedPaymentButton
 																	userId={member.id}
 																	month={month}
@@ -465,7 +465,7 @@ export default async function MembersManagePage({
 												</td>
 											)
 										} else {
-											if (isJulyOrAug2025) {
+											if (isJulyAugSep2025) {
 												return (
 													<td key={month} className="px-2 py-2 text-center text-gray-600">
 														<div className="space-y-1.5 text-xs">
