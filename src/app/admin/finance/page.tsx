@@ -141,20 +141,20 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				<Button as={Link} href="/group" variant="outline" className="whitespace-nowrap">返回小組管理</Button>
 			</div>
 
-			{/* 按鈕區 */}
-			<div className="flex items-center gap-3 flex-wrap">
-				{canManage && (
-					<>
-						{!deleteMode ? (
-							<Button as={Link} href={`/admin/finance?month=${month}&delete=1`} variant="outline" className="whitespace-nowrap text-red-600 border-red-300">刪除</Button>
-						) : (
-							<Button as={Link} href={`/admin/finance?month=${month}`} variant="primary" className="whitespace-nowrap">完成</Button>
-						)}
-						<Button as={Link} href="/admin/members" variant="outline" className="whitespace-nowrap">成員管理</Button>
-						<Button as={Link} href="/admin/activity-unpaid" variant="outline" className="whitespace-nowrap">活動未繳費</Button>
-					</>
-				)}
-			</div>
+		{/* 按鈕區 */}
+		<div className="flex items-center gap-3 flex-wrap">
+			{canManage && (
+				<>
+					{!deleteMode ? (
+						<Button as={Link} href={`/admin/finance?month=${month}&delete=1`} variant="outline" className="whitespace-nowrap text-red-600 border-red-300">刪除</Button>
+					) : (
+						<Button as={Link} href={`/admin/finance?month=${month}`} variant="primary" className="whitespace-nowrap">完成</Button>
+					)}
+				</>
+			)}
+			<Button as={Link} href="/admin/members" variant="outline" className="whitespace-nowrap">成員管理</Button>
+			<Button as={Link} href="/admin/activity-unpaid" variant="outline" className="whitespace-nowrap">活動未繳費</Button>
+		</div>
 
 			{/* 篩選區（手機直向堆疊，桌面橫排） */}
 			<div className="grid grid-cols-1 sm:flex sm:items-center sm:gap-3 sm:flex-wrap gap-2">
