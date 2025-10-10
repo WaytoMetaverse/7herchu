@@ -32,7 +32,7 @@ export type ChecklistTemplateKey = keyof typeof CHECKLIST_TEMPLATES
 
 export function getChecklistTemplate(eventType: string): string[] | null {
 	if (eventType === 'BOD' || eventType === 'JOINT') {
-		return CHECKLIST_TEMPLATES[eventType as ChecklistTemplateKey]
+		return [...CHECKLIST_TEMPLATES[eventType as ChecklistTemplateKey]]
 	}
 	return null
 }
