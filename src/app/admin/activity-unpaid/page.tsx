@@ -11,12 +11,12 @@ import { getDisplayName } from '@/lib/displayName'
 
 export default async function ActivityUnpaidPage() {
 	const session = await getServerSession(authOptions)
+	if (!session?.user) redirect('/auth/signin')
+	
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('finance_manager')
 	
-	if (!canManage) {
-		redirect('/admin/finance')
-	}
+	// 一般成員可以查看，但不能操作
 
 	// 查詢 BOD/餐敘/軟性活動
 	const events = await prisma.event.findMany({
@@ -86,6 +86,13 @@ export default async function ActivityUnpaidPage() {
 				</Button>
 			</div>
 
+			{/* 提示訊息 */}
+			{!canManage && (
+				<div className="bg-blue-50 p-4 rounded-lg text-sm">
+					<p className="text-blue-800">您可以查看活動未繳費狀態，但無法進行繳費操作。如需協助，請聯繫財務管理員。</p>
+				</div>
+			)}
+
 			{(upcoming.length + pastDesc.length) === 0 ? (
 				<div className="text-center py-12 text-gray-500">
 					<p>目前沒有需要繳費的活動</p>
@@ -148,15 +155,17 @@ export default async function ActivityUnpaidPage() {
 																	<div className="font-medium text-red-600">
 																		${price}
 																	</div>
-																	<Button 
-																		as={Link} 
-																		href={`/admin/checkin/${event.id}`}
-																		size="sm"
-																		variant="outline"
-																		className="text-xs mt-1"
-																	>
-																		前往繳費
-																	</Button>
+																	{canManage && (
+																		<Button 
+																			as={Link} 
+																			href={`/admin/checkin/${event.id}`}
+																			size="sm"
+																			variant="outline"
+																			className="text-xs mt-1"
+																		>
+																			前往繳費
+																		</Button>
+																	)}
 																</div>
 															</div>
 														</div>
@@ -233,15 +242,17 @@ export default async function ActivityUnpaidPage() {
 																			<div className="font-medium text-red-600">
 																				${price}
 																			</div>
-																			<Button 
-																				as={Link} 
-																				href={`/admin/checkin/${event.id}`}
-																				size="sm"
-																				variant="outline"
-																				className="text-xs mt-1"
-																			>
-																				前往繳費
-																			</Button>
+																			{canManage && (
+																				<Button 
+																					as={Link} 
+																					href={`/admin/checkin/${event.id}`}
+																					size="sm"
+																					variant="outline"
+																					className="text-xs mt-1"
+																				>
+																					前往繳費
+																				</Button>
+																			)}
 																		</div>
 																	</div>
 																</div>

@@ -21,6 +21,8 @@ export default async function MembersManagePage({
 	if (!session?.user) redirect('/auth/signin')
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const canManage = roles.includes('admin') || roles.includes('finance_manager')
+	
+	// 一般成員可以查看，但不能操作
 
 	const sp = searchParams ? await searchParams : undefined
 	const selectedMonth = sp?.month || new Date().toISOString().slice(0, 7)
@@ -375,7 +377,14 @@ export default async function MembersManagePage({
 				<Button as={Link} href="/admin/finance" variant="outline" className="whitespace-nowrap">返回財務管理</Button>
 			</div>
 
-			{/* 繳費訊息產生器 */}
+			{/* 提示訊息 */}
+			{!canManage && (
+				<div className="bg-blue-50 p-4 rounded-lg text-sm">
+					<p className="text-blue-800">您可以查看成員類型和繳費狀態，但無法進行操作。如需修改，請聯繫財務管理員。</p>
+				</div>
+			)}
+
+			{/* 繳費訊息產生器 - 所有人可見 */}
 			<div className="bg-blue-50 p-4 rounded-lg text-xs sm:text-sm">
 				<div className="flex items-center justify-between mb-2">
 					<h2 className="font-medium">繳費訊息<br className="sm:hidden" />（固定成員）</h2>
@@ -407,11 +416,17 @@ export default async function MembersManagePage({
 								<tr key={member.id}>
 									<td className="px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap text-xs sm:text-sm">{getDisplayName(member)}</td>
 									<td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
-										<MemberTypeSelect
-											userId={member.id}
-											defaultValue={member.memberProfile?.memberType || 'SINGLE'}
-											updateMemberType={updateMemberType}
-										/>
+										{canManage ? (
+											<MemberTypeSelect
+												userId={member.id}
+												defaultValue={member.memberProfile?.memberType || 'SINGLE'}
+												updateMemberType={updateMemberType}
+											/>
+										) : (
+											<span className="text-xs sm:text-sm">
+												{member.memberProfile?.memberType === 'FIXED' ? '固定' : '單次'}
+											</span>
+										)}
 									</td>
 									{months.map(month => {
 										const payment = member.monthlyPayments.find(p => p.month === month)
@@ -426,7 +441,7 @@ export default async function MembersManagePage({
 													{isPaid ? (
 														<div className="flex flex-col items-center gap-1">
 															<span className="text-green-600 font-medium text-xs">已繳費</span>
-															{payment?.isPaid && !isJulyOrAug2025 && (
+															{canManage && payment?.isPaid && !isJulyOrAug2025 && (
 																<CancelFixedPaymentButton
 																	userId={member.id}
 																	month={month}
@@ -437,11 +452,15 @@ export default async function MembersManagePage({
 															)}
 														</div>
 													) : (
-														<form action={markPaid} className="inline">
-															<input type="hidden" name="userId" value={member.id} />
-															<input type="hidden" name="month" value={month} />
-															<button type="submit" className="text-xs text-red-600 hover:text-red-800 whitespace-nowrap">未繳費</button>
-														</form>
+														canManage ? (
+															<form action={markPaid} className="inline">
+																<input type="hidden" name="userId" value={member.id} />
+																<input type="hidden" name="month" value={month} />
+																<button type="submit" className="text-xs text-red-600 hover:text-red-800 whitespace-nowrap">未繳費</button>
+															</form>
+														) : (
+															<span className="text-xs text-red-600 font-medium">未繳費</span>
+														)
 													)}
 												</td>
 											)
@@ -456,11 +475,17 @@ export default async function MembersManagePage({
 													</td>
 												)
 											}
+											
+											// 單次成員顯示邏輯
+											const currentPaidAmount = payment?.amount || 0
+											const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
+											const remainingCount = registrationCount - currentPaidCount
+											
 											return (
 												<td key={month} className="px-2 py-2 text-center text-gray-600">
 													<div className="space-y-1.5 text-xs">
 														<div>報名 {registrationCount} 次</div>
-														{payment?.isPaid ? (
+														{payment?.isPaid && canManage ? (
 															<CancelPaymentButton
 																userId={member.id}
 																month={month}
@@ -468,13 +493,10 @@ export default async function MembersManagePage({
 																activityCount={Math.round((payment.amount || 0) / 100 / 220)}
 																onCancel={cancelLastPayment}
 															/>
+														) : payment?.isPaid ? (
+															<span className="text-green-600 font-medium">已繳 {currentPaidCount} 次</span>
 														) : null}
-														{(() => {
-															const currentPaidAmount = payment?.amount || 0
-															const currentPaidCount = Math.round(currentPaidAmount / 100 / 220)
-															const remainingCount = registrationCount - currentPaidCount
-															return remainingCount > 0
-														})() ? (
+														{canManage && remainingCount > 0 ? (
 														<form action={async (formData: FormData) => {
 															'use server'
 															const userId = String(formData.get('userId'))
@@ -551,9 +573,9 @@ export default async function MembersManagePage({
 						</div>
                                                         <button type="submit" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded whitespace-nowrap" style={{ fontSize: '12px', lineHeight: '14px', height: '20px !important', padding: '1px 3px !important', minHeight: '20px' }}>繳費 $220/次</button>
 					</form>
-													) : (
-														<div className="text-xs text-gray-400">無報名記錄</div>
-													)}
+														) : !canManage && remainingCount > 0 ? (
+															<span className="text-xs text-red-600 font-medium">未繳 {remainingCount} 次</span>
+														) : null}
 													</div>
 												</td>
 											)
