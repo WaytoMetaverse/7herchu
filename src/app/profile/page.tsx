@@ -9,6 +9,7 @@ import ImageThumb from '@/components/ImageThumb'
 import { put } from '@vercel/blob'
 import ProfileUploadClient from '@/components/ProfileUploadClient'
 import DeleteButton from '@/components/DeleteButton'
+import PushNotificationToggle from '@/components/PushNotificationToggle'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -238,10 +239,15 @@ export default async function ProfilePage() {
 							<textarea name="workDescription" rows={4} defaultValue={mp?.workDescription ?? ''} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical" />
 						</label>
 					</div>
-				</section>
+			</section>
 
-				<section className="space-y-4">
-					<h2 className="font-medium text-lg">名片</h2>
+			<section className="space-y-4">
+				<h2 className="font-medium text-lg">通知設定</h2>
+				<PushNotificationToggle />
+			</section>
+
+			<section className="space-y-4">
+				<h2 className="font-medium text-lg">名片</h2>
 					{Array.isArray(mp?.businessCards) && (mp!.businessCards as unknown[]).length > 0 ? (
 						<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
 							{(mp!.businessCards as string[]).map((url) => (

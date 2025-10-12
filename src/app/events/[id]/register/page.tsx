@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { pushSolonByEvent } from '@/lib/line'
+import { sendRegistrationNotification, getDisplayName } from '@/lib/notificationHelper'
 import { generateSolonMessage } from '@/lib/solon'
 
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
@@ -157,6 +158,14 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					paymentStatus: 'UNPAID'
 				}
 			})
+			
+			// 發送推送通知（僅新報名時發送）
+			try {
+				const displayName = getDisplayName(user, user.name)
+				await sendRegistrationNotification(eventId, displayName, 'MEMBER')
+			} catch (e) {
+				console.warn('[register] sendPushNotification failed', { eventId, err: (e as Error)?.message })
+			}
 		}
 
 		// 推送接龍訊息（忽略失敗）

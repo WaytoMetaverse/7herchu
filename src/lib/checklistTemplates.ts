@@ -26,18 +26,33 @@ export const CHECKLIST_TEMPLATES = {
 		'提供餐點選擇與用餐彙整(宇宙)',
 		'提供場地資訊與停車資訊(清皓)',
 	],
+	GENERAL: [
+		'會議記錄',
+	],
+	CLOSED: [
+		'會議記錄',
+	],
+	DINNER: [
+		'會議記錄',
+	],
+	SOFT: [
+		'會議記錄',
+	],
+	VISIT: [
+		'會議記錄',
+	],
 } as const
 
 export type ChecklistTemplateKey = keyof typeof CHECKLIST_TEMPLATES
 
 export function getChecklistTemplate(eventType: string): string[] | null {
-	if (eventType === 'BOD' || eventType === 'JOINT') {
+	if (eventType in CHECKLIST_TEMPLATES) {
 		return [...CHECKLIST_TEMPLATES[eventType as ChecklistTemplateKey]]
 	}
 	return null
 }
 
 export function hasChecklistTemplate(eventType: string): boolean {
-	return eventType === 'BOD' || eventType === 'JOINT'
+	return eventType in CHECKLIST_TEMPLATES
 }
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { pushSolonByEvent } from '@/lib/line'
 import { generateSolonMessage } from '@/lib/solon'
+import { sendRegistrationNotification } from '@/lib/notificationHelper'
 
 export async function POST(req: NextRequest) {
 	const body = await req.json()
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
 		} catch (e) {
 			console.warn('[speaker/book] pushSolonByEvent failed', { eventId, err: (e as Error)?.message })
 		}
+		
+		// 發送推送通知
+		try {
+			// 取名字後兩字作為顯示名稱
+			const displayName = name.length >= 2 ? name.slice(-2) : name
+			await sendRegistrationNotification(eventId, displayName, 'SPEAKER')
+		} catch (e) {
+			console.warn('[speaker/book] sendPushNotification failed', { eventId, err: (e as Error)?.message })
+		}
+		
 		return NextResponse.json({ ok: true, id: created.id })
 	} catch {
 		return NextResponse.json({ error: '同一手機已預約或提交錯誤' }, { status: 400 })

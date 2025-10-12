@@ -99,6 +99,7 @@ model User {
   monthlyPayments MemberMonthlyPayment[]
   cards         BusinessCard[]
   createdInvites InviteToken[]
+  pushSubscriptions PushSubscription[]
   createdAt     DateTime @default(now())
 }
 
@@ -406,4 +407,20 @@ model EventChecklistItem {
   updatedAt   DateTime @updatedAt
 
   @@index([eventId, order])
+}
+
+// Push 通知訂閱
+model PushSubscription {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint        String
+  p256dh          String   // 加密金鑰
+  auth            String   // 認證密鑰
+  isEnabled       Boolean  @default(true) // 是否啟用通知
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, endpoint])
+  @@index([userId, isEnabled])
 }

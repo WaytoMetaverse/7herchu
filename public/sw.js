@@ -92,4 +92,80 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// 處理推送通知
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push received:', event);
+  
+  let data = {
+    title: '新通知',
+    body: '您有新的通知',
+    icon: '/logo.jpg',
+    badge: '/logo.jpg',
+    data: {}
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      console.error('[Service Worker] Push data parse error:', e);
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/logo.jpg',
+    badge: data.badge || '/logo.jpg',
+    vibrate: [200, 100, 200],
+    data: data.data || {},
+    actions: data.data?.url ? [
+      {
+        action: 'open',
+        title: '查看'
+      },
+      {
+        action: 'close',
+        title: '關閉'
+      }
+    ] : []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// 處理通知點擊
+self.addEventListener('notificationclick', (event) => {
+  console.log('[Service Worker] Notification click:', event);
+  
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  // 打開或聚焦到指定頁面
+  const urlToOpen = event.notification.data?.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // 嘗試聚焦已開啟的視窗
+      for (const client of clientList) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // 開啟新視窗
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
 
