@@ -4,13 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import { sendPushNotificationToAll } from '@/lib/webpush'
 
-// 測試推送通知
+// 測試推送通知（開發測試用，移除權限檢查）
 export async function GET() {
 	try {
-		const session = await getServerSession(authOptions)
-		if (!session?.user) {
-			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-		}
 
 		// 檢查訂閱數量
 		const subscriptions = await prisma.pushSubscription.findMany({
