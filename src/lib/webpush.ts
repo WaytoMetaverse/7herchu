@@ -2,12 +2,22 @@ import webpush from 'web-push'
 import { prisma } from './prisma'
 
 // 設定 VAPID 詳細資訊
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT) {
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+const vapidSubject = process.env.VAPID_SUBJECT
+
+if (vapidPublicKey && vapidPrivateKey && vapidSubject) {
 	webpush.setVapidDetails(
-		process.env.VAPID_SUBJECT,
-		process.env.VAPID_PUBLIC_KEY,
-		process.env.VAPID_PRIVATE_KEY
+		vapidSubject,
+		vapidPublicKey,
+		vapidPrivateKey
 	)
+	console.log('[WebPush] VAPID 已設定')
+} else {
+	console.warn('[WebPush] VAPID 環境變數未完整設定')
+	console.warn('- NEXT_PUBLIC_VAPID_PUBLIC_KEY:', !!vapidPublicKey)
+	console.warn('- VAPID_PRIVATE_KEY:', !!vapidPrivateKey)
+	console.warn('- VAPID_SUBJECT:', !!vapidSubject)
 }
 
 export interface PushNotificationPayload {
