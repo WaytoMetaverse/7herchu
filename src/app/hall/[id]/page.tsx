@@ -264,16 +264,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 					{sp?.speakers ? <div>講師：{String(sp.speakers)}</div> : null}
 				</div>
 			)}
-			<div className="flex items-start justify-between">
-				<div className="flex-1 min-w-0">
-					<div className="flex items-start gap-2 mb-2">
-						<h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold flex-1">{event.title}</h1>
-						{/* 檢核清單按鈕 - BOD和聯合組聚顯示 */}
-						{isLoggedIn && hasChecklistTemplate(event.type) && (
-							<ChecklistButton eventId={event.id} />
-						)}
-					</div>
-					{/* 來賓邀請按鈕 - 放在標題下方 */}
+		<div className="flex items-start justify-between">
+			<div className="flex-1 min-w-0">
+				<h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold mb-2 pr-2">{event.title}</h1>
+				{/* 來賓邀請按鈕 - 放在標題旁邊 */}
 					{isLoggedIn && (() => {
 						// 根據活動類型選擇對應的邀請訊息和卡片
 						let invitationMessage = '磐石砌好厝誠摯地邀請您一同來參與'
@@ -332,9 +326,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						)
 					})()}
 				</div>
-				{/* 右上角管理圖示按鈕 */}
-				<div className="flex items-center gap-1 flex-shrink-0">
-					{canEditDelete && (
+			{/* 右上角管理圖示按鈕 */}
+			<div className="flex flex-col items-end gap-2 flex-shrink-0">
+				{canEditDelete && (
+					<div className="flex items-center gap-1">
 						<Link 
 							href={`/admin/events/${event.id}`} 
 							className="text-gray-400 hover:text-gray-600 p-2"
@@ -344,8 +339,6 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 							</svg>
 						</Link>
-					)}
-					{canEditDelete && (
 						<div title="刪除活動">
 							<ConfirmDelete 
 								eventId={event.id} 
@@ -357,9 +350,14 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								isIcon={true}
 							/>
 						</div>
-					)}
-				</div>
+					</div>
+				)}
+				{/* 檢核清單按鈕 - 放在編輯和刪除按鈕下方 */}
+				{isLoggedIn && hasChecklistTemplate(event.type) && (
+					<ChecklistButton eventId={event.id} />
+				)}
 			</div>
+		</div>
 
 			<div className="space-y-2 text-sm text-gray-700">
 				<div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-500" />{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })} - {format(event.endAt, 'HH:mm', { locale: zhTW })}</div>
