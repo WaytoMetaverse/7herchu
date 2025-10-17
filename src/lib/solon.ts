@@ -39,7 +39,19 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 
 	// 清單
 	const memberListArr = regs.filter(r => r.role === 'MEMBER').map((r, idx) => `${idx + 1}.${displayMemberName(r.user?.nickname, r.user?.name || r.name)}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
-	const guestListArr = regs.filter(r => r.role === 'GUEST').map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	
+	// 來賓按類型分組
+	const guests = regs.filter(r => r.role === 'GUEST')
+	const nonBniGuests = guests.filter(g => g.guestType === 'NON_BNI')
+	const otherBniGuests = guests.filter(g => g.guestType === 'OTHER_BNI')
+	const panshiGuests = guests.filter(g => g.guestType === 'PANSHI')
+	const unknownGuests = guests.filter(g => !g.guestType)
+	
+	const nonBniGuestList = nonBniGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	const otherBniGuestList = otherBniGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	const panshiGuestList = panshiGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	const unknownGuestList = unknownGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
+	
 	const speakerListArr = speakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
 
 	// 追加兩個空白序號（僅在已有名單時）
@@ -51,7 +63,6 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	}
 
 	const memberList = appendPlaceholders(memberListArr)
-	const guestList = appendPlaceholders(guestListArr)
 	const speakerList = appendPlaceholders(speakerListArr)
 
 	// 請假名單（僅成員，不編號）
@@ -76,9 +87,21 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	if (leaveList) {
 		lines.push('', '🌟無法參加人員：', leaveList)
 	}
-	if (guestList) {
-		lines.push('', '🌟來賓', guestList)
+	
+	// 來賓分組顯示
+	if (nonBniGuestList.length > 0) {
+		lines.push('', '▫️來賓接龍：', appendPlaceholders(nonBniGuestList))
 	}
+	if (otherBniGuestList.length > 0) {
+		lines.push('', '▫️BNI夥伴接龍：', appendPlaceholders(otherBniGuestList))
+	}
+	if (panshiGuestList.length > 0) {
+		lines.push('', '▫️磐石夥伴接龍：', appendPlaceholders(panshiGuestList))
+	}
+	if (unknownGuestList.length > 0) {
+		lines.push('', '▫️其他來賓：', appendPlaceholders(unknownGuestList))
+	}
+	
 	if (speakerList) {
 		lines.push('', '🌟講師', speakerList)
 	}
