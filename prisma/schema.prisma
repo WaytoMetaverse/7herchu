@@ -74,6 +74,12 @@ enum RegistrationStatus {
   LEAVE
 }
 
+enum GuestType {
+  PANSHI      // 磐石分會
+  OTHER_BNI   // 其他分會
+  NON_BNI     // 非BNI
+}
+
 enum CardCategory {
   FINANCE         // 金融租賃（銀行、租賃、等）
   DEVELOPMENT     // 開發買賣（仲介、土開、等）
@@ -251,6 +257,7 @@ model Registration {
   editPasswordHash String? // 來賓編輯密碼（手機號碼 hash）
   companyName   String?
   industry      String?
+  guestType     GuestType? // 來賓類型（磐石分會/其他分會/非BNI）
   bniChapter    String?
   invitedBy     String?
 

@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
 			name, 
 			phone, 
 			companyName, 
-			industry, 
+			industry,
+			guestType,
 			bniChapter, 
 			invitedBy,
 			mealCode,
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 		} = body
 
 		// 驗證必填欄位
-		if (!eventId || !name || !phone || !companyName || !industry || !invitedBy) {
+		if (!eventId || !name || !phone || !companyName || !industry || !guestType || !invitedBy) {
 			return NextResponse.json({ error: '請填寫所有必填欄位' }, { status: 400 })
 		}
 
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
 				editPasswordHash,
 				companyName,
 				industry,
+				guestType: guestType as 'PANSHI' | 'OTHER_BNI' | 'NON_BNI',
 				bniChapter: bniChapter || null,
 				invitedBy,
 				mealCode: finalMealCode,

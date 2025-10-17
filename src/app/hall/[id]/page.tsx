@@ -27,6 +27,12 @@ const TYPE_LABEL: Record<EventType, string> = {
 	VISIT: '職業參訪',
 }
 
+const GUEST_TYPE_LABEL: Record<string, string> = {
+	PANSHI: '磐石',
+	OTHER_BNI: '其他分會',
+	NON_BNI: '非BNI',
+}
+
 export default async function HallEventDetailPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
 	const { id } = await params
 	const sp = searchParams ? await searchParams : undefined
@@ -511,7 +517,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 
 				<Card>
 					<CardContent>
-						<div className="flex items-center justify-between mb-2">
+						<div className="flex items-center justify-between mb-3">
 							<h2 className="font-medium">來賓（{guests.length}）</h2>
 							{canEditDelete ? (
 								<Button as={Link} href={`/admin/guest-management/${event.id}`} variant="outline" size="sm">
@@ -519,43 +525,100 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								</Button>
 							) : null}
 						</div>
-						<ul className="list-disc pl-5 text-sm text-gray-800">
-							{guests.map(g => {
-								let mealInfo = ''
+						
+						{/* 按來賓類型分組顯示 */}
+						{(() => {
+							// 分組
+							const nonBniGuests = guests.filter(g => g.guestType === 'NON_BNI')
+							const otherBniGuests = guests.filter(g => g.guestType === 'OTHER_BNI')
+							const panshiGuests = guests.filter(g => g.guestType === 'PANSHI')
+							const unknownGuests = guests.filter(g => !g.guestType)
+							
+							// 生成餐點資訊的函數
+							const getMealInfo = (g: typeof guests[0]) => {
 								if (eventMenu?.hasMealService) {
 									if (g.mealCode) {
-										// 有餐點設定且有 mealCode：顯示 A/B/C 及餐點名稱
 										const mealName = g.mealCode === 'A' ? eventMenu.mealCodeA :
 														 g.mealCode === 'B' ? eventMenu.mealCodeB :
 														 g.mealCode === 'C' ? eventMenu.mealCodeC : null
-										mealInfo = mealName ? ` · ${g.mealCode}餐（${mealName}）` : ` · ${g.mealCode}餐`
-									} else {
-										// 有餐點設定但沒有 mealCode（理論上不會發生）
-										mealInfo = ' · 待分配'
+										return mealName ? ` · ${g.mealCode}餐（${mealName}）` : ` · ${g.mealCode}餐`
 									}
+									return ' · 待分配'
 								} else {
-									// 沒有餐點設定：顯示飲食偏好
 									if (g.diet === 'veg') {
-										mealInfo = ' · 素食'
+										return ' · 素食'
 									} else {
 										const restrictions = []
 										if (g.noBeef) restrictions.push('不吃牛')
 										if (g.noPork) restrictions.push('不吃豬')
 										if (restrictions.length > 0) {
-											mealInfo = ` · 葷食（${restrictions.join('、')}）`
-										} else {
-											mealInfo = ' · 葷食'
+											return ` · 葷食（${restrictions.join('、')}）`
 										}
+										return ' · 葷食'
 									}
 								}
-								
-								return (
-									<li key={g.id}>
-										{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
-									</li>
-								)
-							})}
-						</ul>
+							}
+							
+							return (
+								<div className="space-y-4">
+									{/* 來賓接龍：非BNI */}
+									{nonBniGuests.length > 0 && (
+										<div>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️來賓接龍：非BNI</h3>
+											<ul className="list-disc pl-5 text-sm text-gray-800">
+												{nonBniGuests.map(g => (
+													<li key={g.id}>
+														{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{getMealInfo(g)}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
+									
+									{/* BNI夥伴接龍：其他分會 */}
+									{otherBniGuests.length > 0 && (
+										<div>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️BNI夥伴接龍：其他分會</h3>
+											<ul className="list-disc pl-5 text-sm text-gray-800">
+												{otherBniGuests.map(g => (
+													<li key={g.id}>
+														{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{getMealInfo(g)}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
+									
+									{/* 磐石夥伴接龍：磐石分會 */}
+									{panshiGuests.length > 0 && (
+										<div>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️磐石夥伴接龍：磐石分會</h3>
+											<ul className="list-disc pl-5 text-sm text-gray-800">
+												{panshiGuests.map(g => (
+													<li key={g.id}>
+														{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{getMealInfo(g)}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
+									
+									{/* 未分類來賓（舊資料） */}
+									{unknownGuests.length > 0 && (
+										<div>
+											<h3 className="text-sm font-medium text-gray-500 mb-2">▫️其他來賓</h3>
+											<ul className="list-disc pl-5 text-sm text-gray-600">
+												{unknownGuests.map(g => (
+													<li key={g.id}>
+														{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{getMealInfo(g)}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
+								</div>
+							)
+						})()}
 					</CardContent>
 				</Card>
 			</div>

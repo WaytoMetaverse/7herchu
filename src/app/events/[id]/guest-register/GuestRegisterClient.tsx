@@ -33,6 +33,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		phone: '',
 		companyName: '',
 		industry: '',
+		guestType: '' as '' | 'PANSHI' | 'OTHER_BNI' | 'NON_BNI',
 		bniChapter: '',
 		invitedBy: '',
 		mealCode: '',
@@ -76,7 +77,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 		setErr(null)
 
 		// 驗證必填欄位
-		if (!form.name || !form.phone || !form.companyName || !form.industry || !form.invitedBy) {
+		if (!form.name || !form.phone || !form.companyName || !form.industry || !form.guestType || !form.invitedBy) {
 			setErr('請填寫所有必填欄位')
 			setLoading(false)
 			return
@@ -228,6 +229,48 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 						onChange={(e) => setForm(v => ({...v, industry: e.target.value}))} 
 						className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 					/>
+				</div>
+				
+				{/* 來賓類型 - 不顯示標籤 */}
+				<div>
+					<div className="flex gap-3 justify-start">
+						<label className="flex items-center gap-2 cursor-pointer">
+							<input 
+								type="radio"
+								name="guestType"
+								value="PANSHI"
+								checked={form.guestType === 'PANSHI'}
+								onChange={(e) => setForm(v => ({...v, guestType: e.target.value as 'PANSHI'}))}
+								className="w-4 h-4 text-blue-600"
+								required
+							/>
+							<span className="text-sm sm:text-base">磐石分會</span>
+						</label>
+						<label className="flex items-center gap-2 cursor-pointer">
+							<input 
+								type="radio"
+								name="guestType"
+								value="OTHER_BNI"
+								checked={form.guestType === 'OTHER_BNI'}
+								onChange={(e) => setForm(v => ({...v, guestType: e.target.value as 'OTHER_BNI'}))}
+								className="w-4 h-4 text-blue-600"
+								required
+							/>
+							<span className="text-sm sm:text-base">其他分會</span>
+						</label>
+						<label className="flex items-center gap-2 cursor-pointer">
+							<input 
+								type="radio"
+								name="guestType"
+								value="NON_BNI"
+								checked={form.guestType === 'NON_BNI'}
+								onChange={(e) => setForm(v => ({...v, guestType: e.target.value as 'NON_BNI'}))}
+								className="w-4 h-4 text-blue-600"
+								required
+							/>
+							<span className="text-sm sm:text-base">非BNI</span>
+						</label>
+					</div>
 				</div>
 				
 				<div>
