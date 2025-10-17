@@ -14,7 +14,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 	const [event, setEvent] = useState<{
 		id: string
 		title: string
-		startAt: string
+		startAt: Date
 		location: string
 	} | null>(null)
 	const [menu, setMenu] = useState<{
@@ -54,19 +54,42 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 			fetch(`/api/events?id=${eventId}`).then(res => res.json()),
 			fetch(`/api/menus?eventId=${eventId}`).then(res => res.json())
 		]).then(([eventData, menuData]) => {
-			if (eventData?.data) setEvent(eventData.data)
-			if (menuData?.data) setMenu(menuData.data)
-			// 來賓費用：GENERAL/JOINT 固定 250；其他依設定
 			if (eventData?.data) {
-				const e = eventData.data as { type?: string; guestPriceCents?: number | null }
-				if (e.type === 'GENERAL' || e.type === 'JOINT') {
+				const rawEvent = eventData.data as { id: string; title: string; startAt: string | Date; location: string; type?: string; guestPriceCents?: number | null }
+				
+				// 解析時間，避免時區偏移
+				let eventDate: Date
+				if (typeof rawEvent.startAt === 'string') {
+					const [datePart, timePart] = rawEvent.startAt.split('T')
+					const [year, month, day] = datePart.split('-').map((v) => parseInt(v))
+					let hh = 0, mm = 0
+					if (timePart) {
+						const [h, m] = timePart.split(':')
+						hh = parseInt(h)
+						mm = parseInt(m)
+					}
+					eventDate = new Date(year, (month || 1) - 1, day || 1, hh, mm)
+				} else {
+					eventDate = rawEvent.startAt
+				}
+				
+				setEvent({
+					id: rawEvent.id,
+					title: rawEvent.title,
+					startAt: eventDate,
+					location: rawEvent.location
+				})
+				
+				// 來賓費用：GENERAL/JOINT 固定 250；其他依設定
+				if (rawEvent.type === 'GENERAL' || rawEvent.type === 'JOINT') {
 					setGuestPriceLabel('來賓 250 元')
-				} else if (e.guestPriceCents && e.guestPriceCents > 0) {
-					setGuestPriceLabel(`來賓 ${(e.guestPriceCents / 100).toLocaleString('zh-TW')} 元`)
+				} else if (rawEvent.guestPriceCents && rawEvent.guestPriceCents > 0) {
+					setGuestPriceLabel(`來賓 ${(rawEvent.guestPriceCents / 100).toLocaleString('zh-TW')} 元`)
 				} else {
 					setGuestPriceLabel('')
 				}
 			}
+			if (menuData?.data) setMenu(menuData.data)
 		}).catch(() => {
 			setErr('載入活動資訊失敗')
 		})
@@ -177,7 +200,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 				<h1 className="text-2xl font-semibold">來賓報名</h1>
 				<div className="text-gray-600">
 					<div className="font-medium">{event.title}</div>
-					<div className="text-sm">{format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
+					<div className="text-sm">{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
 					<div className="text-sm">{event.location}</div>
 					{guestPriceLabel && (
 						<div className="text-sm text-gray-800">費用：{guestPriceLabel}</div>

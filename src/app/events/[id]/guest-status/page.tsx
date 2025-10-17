@@ -25,7 +25,7 @@ export default function GuestStatusPage({ params }: { params: Promise<{ id: stri
 	const [event, setEvent] = useState<{
 		id: string
 		title: string
-		startAt: string
+		startAt: Date
 		location: string
 	} | null>(null)
 	const [loading, setLoading] = useState(true)
@@ -46,7 +46,32 @@ export default function GuestStatusPage({ params }: { params: Promise<{ id: stri
 			fetch(`/api/events?id=${eventId}`).then(res => res.json()),
 			fetch(`/api/registrations/search?phone=${encodeURIComponent(phone)}&eventId=${eventId}`).then(res => res.json())
 		]).then(([eventData, regData]) => {
-			if (eventData?.data) setEvent(eventData.data)
+			if (eventData?.data) {
+				const rawEvent = eventData.data as { id: string; title: string; startAt: string | Date; location: string }
+				
+				// 解析時間，避免時區偏移
+				let eventDate: Date
+				if (typeof rawEvent.startAt === 'string') {
+					const [datePart, timePart] = rawEvent.startAt.split('T')
+					const [year, month, day] = datePart.split('-').map((v) => parseInt(v))
+					let hh = 0, mm = 0
+					if (timePart) {
+						const [h, m] = timePart.split(':')
+						hh = parseInt(h)
+						mm = parseInt(m)
+					}
+					eventDate = new Date(year, (month || 1) - 1, day || 1, hh, mm)
+				} else {
+					eventDate = rawEvent.startAt
+				}
+				
+				setEvent({
+					id: rawEvent.id,
+					title: rawEvent.title,
+					startAt: eventDate,
+					location: rawEvent.location
+				})
+			}
 			if (regData?.data && regData.data.length > 0) {
 				setRegistration(regData.data[0])
 			} else {
@@ -85,7 +110,7 @@ export default function GuestStatusPage({ params }: { params: Promise<{ id: stri
 				<div className="text-gray-600">
 					<div className="font-medium">{event.title}</div>
 					<div className="text-sm">
-						{format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}
+						{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}
 					</div>
 					<div className="text-sm">{event.location}</div>
 				</div>
