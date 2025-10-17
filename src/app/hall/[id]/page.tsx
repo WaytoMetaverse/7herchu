@@ -565,10 +565,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 							
 							return (
 								<div className="space-y-4">
-									{/* 來賓接龍：非BNI */}
+									{/* 來賓接龍 */}
 									{nonBniGuests.length > 0 && (
 										<div>
-											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️來賓接龍：非BNI</h3>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️來賓接龍：</h3>
 											<ul className="list-disc pl-5 text-sm text-gray-800">
 												{nonBniGuests.map(g => (
 													<li key={g.id}>
@@ -579,10 +579,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 										</div>
 									)}
 									
-									{/* BNI夥伴接龍：其他分會 */}
+									{/* BNI夥伴接龍 */}
 									{otherBniGuests.length > 0 && (
 										<div>
-											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️BNI夥伴接龍：其他分會</h3>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️BNI夥伴接龍：</h3>
 											<ul className="list-disc pl-5 text-sm text-gray-800">
 												{otherBniGuests.map(g => (
 													<li key={g.id}>
@@ -593,10 +593,10 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 										</div>
 									)}
 									
-									{/* 磐石夥伴接龍：磐石分會 */}
+									{/* 磐石夥伴接龍 */}
 									{panshiGuests.length > 0 && (
 										<div>
-											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️磐石夥伴接龍：磐石分會</h3>
+											<h3 className="text-sm font-medium text-gray-700 mb-2">▫️磐石夥伴接龍：</h3>
 											<ul className="list-disc pl-5 text-sm text-gray-800">
 												{panshiGuests.map(g => (
 													<li key={g.id}>
