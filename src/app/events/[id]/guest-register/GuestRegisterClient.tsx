@@ -55,7 +55,15 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 			fetch(`/api/menus?eventId=${eventId}`).then(res => res.json())
 		]).then(([eventData, menuData]) => {
 			if (eventData?.data) {
-				const rawEvent = eventData.data as { id: string; title: string; startAt: string | Date; location: string; type?: string; guestPriceCents?: number | null }
+				const rawEvent = eventData.data as { 
+					id: string
+					title: string
+					startAt: string | Date
+					location: string
+					type?: string
+					guestPriceCents?: number | null
+					bodGuestPriceCents?: number | null
+				}
 				
 				// 解析時間，避免時區偏移
 				let eventDate: Date
@@ -80,9 +88,11 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 					location: rawEvent.location
 				})
 				
-				// 來賓費用：GENERAL/JOINT 固定 250；其他依設定
+				// 來賓費用：GENERAL/JOINT 固定 250；BOD 使用 bodGuestPriceCents；其他依設定
 				if (rawEvent.type === 'GENERAL' || rawEvent.type === 'JOINT') {
 					setGuestPriceLabel('來賓 250 元')
+				} else if (rawEvent.type === 'BOD' && rawEvent.bodGuestPriceCents && rawEvent.bodGuestPriceCents > 0) {
+					setGuestPriceLabel(`來賓 ${(rawEvent.bodGuestPriceCents / 100).toLocaleString('zh-TW')} 元`)
 				} else if (rawEvent.guestPriceCents && rawEvent.guestPriceCents > 0) {
 					setGuestPriceLabel(`來賓 ${(rawEvent.guestPriceCents / 100).toLocaleString('zh-TW')} 元`)
 				} else {

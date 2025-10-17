@@ -8,6 +8,7 @@ import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import InviteClient from './InviteClient'
 import { unstable_noStore as noStore } from 'next/cache'
+import { parseLocalDate } from '@/lib/dateUtils'
 
 export default async function EventInvitePage({ params }: { params: Promise<{ id: string }> }) {
 	// 禁用快取，確保邀請卡更新能即時反映
@@ -49,7 +50,7 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events/${eventId}/guest-register`
-	const eventDate = format(new Date(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })
+	const eventDate = format(parseLocalDate(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })
 	const inviteMessage = `🎉 邀請您參加活動
 
 📅 ${event.title}

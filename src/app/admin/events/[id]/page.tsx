@@ -24,10 +24,11 @@ const TYPE_LABEL: Record<EventType, string> = {
 }
 
 function buildDate(dateStr: string, timeStr: string) {
-	const [hh, mm] = timeStr.split(':').map((s) => Number(s))
-	const d = new Date(`${dateStr}T00:00:00`)
-	d.setHours(hh || 0, mm || 0, 0, 0)
-	return d
+	// 完全不使用時區，直接當作本地時間處理
+	// 這樣可以避免任何時區轉換
+	const [year, month, day] = dateStr.split('-').map(v => parseInt(v, 10))
+	const [hour, minute] = timeStr.split(':').map(v => parseInt(v, 10))
+	return new Date(year, month - 1, day, hour, minute, 0, 0)
 }
 
 async function updateEvent(formData: FormData) {
@@ -118,10 +119,14 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 	const { id } = await params
 	const e = await prisma.event.findUnique({ where: { id } })
 	if (!e) notFound()
-	const dateStr = new Date(e.startAt).toISOString().slice(0,10)
-	const toTime = (d: Date) => `${d.getHours().toString().padStart(2,'0')}:${(d.getMinutes()===30 ? '30' : '00')}`
-	const startTime = toTime(new Date(e.startAt))
-	const endTime = toTime(new Date(e.endAt))
+	// 直接使用 Date 物件，不進行時區轉換
+	const year = e.startAt.getFullYear()
+	const month = String(e.startAt.getMonth() + 1).padStart(2, '0')
+	const day = String(e.startAt.getDate()).padStart(2, '0')
+	const dateStr = `${year}-${month}-${day}`
+	const toTime = (d: Date) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
+	const startTime = toTime(e.startAt)
+	const endTime = toTime(e.endAt)
 	const options = (Object.keys(TYPE_LABEL) as EventType[]).map((t) => ({ value: t, label: TYPE_LABEL[t] }))
 	const timeOptions = Array.from({ length: 24 * 2 }, (_, i) => {
 		const h = Math.floor(i / 2)

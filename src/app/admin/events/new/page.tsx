@@ -24,8 +24,11 @@ const TYPE_LABEL: Record<EventType, string> = {
 }
 
 function buildDate(dateStr: string, timeStr: string) {
-	// 以台北時區 (+08:00) 錨定，避免伺服器時區造成時間偏移
-	return new Date(`${dateStr}T${timeStr}:00+08:00`)
+	// 完全不使用時區，直接當作本地時間處理
+	// 這樣可以避免任何時區轉換
+	const [year, month, day] = dateStr.split('-').map(v => parseInt(v, 10))
+	const [hour, minute] = timeStr.split(':').map(v => parseInt(v, 10))
+	return new Date(year, month - 1, day, hour, minute, 0, 0)
 }
 
 async function createEvent(formData: FormData) {

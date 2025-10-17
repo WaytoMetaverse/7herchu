@@ -117,17 +117,28 @@ export default function SpeakerBookPage() {
             }
             // 也從事件列表補上標題與地點
             if (Array.isArray(eventList)) {
-                const e = eventList.find((x): x is { id: string; title?: string; location?: string; startAt?: string | Date; type?: string; guestPriceCents?: number | null } => 
+                const e = eventList.find((x): x is { 
+                    id: string
+                    title?: string
+                    location?: string
+                    startAt?: string | Date
+                    type?: string
+                    guestPriceCents?: number | null
+                    bodGuestPriceCents?: number | null
+                } => 
                     typeof (x as { id?: unknown }).id === 'string' && (x as { id?: string }).id === eventId
                 )
                 if (e) {
                     setEventTitle(e.title || '')
-                    setEventLocation((e as { location?: string }).location || '')
-                    // 來賓費用：GENERAL/JOINT 固定 250；其他依設定
-                    if ((e as { type?: string }).type === 'GENERAL' || (e as { type?: string }).type === 'JOINT') {
+                    setEventLocation(e.location || '')
+                    // 來賓費用：GENERAL/JOINT 固定 250；BOD 使用 bodGuestPriceCents；其他依設定
+                    if (e.type === 'GENERAL' || e.type === 'JOINT') {
                         setGuestPriceLabel('來賓 250 元')
-                    } else if ((e as { guestPriceCents?: number | null }).guestPriceCents && (e as { guestPriceCents?: number | null }).guestPriceCents! > 0) {
-                        const amt = (((e as { guestPriceCents?: number | null }).guestPriceCents!) / 100).toLocaleString('zh-TW')
+                    } else if (e.type === 'BOD' && e.bodGuestPriceCents && e.bodGuestPriceCents > 0) {
+                        const amt = (e.bodGuestPriceCents / 100).toLocaleString('zh-TW')
+                        setGuestPriceLabel(`來賓 ${amt} 元`)
+                    } else if (e.guestPriceCents && e.guestPriceCents > 0) {
+                        const amt = (e.guestPriceCents / 100).toLocaleString('zh-TW')
                         setGuestPriceLabel(`來賓 ${amt} 元`)
                     } else {
                         setGuestPriceLabel('')

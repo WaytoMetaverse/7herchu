@@ -307,18 +307,22 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						}
 						
 						// 採用與 LINE 推播一致的日期/時間格式（伺服端產生，避免時區誤差）
-						const eventDateLabel = format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
-						const eventTimeLabel = `${format(event.startAt, 'HH:mm', { locale: zhTW })}-${format(event.endAt, 'HH:mm', { locale: zhTW })}`
-						// 來賓費用：GENERAL/JOINT 固定 250；其他依 event.guestPriceCents
-						const guestPriceLabel = (() => {
-							if (event.type === 'GENERAL' || event.type === 'JOINT') return '來賓 250 元'
-							const cents = event.guestPriceCents
-							if (cents && cents > 0) {
-								const amt = (cents / 100).toLocaleString('zh-TW')
-								return `來賓 ${amt} 元`
-							}
-							return ''
-						})()
+					const eventDateLabel = format(event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW })
+					const eventTimeLabel = `${format(event.startAt, 'HH:mm', { locale: zhTW })}-${format(event.endAt, 'HH:mm', { locale: zhTW })}`
+					// 來賓費用：GENERAL/JOINT 固定 250；BOD 使用 bodGuestPriceCents；其他依 event.guestPriceCents
+					const guestPriceLabel = (() => {
+						if (event.type === 'GENERAL' || event.type === 'JOINT') return '來賓 250 元'
+						if (event.type === 'BOD' && event.bodGuestPriceCents && event.bodGuestPriceCents > 0) {
+							const amt = (event.bodGuestPriceCents / 100).toLocaleString('zh-TW')
+							return `來賓 ${amt} 元`
+						}
+						const cents = event.guestPriceCents
+						if (cents && cents > 0) {
+							const amt = (cents / 100).toLocaleString('zh-TW')
+							return `來賓 ${amt} 元`
+						}
+						return ''
+					})()
 						if (event.type === 'CLOSED') return null
 						return (
 							<SharePopover 
