@@ -15,7 +15,7 @@ export default function MobileQueryPage() {
 		checkedInAt: string | null
 		event?: {
 			title: string
-			startAt: string
+			startAt: Date
 		}
 	}[]>([])
 	const [loading, setLoading] = useState(false)
@@ -54,8 +54,35 @@ export default function MobileQueryPage() {
 					// 單場：直接導向編輯
 					router.push(`/events/${d[0].eventId}/guest-edit?phone=${encodeURIComponent(v)}&mode=edit`)
 				} else {
-					// 多場：顯示選擇清單
-					setResults(d)
+					// 多場：顯示選擇清單，需要處理時間
+					const processedResults = d.map((item: typeof d[0]) => {
+						if (item.event?.startAt) {
+							const rawStartAt = item.event.startAt
+							let eventDate: Date
+							if (typeof rawStartAt === 'string') {
+								const [datePart, timePart] = rawStartAt.split('T')
+								const [year, month, day] = datePart.split('-').map((v) => parseInt(v))
+								let hh = 0, mm = 0
+								if (timePart) {
+									const [h, m] = timePart.split(':')
+									hh = parseInt(h)
+									mm = parseInt(m)
+								}
+								eventDate = new Date(year, (month || 1) - 1, day || 1, hh, mm)
+							} else {
+								eventDate = rawStartAt as Date
+							}
+							return {
+								...item,
+								event: {
+									...item.event,
+									startAt: eventDate
+								}
+							}
+						}
+						return item
+					})
+					setResults(processedResults)
 				}
 			} else if (d && d.eventId) {
 				// 物件：直接導向編輯
@@ -130,7 +157,7 @@ export default function MobileQueryPage() {
 								>
 									<div className="font-medium text-lg mb-1">{reg.event?.title}</div>
 									<div className="text-gray-600 mb-2">
-										{reg.event?.startAt ? format(new Date(reg.event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
+										{reg.event?.startAt ? format(reg.event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
 									</div>
 									<div className="flex gap-2">
 										<span className={`px-2 py-1 rounded-full text-xs ${reg.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>

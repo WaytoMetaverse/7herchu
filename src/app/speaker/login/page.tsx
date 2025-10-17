@@ -17,7 +17,7 @@ export default function SpeakerPhoneLoginPage() {
 		eventId: string
 		event?: {
 			title: string
-			startAt: string
+			startAt: Date
 		}
 	}[]>([])
 	const [showSelection, setShowSelection] = useState(false)
@@ -46,8 +46,35 @@ export default function SpeakerPhoneLoginPage() {
 								router.push('/calendar')
 							}
 						} else if (d.length > 1) {
-							// 多場預約，顯示選單
-							setBookings(d)
+							// 多場預約，顯示選單，需要處理時間
+							const processedBookings = d.map((item: typeof d[0]) => {
+								if (item.event?.startAt) {
+									const rawStartAt = item.event.startAt
+									let eventDate: Date
+									if (typeof rawStartAt === 'string') {
+										const [datePart, timePart] = rawStartAt.split('T')
+										const [year, month, day] = datePart.split('-').map((v) => parseInt(v))
+										let hh = 0, mm = 0
+										if (timePart) {
+											const [h, m] = timePart.split(':')
+											hh = parseInt(h)
+											mm = parseInt(m)
+										}
+										eventDate = new Date(year, (month || 1) - 1, day || 1, hh, mm)
+									} else {
+										eventDate = rawStartAt as Date
+									}
+									return {
+										...item,
+										event: {
+											...item.event,
+											startAt: eventDate
+										}
+									}
+								}
+								return item
+							})
+							setBookings(processedBookings)
 							setShowSelection(true)
 						} else {
 							// 沒有預約
@@ -91,7 +118,7 @@ export default function SpeakerPhoneLoginPage() {
 						>
 							<div className="font-medium text-lg mb-1">{booking.event?.title}</div>
 							<div className="text-gray-600">
-								{booking.event?.startAt ? format(new Date(booking.event.startAt), 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
+								{booking.event?.startAt ? format(booking.event.startAt, 'yyyy/MM/dd（EEEEE）', { locale: zhTW }) : '-'}
 							</div>
 						</button>
 					))}
