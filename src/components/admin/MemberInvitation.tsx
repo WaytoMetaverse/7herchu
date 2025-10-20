@@ -17,9 +17,9 @@ export default function MemberInvitation() {
 			const response = await fetch('/api/admin/invite-token', { method: 'POST' })
 			const data = await response.json()
 			
-			if (response.ok && data.token) {
-				const url = `${window.location.origin}/auth/signup?invite=${data.token}`
-				setInviteUrl(url)
+		if (response.ok && data.token) {
+			const url = `${window.location.origin}/auth/signup?invite=${data.token}&openExternalBrowser=1`
+			setInviteUrl(url)
 				// 生成 QR Code（使用免費的 QR Code API）
 				setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`)
 			} else {

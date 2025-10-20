@@ -19,7 +19,7 @@ interface SharePopoverProps {
 
 export default function SharePopover({ event, invitationMessage, eventDateLabel, eventTimeLabel, guestPriceLabel }: SharePopoverProps) {
 	// 生成邀請訊息和連結
-	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register`
+	const inviteUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/events/${event.id}/guest-register?openExternalBrowser=1`
 	
 	const fullMessage = `${invitationMessage}
 

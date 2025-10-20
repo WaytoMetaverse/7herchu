@@ -49,7 +49,7 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 	}
 
 	// 生成邀請訊息和連結
-	const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events/${eventId}/guest-register`
+	const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events/${eventId}/guest-register?openExternalBrowser=1`
 	const eventDate = format(parseLocalDate(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })
 	const inviteMessage = `🎉 邀請您參加活動
 

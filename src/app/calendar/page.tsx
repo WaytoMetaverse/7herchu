@@ -62,7 +62,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 	const roles = ((session?.user as { roles?: Role[] } | undefined)?.roles) ?? []
 	const orgSettings = await prisma.orgSettings.findFirst()
 	const speakerMessage = orgSettings?.invitationMessageSpeaker || '磐石砌好厝誠摯地邀請您一同來參與'
-	const shareUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/share/speaker`
+	const shareUrl = `${process.env.NEXT_PUBLIC_URL || 'https://7herchu.vercel.app'}/share/speaker?openExternalBrowser=1`
 
 
 	return (
