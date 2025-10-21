@@ -94,6 +94,13 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	const leftMembers = registrations.filter(r => r.status === 'LEAVE')
 	const speakerMembers = registrations.filter(r => r.role === 'SPEAKER') // 內部成員講師
 
+	// 檢查講師名額是否已滿
+	const [externalSpeakersCount] = await Promise.all([
+		prisma.speakerBooking.count({ where: { eventId } })
+	])
+	const totalSpeakers = externalSpeakersCount + speakerMembers.length
+	const isSpeakerQuotaFull = event.speakerQuota !== null && event.speakerQuota !== undefined && totalSpeakers >= event.speakerQuota
+
 	// 刪除成員報名記錄
 	async function deleteRegistration(formData: FormData) {
 		'use server'
@@ -129,6 +136,27 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		'use server'
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
+
+		// 檢查講師名額
+		const evt = await prisma.event.findUnique({ where: { id: eventId } })
+		if (!evt) return
+
+		// 如果有設定講師名額限制，需要檢查
+		if (evt.speakerQuota !== null && evt.speakerQuota !== undefined) {
+			// 計算當前講師總數（外部 + 內部）
+			const [externalSpeakersCount, internalSpeakersCount] = await Promise.all([
+				prisma.speakerBooking.count({ where: { eventId } }),
+				prisma.registration.count({ where: { eventId, role: 'SPEAKER' } })
+			])
+			
+			const totalSpeakers = externalSpeakersCount + internalSpeakersCount
+			
+			// 如果已達名額上限，不允許新增
+			if (totalSpeakers >= evt.speakerQuota) {
+				console.log(`[assignAsSpeaker] 講師名額已滿 ${totalSpeakers}/${evt.speakerQuota}`)
+				return // 靜默失敗，不顯示錯誤（因為按鈕應該被禁用）
+			}
+		}
 
 		await prisma.registration.update({
 			where: { id: registrationId },
@@ -249,7 +277,12 @@ export default async function MemberManagementPage({ params }: { params: Promise
 				</div>
 				<div className="bg-purple-50 p-3 rounded">
 					<div className="text-purple-600">講師</div>
-					<div className="text-lg font-semibold text-purple-700">{speakerMembers.length}</div>
+					<div className="text-lg font-semibold text-purple-700">
+						{totalSpeakers}
+						{event.speakerQuota !== null && event.speakerQuota !== undefined && (
+							<span className="text-sm font-normal">/{event.speakerQuota}</span>
+						)}
+					</div>
 				</div>
 				<div className="bg-yellow-50 p-3 rounded">
 					<div className="text-yellow-600">請假</div>
@@ -317,7 +350,14 @@ export default async function MemberManagementPage({ params }: { params: Promise
 										<div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
 											<form action={assignAsSpeaker}>
 												<input type="hidden" name="registrationId" value={reg.id} />
-												<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap">
+												<Button 
+													type="submit" 
+													variant="secondary" 
+													size="sm" 
+													className="whitespace-nowrap"
+													disabled={isSpeakerQuotaFull}
+													title={isSpeakerQuotaFull ? `講師名額已滿 (${totalSpeakers}/${event.speakerQuota})` : ''}
+												>
 													指派為講師
 												</Button>
 											</form>
