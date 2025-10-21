@@ -21,7 +21,7 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	const currentMonth = new Date().toISOString().slice(0, 7)
 
-	const [registrations, speakers] = await Promise.all([
+	const [allRegistrations, speakers] = await Promise.all([
 		prisma.registration.findMany({
 			where: { eventId, status: 'REGISTERED' },
 			include: { 
@@ -31,6 +31,10 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}),
 		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } })
 	])
+	
+	// 分離內部成員講師和一般成員/來賓
+	const registrations = allRegistrations.filter(r => r.role !== 'SPEAKER')
+	const internalSpeakers = allRegistrations.filter(r => r.role === 'SPEAKER')
 
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
@@ -491,13 +495,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 							)
 							})}
 
-						{/* 講師 */}
+						{/* 外部講師（SpeakerBooking） */}
 						{speakers.map(speaker => (
 							<tr key={`speaker-${speaker.id}`}>
 								<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{speaker.name}</td>
 								<td className="px-3 py-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">講師</span></td>
 								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.companyName || '-'}</div><div className="text-xs truncate">{speaker.industry || ''}</div></td>
-								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.phone || '-'}</div><div className="text-xs">講師</div></td>
+								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.phone || '-'}</div><div className="text-xs">外部講師</div></td>
 								<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {(() => {
 									const eventType = event?.type as EventType
 									if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) return 250
@@ -545,8 +549,77 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 								</td>
 							</tr>
 						))}
+						
+						{/* 內部成員講師（Registration role=SPEAKER） */}
+						{internalSpeakers.map(registration => {
+							const price = getPrice(registration)
+							const displayName = (() => {
+								const nick = (registration.user as { nickname?: string } | null | undefined)?.nickname?.trim()
+								if (nick) return nick
+								const nm = (registration.user?.name || registration.name || '').trim()
+								if (!nm) return '未命名'
+								return nm.length >= 2 ? nm.slice(-2) : nm
+							})()
 
-						{registrations.length === 0 && speakers.length === 0 && (
+							return (
+								<tr key={`internal-speaker-${registration.id}`}>
+									<td className="px-3 py-2 font-medium sticky left-0 z-10 bg-white">{displayName}</td>
+									<td className="px-3 py-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">講師</span></td>
+									<td className="px-3 py-2 text-gray-500"><div className="truncate">{registration.companyName || '-'}</div><div className="text-xs truncate">{registration.industry || ''}</div></td>
+									<td className="px-3 py-2 text-gray-500"><div className="truncate">{registration.phone || '-'}</div><div className="text-xs">內部講師</div></td>
+									<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {price}</td>
+									<td className="px-3 py-2 text-center">
+										{registration.checkedInAt ? (
+											canCheckin ? (
+												<form action={uncheckIn} className="inline">
+													<input type="hidden" name="registrationId" value={registration.id} />
+													<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm">已簽到</Button>
+												</form>
+											) : (
+												<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">已簽到</span>
+											)
+										) : canCheckin ? (
+											<form action={checkIn} className="inline">
+												<input type="hidden" name="registrationId" value={registration.id} />
+												<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap text-xs sm:text-sm">未簽到</Button>
+											</form>
+										) : (
+											<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">未簽到</span>
+										)}
+									</td>
+									<td className="px-3 py-2 text-center">
+										{(() => {
+											const paymentStatus = getPaymentStatus(registration)
+											if (paymentStatus.status === 'monthly_paid') {
+												return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{paymentStatus.text}</span>
+											} else if (paymentStatus.status === 'monthly_unpaid') {
+												return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">{paymentStatus.text}</span>
+											} else if (paymentStatus.status === 'paid') {
+												return canPayment ? (
+													<form action={markUnpaid} className="inline">
+														<input type="hidden" name="registrationId" value={registration.id} />
+														<Button type="submit" variant="secondary" size="sm" className="bg-green-100 text-green-700 hover:bg-green-200 whitespace-nowrap text-xs sm:text-sm">已繳費</Button>
+													</form>
+												) : (
+													<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{paymentStatus.text}</span>
+												)
+											} else {
+												return canPayment ? (
+													<form action={markPaid} className="inline">
+														<input type="hidden" name="registrationId" value={registration.id} />
+														<Button type="submit" variant="secondary" size="sm" className="bg-orange-100 text-orange-700 hover:bg-orange-200 whitespace-nowrap text-xs sm:text-sm">未繳費</Button>
+													</form>
+												) : (
+													<span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">{paymentStatus.text}</span>
+												)
+											}
+										})()}
+									</td>
+								</tr>
+							)
+						})}
+
+						{registrations.length === 0 && speakers.length === 0 && internalSpeakers.length === 0 && (
 							<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">暫無報名記錄</td></tr>
 						)}
 						</tbody>

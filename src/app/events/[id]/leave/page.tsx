@@ -23,11 +23,11 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 	})
 	if (!user) redirect('/auth/signin')
 
-	// 檢查是否已報名（以 userId 或 phone 任一，且限定 MEMBER 身分）
+	// 檢查是否已報名（支援 MEMBER 和 SPEAKER 角色）
 	const existingReg = await prisma.registration.findFirst({
 		where: {
 			eventId,
-			role: 'MEMBER',
+			role: { in: ['MEMBER', 'SPEAKER'] },
 			OR: [
 				{ userId: user.id },
 				...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
@@ -43,10 +43,11 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 		if (!user) return
 		
 		// Server Action 內再查一次，避免前後態或併發造成不一致
+		// 支援 MEMBER 和 SPEAKER 角色
 		const prevReg = await prisma.registration.findFirst({
 			where: {
 				eventId,
-				role: 'MEMBER',
+				role: { in: ['MEMBER', 'SPEAKER'] },
 				OR: [
 					{ userId: user.id },
 					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
@@ -56,10 +57,13 @@ export default async function EventLeavePage({ params }: { params: Promise<{ id:
 		})
 
 		if (prevReg) {
-			// 更新為請假狀態
+			// 更新為請假狀態，保持原有角色
 			await prisma.registration.update({
 				where: { id: prevReg.id },
-				data: { status: 'LEAVE' }
+				data: { 
+					status: 'LEAVE',
+					role: prevReg.role // 保持原有角色（MEMBER 或 SPEAKER）
+				}
 			})
 		} else {
 			// 新增請假記錄

@@ -89,8 +89,9 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	})
 
 	// 分離不同狀態的成員
-	const registeredMembers = registrations.filter(r => r.status === 'REGISTERED')
+	const registeredMembers = registrations.filter(r => r.status === 'REGISTERED' && r.role === 'MEMBER')
 	const leftMembers = registrations.filter(r => r.status === 'LEAVE')
+	const speakerMembers = registrations.filter(r => r.role === 'SPEAKER') // 內部成員講師
 
 	// 刪除成員報名記錄
 	async function deleteRegistration(formData: FormData) {
@@ -137,30 +138,86 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		revalidatePath(`/hall/${eventId}`)
 	}
 
-	// 發送未回應提醒
+	// 取消講師，改回成員
+	async function removeFromSpeaker(formData: FormData) {
+		'use server'
+		const registrationId = String(formData.get('registrationId'))
+		if (!registrationId) return
+
+		await prisma.registration.update({
+			where: { id: registrationId },
+			data: { role: 'MEMBER' }
+		})
+
+		revalidatePath(`/admin/member-management/${eventId}`)
+		revalidatePath(`/hall/${eventId}`)
+	}
+
+	// 發送未回應提醒（只發給未回應成員）
 	async function sendNoResponseReminder() {
 		'use server'
 		
-		const { sendPushNotificationToAll } = await import('@/lib/webpush')
+		const { sendPushNotificationToUser } = await import('@/lib/webpush')
 		const { format } = await import('date-fns')
 		const { zhTW } = await import('date-fns/locale')
 		
 		const evt = await prisma.event.findUnique({ where: { id: eventId } })
 		if (!evt) return
 
+		// 重新查詢未回應成員
+		const allMembers = await prisma.user.findMany({
+			where: {
+				isActive: true,
+				memberProfile: {
+					isNot: null
+				}
+			},
+			select: {
+				id: true
+			}
+		})
+
+		const regs = await prisma.registration.findMany({
+			where: { 
+				eventId,
+				role: 'MEMBER'
+			},
+			select: {
+				userId: true
+			}
+		})
+
+		const registeredUserIds = new Set(regs.map(r => r.userId).filter(Boolean))
+		const noResponseMemberIds = allMembers
+			.filter(m => !registeredUserIds.has(m.id))
+			.map(m => m.id)
+
+		if (noResponseMemberIds.length === 0) {
+			console.log('[NoResponse] 沒有未回應成員')
+			return
+		}
+
 		const dateLabel = format(evt.startAt, 'MM/dd（EEEEE）HH:mm', { locale: zhTW })
 		
-		await sendPushNotificationToAll({
-			title: `📢 ${evt.title} 尚未回應`,
-			body: `活動時間：${dateLabel}，請盡快回應報名或請假`,
-			icon: '/logo.jpg',
-			badge: '/logo.jpg',
-			data: {
-				url: `/hall/${eventId}`,
-				eventId,
-				type: 'no_response'
-			}
-		}, 'no_response')
+		// 逐一發送推播給未回應成員
+		const results = await Promise.allSettled(
+			noResponseMemberIds.map(userId => 
+				sendPushNotificationToUser(userId, {
+					title: `📢 ${evt.title} 尚未回應`,
+					body: `活動時間：${dateLabel}，請盡快回應報名或請假`,
+					icon: '/logo.jpg',
+					badge: '/logo.jpg',
+					data: {
+						url: `/hall/${eventId}`,
+						eventId,
+						type: 'no_response'
+					}
+				})
+			)
+		)
+
+		const successCount = results.filter(r => r.status === 'fulfilled').length
+		console.log(`[NoResponse] 發送提醒給 ${successCount}/${noResponseMemberIds.length} 位未回應成員`)
 
 		revalidatePath(`/admin/member-management/${eventId}`)
 	}
@@ -184,10 +241,14 @@ export default async function MemberManagementPage({ params }: { params: Promise
 			</div>
 
 			{/* 統計資訊：同一行呈現 */}
-			<div className="grid grid-cols-4 gap-2 text-xs sm:text-sm">
+			<div className="grid grid-cols-5 gap-2 text-xs sm:text-sm">
 				<div className="bg-blue-50 p-3 rounded">
 					<div className="text-blue-600">已報名</div>
 					<div className="text-lg font-semibold text-blue-700">{registeredMembers.length}</div>
+				</div>
+				<div className="bg-purple-50 p-3 rounded">
+					<div className="text-purple-600">講師</div>
+					<div className="text-lg font-semibold text-purple-700">{speakerMembers.length}</div>
 				</div>
 				<div className="bg-yellow-50 p-3 rounded">
 					<div className="text-yellow-600">請假</div>
@@ -280,6 +341,75 @@ export default async function MemberManagementPage({ params }: { params: Promise
 					)}
 				</div>
 			</div>
+
+			{/* 內部成員講師列表 */}
+			{speakerMembers.length > 0 && (
+				<div className="bg-white rounded-lg shadow">
+					<div className="p-4 border-b">
+						<h2 className="text-lg font-medium">內部成員講師（{speakerMembers.length}）</h2>
+					</div>
+					<div className="p-4">
+						<div className="space-y-3">
+							{speakerMembers.map(reg => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService) {
+									if (reg.mealCode) {
+										mealInfo = ` - ${reg.mealCode}餐`
+									} else {
+										mealInfo = ' - 待分配'
+									}
+								} else {
+									if (reg.diet === 'veg') {
+										mealInfo = ' - 素食'
+									} else {
+										const restrictions = []
+										if (reg.noBeef) restrictions.push('不吃牛')
+										if (reg.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` - 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' - 葷食'
+										}
+									}
+								}
+
+								return (
+									<div key={reg.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg bg-purple-50">
+										<div className="flex-1">
+											<div className="font-medium text-sm sm:text-base">
+												{getDisplayName(reg.user) || reg.name || '-'}{mealInfo}
+											</div>
+											<div className="text-xs sm:text-sm text-gray-600">
+												{reg.user?.email} · {reg.phone}
+											</div>
+											<div className="text-[10px] sm:text-xs text-gray-500">
+												指派時間：{format(reg.createdAt, 'MM/dd HH:mm')}
+												{reg.checkedInAt && (
+													<span> · 簽到時間：{format(reg.checkedInAt, 'MM/dd HH:mm')}</span>
+												)}
+											</div>
+										</div>
+										<div className="flex items-center gap-2">
+											<form action={removeFromSpeaker}>
+												<input type="hidden" name="registrationId" value={reg.id} />
+												<Button type="submit" variant="outline" size="sm">
+													取消講師
+												</Button>
+											</form>
+											<form action={deleteRegistration}>
+												<input type="hidden" name="registrationId" value={reg.id} />
+												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+													刪除
+												</Button>
+											</form>
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* 請假成員列表 */}
 			{leftMembers.length > 0 && (

@@ -119,10 +119,11 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		}
 
 		// Server Action 內再查一次，避免前後態或併發造成重複建立
+		// 支援 MEMBER 和 SPEAKER 角色（內部成員講師也可以報名）
 		const prevReg = await prisma.registration.findFirst({
 			where: {
 				eventId,
-				role: 'MEMBER',
+				role: { in: ['MEMBER', 'SPEAKER'] },
 				OR: [
 					{ userId: user.id },
 					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
@@ -139,7 +140,9 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					diet,
 					noBeef,
 					noPork,
-					status: 'REGISTERED'
+					status: 'REGISTERED',
+					// 如果之前是講師，保持講師身份；否則設為成員
+					role: prevReg.role === 'SPEAKER' ? 'SPEAKER' : 'MEMBER'
 				}
 			})
 		} else {
