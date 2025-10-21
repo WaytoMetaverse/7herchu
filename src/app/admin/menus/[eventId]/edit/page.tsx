@@ -100,8 +100,8 @@ export default async function EditEventMenuPage({
 					let diet = 'meat'
 
 					// 智能選擇邏輯
-					if (reg.noBeef && reg.noPork) {
-						// 不吃牛也不吃豬 → 選素食 C
+					if (reg.diet === 'veg' || (reg.noBeef && reg.noPork)) {
+						// 素食者或不吃牛也不吃豬 → 選素食 C
 						finalMealCode = 'C'
 						diet = 'veg'
 					} else {
@@ -147,8 +147,8 @@ export default async function EditEventMenuPage({
 					let diet = 'meat'
 
 					// 智能選擇邏輯
-					if (speaker.noBeef && speaker.noPork) {
-						// 不吃牛也不吃豬 → 選素食 C
+					if (speaker.diet === 'veg' || (speaker.noBeef && speaker.noPork)) {
+						// 素食者或不吃牛也不吃豬 → 選素食 C
 						finalMealCode = 'C'
 						diet = 'veg'
 					} else {
