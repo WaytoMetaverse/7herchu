@@ -445,15 +445,15 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 										<td className="px-3 py-2 text-gray-500"><div className="truncate">{registration.phone || '-'}</div><div className="text-xs">{registration.user?.name ? '會員' : '來賓'}</div></td>
 										<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {price}</td>
 										<td className="px-3 py-2 text-center">
-											{registration.checkedInAt ? (
-												canCheckin ? (
-													<form action={uncheckIn} className="inline">
-														<input type="hidden" name="registrationId" value={registration.id} />
-														<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm">已簽到</Button>
-													</form>
-												) : (
-													<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">已簽到</span>
-												)
+										{registration.checkedInAt ? (
+											canCheckin ? (
+												<form action={uncheckIn} className="inline">
+													<input type="hidden" name="registrationId" value={registration.id} />
+													<Button type="submit" variant="secondary" size="sm" className="bg-blue-100 text-blue-700 hover:bg-blue-200 whitespace-nowrap text-xs sm:text-sm">✓ 已簽到</Button>
+												</form>
+											) : (
+												<span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">✓ 已簽到</span>
+											)
 											) : canCheckin ? (
 												<form action={checkIn} className="inline">
 													<input type="hidden" name="registrationId" value={registration.id} />
@@ -470,15 +470,15 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 													return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{paymentStatus.text}</span>
 												} else if (paymentStatus.status === 'monthly_unpaid') {
 													return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">{paymentStatus.text}</span>
-												} else if (paymentStatus.status === 'paid') {
-													return canPayment ? (
-														<form action={markUnpaid} className="inline">
-															<input type="hidden" name="registrationId" value={registration.id} />
-															<Button type="submit" variant="secondary" size="sm" className="bg-green-100 text-green-700 hover:bg-green-200 whitespace-nowrap text-xs sm:text-sm">已繳費</Button>
-														</form>
-													) : (
-														<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{paymentStatus.text}</span>
-													)
+											} else if (paymentStatus.status === 'paid') {
+												return canPayment ? (
+													<form action={markUnpaid} className="inline">
+														<input type="hidden" name="registrationId" value={registration.id} />
+														<Button type="submit" variant="secondary" size="sm" className="bg-green-100 text-green-700 hover:bg-green-200 whitespace-nowrap text-xs sm:text-sm">$ 已繳費</Button>
+													</form>
+												) : (
+													<span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">$ 已繳費</span>
+												)
 												} else {
 													return canPayment ? (
 														<form action={markPaid} className="inline">

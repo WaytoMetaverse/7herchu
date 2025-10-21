@@ -43,8 +43,13 @@ export default function Button({
 		// 額外提供 brand 同義
 		brand: 'bg-[var(--brand-600)] text-white hover:bg-[color-mix(in_oklab,_var(--brand-600)_92%,_black)] focus:ring-[color-mix(in_oklab,_var(--brand-600)_50%,_white)] shadow-sm',
 	}
+	
+	// 如果 className 包含背景色或文字色，就不套用 variant 的顏色樣式
+	const hasCustomColors = className.includes('bg-') || className.includes('text-')
+	const variantStyles = hasCustomColors ? '' : styles[variant]
+	
 	return (
-		<Comp className={`${base} ${sizes[size]} ${styles[variant]} ${className}`} {...props}>
+		<Comp className={`${base} ${sizes[size]} ${variantStyles} ${className}`} {...props}>
 			{children}
 		</Comp>
 	)
