@@ -147,22 +147,32 @@ async function saveProfile(formData: FormData) {
 			...(newPhotoUrls.length ? { portfolioPhotos: nextPhotos } : {}),
 		},
 	})
-	redirect('/profile')
+	redirect('/profile?saved=true')
 }
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: { searchParams?: Promise<{ saved?: string }> }) {
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) redirect('/auth/signin?callbackUrl=%2Fprofile')
 	const user = await prisma.user.findUnique({ where: { email: session.user.email }, include: { memberProfile: true } })
 	if (!user) redirect('/auth/signin')
 
 	const mp = user.memberProfile
+	const sp = searchParams ? await searchParams : undefined
+	const saved = sp?.saved === 'true'
 
 
 
 	return (
 		<div className="max-w-2xl mx-auto p-4 space-y-6">
 			<h1 className="text-xl md:text-2xl font-semibold">個人資料</h1>
+			
+			{saved && (
+				<div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center gap-2">
+					<span className="text-green-600 font-semibold">✓</span>
+					<span>資料已儲存成功</span>
+				</div>
+			)}
+			
 			<form id="profileForm" action={saveProfile} className="space-y-8">
 				<section className="space-y-4">
 					<h2 className="font-medium text-lg">基本資料</h2>
