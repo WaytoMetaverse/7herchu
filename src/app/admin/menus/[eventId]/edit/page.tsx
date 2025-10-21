@@ -97,7 +97,7 @@ export default async function EditEventMenuPage({
 			if (existingRegistrations.length > 0) {
 				const updates = existingRegistrations.map(reg => {
 					let finalMealCode = ''
-					let diet = 'meat'
+					let diet = reg.diet || 'meat' // 保留原本的 diet 值
 
 					// 智能選擇邏輯
 					if (reg.diet === 'veg' || (reg.noBeef && reg.noPork)) {
@@ -144,7 +144,7 @@ export default async function EditEventMenuPage({
 			if (existingSpeakers.length > 0) {
 				const speakerUpdates = existingSpeakers.map(speaker => {
 					let finalMealCode = ''
-					let diet = 'meat'
+					let diet = speaker.diet || 'meat' // 保留原本的 diet 值
 
 					// 智能選擇邏輯
 					if (speaker.diet === 'veg' || (speaker.noBeef && speaker.noPork)) {
