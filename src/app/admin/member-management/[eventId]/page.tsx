@@ -42,11 +42,11 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) notFound()
 
-	// 取得該活動的所有內部成員報名記錄
+	// 取得該活動的所有內部成員報名記錄（包含 MEMBER 和 SPEAKER）
 	const registrations = await prisma.registration.findMany({
 		where: { 
 			eventId,
-			role: 'MEMBER'
+			role: { in: ['MEMBER', 'SPEAKER'] }
 		},
 		orderBy: { createdAt: 'asc' },
 		include: { 
@@ -80,6 +80,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	})
 
 	// 找出未回應的成員（沒有報名也沒有請假）
+	// 注意：要包含所有角色（MEMBER 和 SPEAKER）
 	const registeredUserIds = new Set(registrations.map(r => r.userId).filter(Boolean))
 	const noResponseMembers = allMembers.filter(m => !registeredUserIds.has(m.id))
 
@@ -180,7 +181,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		const regs = await prisma.registration.findMany({
 			where: { 
 				eventId,
-				role: 'MEMBER'
+				role: { in: ['MEMBER', 'SPEAKER'] }
 			},
 			select: {
 				userId: true
