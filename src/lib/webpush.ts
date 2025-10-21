@@ -33,12 +33,30 @@ export interface PushNotificationPayload {
 
 /**
  * 發送推送通知給所有啟用通知的用戶
+ * @param payload 通知內容
+ * @param notificationType 通知類型：'registration' | 'event_reminder' | 'no_response'
  */
-export async function sendPushNotificationToAll(payload: PushNotificationPayload) {
+export async function sendPushNotificationToAll(payload: PushNotificationPayload, notificationType?: 'registration' | 'event_reminder' | 'no_response') {
 	try {
+		// 根據通知類型過濾訂閱
+		const whereClause: {
+			isEnabled: boolean
+			notifyOnRegistration?: boolean
+			notifyEventReminder?: boolean
+			notifyNoResponse?: boolean
+		} = { isEnabled: true }
+		
+		if (notificationType === 'registration') {
+			whereClause.notifyOnRegistration = true
+		} else if (notificationType === 'event_reminder') {
+			whereClause.notifyEventReminder = true
+		} else if (notificationType === 'no_response') {
+			whereClause.notifyNoResponse = true
+		}
+		
 		// 獲取所有啟用推送通知的訂閱
 		const subscriptions = await prisma.pushSubscription.findMany({
-			where: { isEnabled: true },
+			where: whereClause,
 			include: {
 				user: {
 					select: {

@@ -7,6 +7,11 @@ export default function PushNotificationToggle() {
 	const [permission, setPermission] = useState<NotificationPermission>('default')
 	const [isSubscribed, setIsSubscribed] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
+	
+	// 通知類型偏好
+	const [notifyOnRegistration, setNotifyOnRegistration] = useState(true)
+	const [notifyEventReminder, setNotifyEventReminder] = useState(true)
+	const [notifyNoResponse, setNotifyNoResponse] = useState(true)
 
 	useEffect(() => {
 		// 檢查瀏覽器是否支援推送通知
@@ -32,6 +37,13 @@ export default function PushNotificationToggle() {
 				if (res.ok) {
 					const data = await res.json()
 					setIsSubscribed(data.hasActiveSubscription)
+					
+					// 載入通知偏好
+					if (data.preferences) {
+						setNotifyOnRegistration(data.preferences.notifyOnRegistration ?? true)
+						setNotifyEventReminder(data.preferences.notifyEventReminder ?? true)
+						setNotifyNoResponse(data.preferences.notifyNoResponse ?? true)
+					}
 				}
 			} else {
 				setIsSubscribed(false)
@@ -139,6 +151,20 @@ export default function PushNotificationToggle() {
 		}
 	}
 
+	const updatePreference = async (key: string, value: boolean) => {
+		try {
+			await fetch('/api/push/preferences', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ [key]: value })
+			})
+		} catch (error) {
+			console.error('更新通知偏好失敗:', error)
+		}
+	}
+
 	if (!isSupported) {
 		return (
 			<div className="bg-gray-50 p-4 rounded-lg">
@@ -186,13 +212,59 @@ export default function PushNotificationToggle() {
 				</div>
 			</div>
 			{isSubscribed && (
-				<div className="mt-3 pt-3 border-t">
-					<div className="flex items-center gap-2 text-sm text-green-600">
-						<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-						</svg>
-						<span>推送通知已啟用</span>
-					</div>
+				<div className="mt-4 pt-4 border-t space-y-3">
+					<div className="text-sm font-medium text-gray-700">選擇接收的通知類型：</div>
+					
+					<label className="flex items-start gap-3 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={notifyOnRegistration}
+							onChange={async (e) => {
+								const newValue = e.target.checked
+								setNotifyOnRegistration(newValue)
+								await updatePreference('notifyOnRegistration', newValue)
+							}}
+							className="mt-1"
+						/>
+						<div className="flex-1">
+							<div className="text-sm font-medium">組聚有人報名</div>
+							<div className="text-xs text-gray-500">當有成員、來賓或講師報名活動時通知您</div>
+						</div>
+					</label>
+
+					<label className="flex items-start gap-3 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={notifyEventReminder}
+							onChange={async (e) => {
+								const newValue = e.target.checked
+								setNotifyEventReminder(newValue)
+								await updatePreference('notifyEventReminder', newValue)
+							}}
+							className="mt-1"
+						/>
+						<div className="flex-1">
+							<div className="text-sm font-medium">已報活動提醒</div>
+							<div className="text-xs text-gray-500">活動當天早上 10:00 提醒您已報名的活動</div>
+						</div>
+					</label>
+
+					<label className="flex items-start gap-3 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={notifyNoResponse}
+							onChange={async (e) => {
+								const newValue = e.target.checked
+								setNotifyNoResponse(newValue)
+								await updatePreference('notifyNoResponse', newValue)
+							}}
+							className="mt-1"
+						/>
+						<div className="flex-1">
+							<div className="text-sm font-medium">未報組聚提醒</div>
+							<div className="text-xs text-gray-500">管理員發送提醒時，提醒您尚未回應的活動</div>
+						</div>
+					</label>
 				</div>
 			)}
 		</div>

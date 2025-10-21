@@ -52,6 +52,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		include: { 
 			user: { 
 				select: { 
+					id: true,
 					name: true, 
 					nickname: true,
 					email: true,
@@ -60,6 +61,27 @@ export default async function MemberManagementPage({ params }: { params: Promise
 			} 
 		}
 	})
+
+	// 取得所有活躍成員
+	const allMembers = await prisma.user.findMany({
+		where: {
+			isActive: true,
+			memberProfile: {
+				isNot: null
+			}
+		},
+		select: {
+			id: true,
+			name: true,
+			nickname: true,
+			email: true,
+			phone: true
+		}
+	})
+
+	// 找出未回應的成員（沒有報名也沒有請假）
+	const registeredUserIds = new Set(registrations.map(r => r.userId).filter(Boolean))
+	const noResponseMembers = allMembers.filter(m => !registeredUserIds.has(m.id))
 
 	// 取得活動餐點設定
 	const eventMenu = await prisma.eventMenu.findUnique({
@@ -100,6 +122,49 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		revalidatePath(`/hall/${eventId}`)
 	}
 
+	// 指派成員為講師
+	async function assignAsSpeaker(formData: FormData) {
+		'use server'
+		const registrationId = String(formData.get('registrationId'))
+		if (!registrationId) return
+
+		await prisma.registration.update({
+			where: { id: registrationId },
+			data: { role: 'SPEAKER' }
+		})
+
+		revalidatePath(`/admin/member-management/${eventId}`)
+		revalidatePath(`/hall/${eventId}`)
+	}
+
+	// 發送未回應提醒
+	async function sendNoResponseReminder() {
+		'use server'
+		
+		const { sendPushNotificationToAll } = await import('@/lib/webpush')
+		const { format } = await import('date-fns')
+		const { zhTW } = await import('date-fns/locale')
+		
+		const evt = await prisma.event.findUnique({ where: { id: eventId } })
+		if (!evt) return
+
+		const dateLabel = format(evt.startAt, 'MM/dd（EEEEE）HH:mm', { locale: zhTW })
+		
+		await sendPushNotificationToAll({
+			title: `📢 ${evt.title} 尚未回應`,
+			body: `活動時間：${dateLabel}，請盡快回應報名或請假`,
+			icon: '/logo.jpg',
+			badge: '/logo.jpg',
+			data: {
+				url: `/hall/${eventId}`,
+				eventId,
+				type: 'no_response'
+			}
+		}, 'no_response')
+
+		revalidatePath(`/admin/member-management/${eventId}`)
+	}
+
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
@@ -119,7 +184,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 			</div>
 
 			{/* 統計資訊：同一行呈現 */}
-			<div className="grid grid-cols-3 gap-2 text-xs sm:text-sm">
+			<div className="grid grid-cols-4 gap-2 text-xs sm:text-sm">
 				<div className="bg-blue-50 p-3 rounded">
 					<div className="text-blue-600">已報名</div>
 					<div className="text-lg font-semibold text-blue-700">{registeredMembers.length}</div>
@@ -128,9 +193,13 @@ export default async function MemberManagementPage({ params }: { params: Promise
 					<div className="text-yellow-600">請假</div>
 					<div className="text-lg font-semibold text-yellow-700">{leftMembers.length}</div>
 				</div>
+				<div className="bg-orange-50 p-3 rounded">
+					<div className="text-orange-600">未回應</div>
+					<div className="text-lg font-semibold text-orange-700">{noResponseMembers.length}</div>
+				</div>
 				<div className="bg-gray-50 p-3 rounded">
 					<div className="text-gray-600">總成員</div>
-					<div className="text-lg font-semibold text-gray-700">{registrations.length}</div>
+					<div className="text-lg font-semibold text-gray-700">{allMembers.length}</div>
 				</div>
 			</div>
 
@@ -183,7 +252,13 @@ export default async function MemberManagementPage({ params }: { params: Promise
 												)}
 											</div>
 										</div>
-										<div className="flex items-center gap-2">
+										<div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+											<form action={assignAsSpeaker}>
+												<input type="hidden" name="registrationId" value={reg.id} />
+												<Button type="submit" variant="secondary" size="sm" className="whitespace-nowrap">
+													指派為講師
+												</Button>
+											</form>
 											<form action={toggleRegistrationStatus}>
 												<input type="hidden" name="registrationId" value={reg.id} />
 												<input type="hidden" name="newStatus" value="LEAVE" />
@@ -241,6 +316,36 @@ export default async function MemberManagementPage({ params }: { params: Promise
 												刪除
 											</Button>
 										</form>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* 未回應成員列表 */}
+			{noResponseMembers.length > 0 && (
+				<div className="bg-white rounded-lg shadow">
+					<div className="p-4 border-b flex items-center justify-between">
+						<h2 className="text-lg font-medium">尚未回應（{noResponseMembers.length}）</h2>
+						<form action={sendNoResponseReminder}>
+							<Button type="submit" variant="primary" size="sm">
+								📢 提醒全部
+							</Button>
+						</form>
+					</div>
+					<div className="p-4">
+						<div className="space-y-2">
+							{noResponseMembers.map(member => (
+								<div key={member.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg bg-orange-50">
+									<div className="flex-1">
+										<div className="font-medium text-sm sm:text-base">
+											{getDisplayName(member) || '-'}
+										</div>
+										<div className="text-xs sm:text-sm text-gray-600">
+											{member.email} {member.phone ? `· ${member.phone}` : ''}
+										</div>
 									</div>
 								</div>
 							))}

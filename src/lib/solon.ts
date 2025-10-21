@@ -16,6 +16,9 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } }),
 		prisma.registration.findMany({ where: { eventId, status: 'LEAVE' as RegistrationStatus, role: 'MEMBER' as RegRole }, include: { user: { select: { nickname: true, name: true } } }, orderBy: { createdAt: 'asc' } }),
 	])
+	
+	// 分離內部成員講師（Registration role=SPEAKER）
+	const internalSpeakers = regs.filter(r => r.role === 'SPEAKER')
 
 	// 標題行：MM/DD(週) + 標題
 	const titleLine = `${format(event.startAt, 'MM/dd', { locale: zhTW })}(${week(event.startAt)}) ${event.title}`
@@ -52,7 +55,12 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	const panshiGuestList = panshiGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
 	const unknownGuestList = unknownGuests.map((r, idx) => `${idx + 1}.${[r.name, r.bniChapter, r.industry, r.companyName, r.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, r.mealCode, r.diet, r.noBeef, r.noPork)}`)
 	
-	const speakerListArr = speakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
+	// 合併外部講師和內部成員講師
+	const allSpeakers = [
+		...speakers.map(s => ({ name: s.name, bniChapter: s.bniChapter, industry: s.industry, companyName: s.companyName, invitedBy: s.invitedBy, mealCode: s.mealCode, diet: s.diet, noBeef: s.noBeef, noPork: s.noPork })),
+		...internalSpeakers.map(r => ({ name: displayMemberName(r.user?.nickname, r.user?.name || r.name), bniChapter: r.bniChapter, industry: r.industry, companyName: r.companyName, invitedBy: r.invitedBy, mealCode: r.mealCode, diet: r.diet, noBeef: r.noBeef, noPork: r.noPork }))
+	]
+	const speakerListArr = allSpeakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
 
 	// 追加兩個空白序號（僅在已有名單時）
 	const appendPlaceholders = (arr: string[]) => {

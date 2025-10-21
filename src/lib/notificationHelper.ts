@@ -46,18 +46,18 @@ export async function sendRegistrationNotification(eventId: string, registrantNa
 		const title = `🌟${registrantName} 報名了 ${dateLabel}${endTime} ${event.title}🌟`
 		const body = `講師:${speakers}位、內部成員:${members}位、來賓${guests}位，共${total}位`
 
-		// 發送推送通知
-		await sendPushNotificationToAll({
-			title,
-			body,
-			icon: '/logo.jpg',
-			badge: '/logo.jpg',
-			data: {
-				url: `/hall/${eventId}`,
-				eventId,
-				type: 'registration'
-			}
-		})
+	// 發送推送通知（指定為報名通知類型）
+	await sendPushNotificationToAll({
+		title,
+		body,
+		icon: '/logo.jpg',
+		badge: '/logo.jpg',
+		data: {
+			url: `/hall/${eventId}`,
+			eventId,
+			type: 'registration'
+		}
+	}, 'registration')
 
 		console.log(`[Notification] 已發送報名通知: ${registrantName} (${roleLabel})`)
 	} catch (error) {

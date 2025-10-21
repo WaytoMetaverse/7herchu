@@ -424,7 +424,13 @@ model PushSubscription {
   endpoint        String
   p256dh          String   // 加密金鑰
   auth            String   // 認證密鑰
-  isEnabled       Boolean  @default(true) // 是否啟用通知
+  isEnabled       Boolean  @default(true) // 是否啟用通知（總開關）
+  
+  // 通知類型偏好
+  notifyOnRegistration Boolean @default(true)  // 組聚有人報名
+  notifyEventReminder  Boolean @default(true)  // 已報活動提醒（活動當天早上10:00）
+  notifyNoResponse     Boolean @default(true)  // 未報組聚提醒
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

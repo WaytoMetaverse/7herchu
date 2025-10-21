@@ -179,10 +179,11 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const registeredMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'REGISTERED')
 	const leftMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'LEAVE')
 	const guests = regs.filter(r => r.role === 'GUEST')
+	const internalSpeakers = regs.filter(r => r.role === 'SPEAKER') // 內部成員講師
 	const members = registeredMembers // 保持向後兼容
 
-	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length
-	const totalCount = registeredMembers.length + guests.length + speakers.length
+	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length + internalSpeakers.filter(r => r.checkedInAt != null).length
+	const totalCount = registeredMembers.length + guests.length + speakers.length + internalSpeakers.length
 
 	// 檢查當前用戶的報名狀態（優先以 userId，其次以 phone 比對）
 	const currentUserRegistration = currentUser ? regs.find(r => r.userId === currentUser.id || (currentUser.phone ? r.phone === currentUser.phone : false)) : null
@@ -190,7 +191,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const hasLocks = regs.length > 0 || speakers.length > 0
 	const memberNames = members.map(r => getDisplayName(r.user) || r.name || '-').slice(0, 30)
 	const guestNames = guests.map(r => r.name || '-').slice(0, 30)
-	const speakerNames = speakers.map(s => s.name).slice(0, 30)
+	const speakerNames = [...speakers.map(s => s.name), ...internalSpeakers.map(r => getDisplayName(r.user) || r.name || '-')].slice(0, 30)
 
 	// 顯示費用資訊（僅在有設定金額時顯示）
 	const formatCents = (v?: number | null) => {
@@ -406,7 +407,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				<Card>
 					<CardContent>
 						<div className="flex items-center justify-between mb-2">
-							<h2 className="font-medium">講師（{speakers.length}）</h2>
+							<h2 className="font-medium">講師（{speakers.length + internalSpeakers.length}）</h2>
 							{canEditDelete ? (
 								<Button as={Link} href={`/calendar/${event.id}`} variant="outline" size="sm">
 									講師管理
@@ -414,6 +415,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 							) : null}
 						</div>
 						<ul className="list-disc pl-5 text-sm text-gray-800">
+							{/* 外部講師（SpeakerBooking） */}
 							{speakers.map(s => {
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
@@ -446,6 +448,39 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								return (
 									<li key={s.id}>
 										{[s.name, s.companyName, s.industry, s.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
+									</li>
+								)
+							})}
+							{/* 內部成員講師（Registration role=SPEAKER） */}
+							{internalSpeakers.map(m => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService) {
+									if (m.mealCode) {
+										const mealName = m.mealCode === 'A' ? eventMenu.mealCodeA :
+														 m.mealCode === 'B' ? eventMenu.mealCodeB :
+														 m.mealCode === 'C' ? eventMenu.mealCodeC : null
+										mealInfo = mealName ? ` - ${m.mealCode}餐（${mealName}）` : ` - ${m.mealCode}餐`
+									} else {
+										mealInfo = ' - 待分配'
+									}
+								} else {
+									if (m.diet === 'veg') {
+										mealInfo = ' - 素食'
+									} else {
+										const restrictions = []
+										if (m.noBeef) restrictions.push('不吃牛')
+										if (m.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` - 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' - 葷食'
+										}
+									}
+								}
+								
+								return (
+									<li key={m.id}>
+										{getDisplayName(m.user) || m.name || '-'}{mealInfo}
 									</li>
 								)
 							})}
@@ -627,32 +662,29 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				</Card>
 			</div>
 
-			{/* 主要操作按鈕 - 頁面最下方 */}
-			{isLoggedIn && (
-				<div className="flex flex-col sm:flex-row items-center gap-3 justify-center py-6 border-t">
-					{!currentUserRegistration || currentUserRegistration.status === 'LEAVE' ? (
-						<Button 
-							as={Link} 
-							href={`/events/${event.id}/register`} 
-							variant="primary"
-							size="sm"
-							className="w-full sm:w-auto min-h-[44px]"
-						>
-							報名
-						</Button>
-					) : (
-						<Button 
-							as={Link} 
-							href={`/events/${event.id}/leave`} 
-							variant="outline" 
-							size="sm"
-							className="w-full sm:w-auto min-h-[44px]"
-						>
-							請假
-						</Button>
-					)}
-				</div>
-			)}
+		{/* 主要操作按鈕 - 頁面最下方 */}
+		{isLoggedIn && (
+			<div className="flex flex-row items-center gap-3 justify-center py-6 border-t">
+				<Button 
+					as={Link} 
+					href={`/events/${event.id}/register`} 
+					variant="primary"
+					size="sm"
+					className="flex-1 sm:flex-initial sm:w-auto min-h-[44px]"
+				>
+					報名
+				</Button>
+				<Button 
+					as={Link} 
+					href={`/events/${event.id}/leave`} 
+					variant="outline" 
+					size="sm"
+					className="flex-1 sm:flex-initial sm:w-auto min-h-[44px]"
+				>
+					請假
+				</Button>
+			</div>
+		)}
 
 			<div className="text-center">
 				<Link href="/hall" className="text-blue-600 underline text-sm">返回活動大廳</Link>

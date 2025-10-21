@@ -44,67 +44,68 @@ async function updateEvent(formData: FormData) {
 	if (!id || !dateStr || !startTime || !endTime || !title) return
 	const startAt = buildDate(dateStr, startTime)
 	const endAt = buildDate(dateStr, endTime)
-	const data: Prisma.EventUpdateInput = { type, title, startAt, endAt, location, content: content || null }
+	
+	// 統一處理講師名額（所有活動類型都支援）
+	const speakerQuotaInput = Number(formData.get('speakerQuota') ?? 0)
+	const hasSpeakerQuota = speakerQuotaInput > 0
+	
+	const data: Prisma.EventUpdateInput = { 
+		type, 
+		title, 
+		startAt, 
+		endAt, 
+		location, 
+		content: content || null,
+		allowSpeakers: hasSpeakerQuota,
+		speakerQuota: hasSpeakerQuota ? speakerQuotaInput : null
+	}
+	
 	if (type === 'GENERAL') {
-		data.allowSpeakers = true
 		data.allowGuests = true
-		data.speakerQuota = Number(formData.get('speakerQuota') ?? 5)
 		data.guestPriceCents = cents(formData.get('guestPrice')) ?? 25000
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 		data.defaultPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	} else if (type === 'BOD') {
-		data.allowSpeakers = false
 		data.allowGuests = true
 		data.bodMemberPriceCents = cents(formData.get('bodMemberPrice'))
 		data.bodGuestPriceCents = cents(formData.get('bodGuestPrice'))
-		data.speakerQuota = null
 		data.guestPriceCents = null
 		data.defaultPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	} else if (type === 'DINNER') {
-		data.allowSpeakers = false
 		data.allowGuests = true
 		data.pricingMode = PricingMode.MANUAL_PER_REG
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
-		data.speakerQuota = null
 		data.guestPriceCents = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 	} else if (type === 'CLOSED') {
-		data.allowSpeakers = false
 		data.allowGuests = false
-		data.speakerQuota = null
 		data.guestPriceCents = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 		data.defaultPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	} else if (type === 'JOINT') {
-		data.allowSpeakers = false
 		data.allowGuests = true
-		data.speakerQuota = null
 		data.guestPriceCents = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 		data.defaultPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	} else if (type === 'SOFT') {
-		data.allowSpeakers = false
 		data.allowGuests = true
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
-		data.speakerQuota = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
 	} else if (type === 'VISIT') {
-		data.allowSpeakers = false
 		data.allowGuests = true
 		data.defaultPriceCents = cents(formData.get('defaultPrice'))
 		data.guestPriceCents = cents(formData.get('guestPrice'))
-		data.speakerQuota = null
 		data.bodMemberPriceCents = null
 		data.bodGuestPriceCents = null
 		data.pricingMode = PricingMode.DEFAULT
@@ -190,8 +191,8 @@ export default async function AdminEventEditPage({ params }: { params: Promise<{
 					</label>
 				</div>
 				<div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-					<label>一般：講師名額
-						<input name="speakerQuota" type="number" defaultValue={e.speakerQuota ?? 5}  />
+					<label>設定講師名額
+						<input name="speakerQuota" type="number" min={0} defaultValue={e.speakerQuota ?? 0} placeholder="請輸入講師名額" className="w-full px-4 py-3 rounded-lg border" />
 					</label>
 				</div>
 				<div className="col-span-2 flex items-center gap-3">

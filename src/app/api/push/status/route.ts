@@ -24,15 +24,26 @@ export async function GET() {
 				id: true,
 				endpoint: true,
 				isEnabled: true,
+				notifyOnRegistration: true,
+				notifyEventReminder: true,
+				notifyNoResponse: true,
 				createdAt: true
 			}
 		})
 
 		const hasActiveSubscription = subscriptions.some(s => s.isEnabled)
+		
+		// 取第一個訂閱的偏好設定（通常用戶只有一個訂閱）
+		const preferences = subscriptions[0] ? {
+			notifyOnRegistration: subscriptions[0].notifyOnRegistration,
+			notifyEventReminder: subscriptions[0].notifyEventReminder,
+			notifyNoResponse: subscriptions[0].notifyNoResponse
+		} : null
 
 		return NextResponse.json({ 
 			hasActiveSubscription,
-			subscriptions
+			subscriptions,
+			preferences
 		})
 	} catch (error) {
 		console.error('Push status error:', error)
