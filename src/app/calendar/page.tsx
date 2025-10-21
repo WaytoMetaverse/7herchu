@@ -26,7 +26,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 	const sp = await searchParams
 	const openOnly = sp.open === '1'
 
-	const counts = Object.fromEntries(
+	// 計算外部講師數量
+	const externalSpeakerCounts = Object.fromEntries(
 		(
 			await prisma.speakerBooking.groupBy({
 				by: ['eventId'],
@@ -35,6 +36,28 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 			})
 		).map((g) => [g.eventId, g._count._all])
 	)
+	
+	// 計算內部成員講師數量
+	const internalSpeakerCounts = Object.fromEntries(
+		(
+			await prisma.registration.groupBy({
+				by: ['eventId'],
+				_count: { _all: true },
+				where: { 
+					eventId: { in: all.map((e) => e.id) },
+					role: 'SPEAKER'
+				},
+			})
+		).map((g) => [g.eventId, g._count._all])
+	)
+	
+	// 合併計算總講師數
+	const counts: Record<string, number> = {}
+	all.forEach(e => {
+		const external = externalSpeakerCounts[e.id] ?? 0
+		const internal = internalSpeakerCounts[e.id] ?? 0
+		counts[e.id] = external + internal
+	})
 
 	let events = all
 	if (openOnly) {
