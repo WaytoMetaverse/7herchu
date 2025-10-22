@@ -38,18 +38,25 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
+		const isInternalSpeaker = registration.role === 'SPEAKER' && registration.userId
+		
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
-			if (registration.role === 'MEMBER') {
+			// 內部成員講師按成員計費
+			if (registration.role === 'MEMBER' || isInternalSpeaker) {
 				if (registration.userId && isFixed) return 0
 				return 220
 			}
 			return 250
 		}
 		if (eventType === 'BOD') {
+			// 來賓按來賓價，其他（成員、內部講師）按成員價
 			return registration.role === 'GUEST' ? ((event?.bodGuestPriceCents ?? 0) / 100) : ((event?.bodMemberPriceCents ?? 0) / 100)
 		}
-		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) return (event?.defaultPriceCents ?? 0) / 100
+		if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
+			// 來賓按來賓價，其他（成員、內部講師）按成員價
+			return registration.role === 'GUEST' ? ((event?.guestPriceCents ?? 0) / 100) : ((event?.defaultPriceCents ?? 0) / 100)
+		}
 		return 0
 	}
 
@@ -138,8 +145,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId) {
-				// 登入用戶：講師 250，成員（單次）220（固定成員以月費邏輯處理）
-				price = registration.role === 'SPEAKER' ? 250 : 220
+				// 登入用戶：內部講師和成員都是 220（固定成員以月費邏輯處理）
+				price = 220
 			} else {
 				price = 250 // 來賓價格
 			}
@@ -158,8 +165,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			data: { paymentStatus: 'PAID' }
 		})
 
-		// 確保財務分類存在
-		const categoryName = registration.role === 'MEMBER' ? '組聚收入' : '來賓收入'
+		// 確保財務分類存在（內部講師視為組聚收入）
+		const isInternalMember = registration.userId && (registration.role === 'MEMBER' || registration.role === 'SPEAKER')
+		const categoryName = isInternalMember ? '組聚收入' : '來賓收入'
 		let category = await prisma.financeCategory.findFirst({ where: { name: categoryName } })
 		if (!category) {
 			category = await prisma.financeCategory.create({
@@ -167,12 +175,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			})
 		}
 
-		// 對於「單次成員」在（GENERAL/JOINT/CLOSED）情境，累加月度明細，方便成員管理頁同步
+		// 對於「單次成員」（含內部講師）在（GENERAL/JOINT/CLOSED）情境，累加月度明細，方便成員管理頁同步
 		let monthlyPaymentId: string | undefined = undefined
 		if (
-			registration.role === 'MEMBER' &&
+			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
-			registration.user?.memberProfile?.memberType === 'SINGLE'
+			registration.user?.memberProfile?.memberType === 'SINGLE' &&
+			registration.userId
 		) {
 			const month = new Date(registration.event!.startAt).toISOString().slice(0,7)
 			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId!, month } } })
@@ -189,13 +198,14 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		const eventDate = registration.event?.startAt ? 
 			new Date(registration.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
 			''
+		const roleLabel = isInternalMember ? '成員' : '來賓'
 		await prisma.financeTransaction.create({
 			data: {
 				date: new Date(),
 				type: 'INCOME',
 				amountCents: price * 100,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: `${eventDate}${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費`,
+				note: `${eventDate}${registration.event?.title || '活動'} - ${roleLabel}繳費`,
 				categoryId: category.id,
 				eventId: eventId,
 				monthlyPaymentId: monthlyPaymentId
@@ -241,18 +251,20 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		const eventDate = registration.event?.startAt ? 
 			new Date(registration.event.startAt).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }).replace('/', '/') : 
 			''
+		const isInternalMember = registration.userId && (registration.role === 'MEMBER' || registration.role === 'SPEAKER')
+		const roleLabel = isInternalMember ? '成員' : '來賓'
 		await prisma.financeTransaction.deleteMany({
 			where: {
 				eventId: eventId,
 				counterparty: registration.user?.name || registration.name || '未命名',
-				note: { contains: `${eventDate}${registration.event?.title || '活動'} - ${registration.role === 'MEMBER' ? '成員' : '來賓'}繳費` }
+				note: { contains: `${eventDate}${registration.event?.title || '活動'} - ${roleLabel}繳費` }
 			}
 		})
 
-		// 同步「成員管理」月度單次繳費累計（若為單次成員且屬固定價格活動）
+		// 同步「成員管理」月度單次繳費累計（若為單次成員或內部講師且屬固定價格活動）
 		const eventType = registration.event?.type as EventType
 		if (
-			registration.role === 'MEMBER' &&
+			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
 			registration.user?.memberProfile?.memberType === 'SINGLE' &&
 			registration.userId
@@ -292,15 +304,15 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			return
 		}
 
-		// 計算講師價格
+		// 計算講師價格（外部講師都是來賓價）
 		const eventType = speaker.event?.type as EventType
 		let price = 0
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			price = 250 // 講師固定價格
+			price = 250 // 來賓固定價格
 		} else if (eventType === 'BOD') {
-			price = (speaker.event?.bodMemberPriceCents || 0) / 100
+			price = (speaker.event?.bodGuestPriceCents || 0) / 100 // 來賓價
 		} else if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) {
-			price = (speaker.event?.defaultPriceCents || 0) / 100
+			price = (speaker.event?.guestPriceCents || 0) / 100 // 來賓價
 		}
 
 		// 更新繳費狀態
@@ -502,13 +514,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 								<td className="px-3 py-2"><span className="px-2 py-1 rounded text-xs bg-green-100 text-green-700">講師</span></td>
 								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.companyName || '-'}</div><div className="text-xs truncate">{speaker.industry || ''}</div></td>
 								<td className="px-3 py-2 text-gray-500"><div className="truncate">{speaker.phone || '-'}</div><div className="text-xs">外部講師</div></td>
-								<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {(() => {
-									const eventType = event?.type as EventType
-									if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) return 250
-									if (eventType === 'BOD') return (event?.bodMemberPriceCents || 0) / 100
-									if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) return (event?.defaultPriceCents || 0) / 100
-									return 0
-								})()}</td>
+							<td className="px-3 py-2 text-center font-semibold whitespace-nowrap">NT$ {(() => {
+								const eventType = event?.type as EventType
+								if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) return 250
+								if (eventType === 'BOD') return (event?.bodGuestPriceCents || 0) / 100
+								if (['DINNER', 'SOFT', 'VISIT'].includes(eventType)) return (event?.guestPriceCents || 0) / 100
+								return 0
+							})()}</td>
 							<td className="px-3 py-2 text-center">
 								{speaker.checkedInAt ? (
 									canCheckin ? (
