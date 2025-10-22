@@ -219,6 +219,7 @@ export default async function InvitationsPage() {
 													<div>日期 | 2025/09/04（四）</div>
 													<div>時間 | 18:30</div>
 													<div>地點 | 富興工廠2F</div>
+													<div>來賓費用 | 250 元（或依活動設定）</div>
 													<div>報名連結: ...</div>
 												</div>
 											)}

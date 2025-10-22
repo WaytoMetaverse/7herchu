@@ -51,11 +51,22 @@ export default async function EventInvitePage({ params }: { params: Promise<{ id
 	// 生成邀請訊息和連結
 	const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events/${eventId}/guest-register?openExternalBrowser=1`
 	const eventDate = format(parseLocalDate(event.startAt), 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })
+	
+	// 計算來賓費用
+	let guestPrice = ''
+	if (event.type === 'GENERAL' || event.type === 'JOINT' || event.type === 'CLOSED') {
+		guestPrice = '💰 來賓 250 元'
+	} else if (event.type === 'BOD' && event.bodGuestPriceCents) {
+		guestPrice = `💰 來賓 ${event.bodGuestPriceCents / 100} 元`
+	} else if ((event.type === 'DINNER' || event.type === 'SOFT' || event.type === 'VISIT') && event.guestPriceCents) {
+		guestPrice = `💰 來賓 ${event.guestPriceCents / 100} 元`
+	}
+	
 	const inviteMessage = `🎉 邀請您參加活動
 
 📅 ${event.title}
 🗓️ ${eventDate}
-📍 ${event.location || '地點詳見活動資訊'}
+📍 ${event.location || '地點詳見活動資訊'}${guestPrice ? `\n${guestPrice}` : ''}
 
 點擊連結立即報名：
 ${inviteUrl}
