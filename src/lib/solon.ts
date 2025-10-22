@@ -71,7 +71,25 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	}
 
 	const memberList = appendPlaceholders(memberListArr)
-	const speakerList = appendPlaceholders(speakerListArr)
+	
+	// 講師列表：根據 speakerQuota 顯示剩餘空位
+	let speakerList = ''
+	if (speakerListArr.length > 0 || event.speakerQuota) {
+		const quota = event.speakerQuota || 0
+		const currentCount = speakerListArr.length
+		
+		if (quota > 0 && currentCount < quota) {
+			// 有設定名額且未滿，顯示剩餘空位
+			const emptySlots = Array.from({ length: quota - currentCount }, (_, i) => `${currentCount + i + 1}.`)
+			speakerList = [...speakerListArr, ...emptySlots].join('\n')
+		} else if (quota > 0) {
+			// 有設定名額且已滿，不追加空位
+			speakerList = speakerListArr.join('\n')
+		} else {
+			// 沒有設定名額，追加2個空位（傳統方式）
+			speakerList = appendPlaceholders(speakerListArr)
+		}
+	}
 
 	// 請假名單（僅成員，不編號）
 	const leaveList = leaves
