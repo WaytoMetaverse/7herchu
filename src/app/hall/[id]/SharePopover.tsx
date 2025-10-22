@@ -26,7 +26,7 @@ export default function SharePopover({ event, invitationMessage, eventDateLabel,
 日期 | ${eventDateLabel}
 時間 | ${eventTimeLabel}
 地點 | ${event.location || '地點詳見活動資訊'}
-${guestPriceLabel ? `\n費用 | ${guestPriceLabel}` : ''}
+${guestPriceLabel ? `費用 | ${guestPriceLabel}` : ''}
 
 報名連結: ${inviteUrl}`
 
