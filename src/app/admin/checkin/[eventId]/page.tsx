@@ -381,9 +381,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		revalidatePath(`/admin/checkin/${eventId}`)
 	}
 
-	const totalCount = registrations.length + speakers.length
-	const checkedInCount = registrations.filter(r => r.checkedInAt).length + speakers.filter(s => s.checkedInAt).length
-	const unpaidCount = registrations.filter(r => r.paymentStatus === 'UNPAID').length + speakers.filter(s => s.paymentStatus === 'UNPAID').length
+	const totalCount = registrations.length + speakers.length + internalSpeakers.length
+	const checkedInCount = registrations.filter(r => r.checkedInAt).length + speakers.filter(s => s.checkedInAt).length + internalSpeakers.filter(r => r.checkedInAt).length
+	const unpaidCount = registrations.filter(r => r.paymentStatus === 'UNPAID').length + speakers.filter(s => s.paymentStatus === 'UNPAID').length + internalSpeakers.filter(r => r.paymentStatus === 'UNPAID').length
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
