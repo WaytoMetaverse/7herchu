@@ -32,7 +32,7 @@ export default function CancelPaymentButton({
 			<button
 				onClick={() => setShowConfirm(true)}
 				className="text-xs sm:text-sm text-green-600 hover:text-green-800 underline cursor-pointer"
-				style={{ fontSize: '12px', lineHeight: '16px' }}
+				style={{ fontSize: '12px', lineHeight: '16px', minHeight: 'auto', height: 'auto', padding: '0' }}
 			>
 				已繳月費 ${amount / 100}
 				<div className="text-xs sm:text-sm text-gray-500" style={{ fontSize: '12px', lineHeight: '16px' }}>
