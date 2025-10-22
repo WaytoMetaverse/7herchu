@@ -409,15 +409,33 @@ export default async function MembersManagePage({
 							<tr>
 								<th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm border-r">姓名</th>
 								<th className="sticky left-[60px] sm:left-[80px] z-20 bg-gray-50 px-2 py-2 sm:px-4 sm:py-3 text-left font-medium whitespace-nowrap text-xs sm:text-sm border-r">類型</th>
-								{months.map(month => (
-									<th key={month} className="px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap text-xs sm:text-sm">{month.slice(5)}月</th>
-								))}
+								{months.map(month => {
+									const monthNum = parseInt(month.slice(5))
+									const bgColors = [
+										'bg-blue-100',    // 1月
+										'bg-purple-100',  // 2月
+										'bg-pink-100',    // 3月
+										'bg-rose-100',    // 4月
+										'bg-orange-100',  // 5月
+										'bg-amber-100',   // 6月
+										'bg-yellow-100',  // 7月
+										'bg-lime-100',    // 8月
+										'bg-green-100',   // 9月
+										'bg-emerald-100', // 10月
+										'bg-teal-100',    // 11月
+										'bg-cyan-100',    // 12月
+									]
+									const bgColor = bgColors[monthNum - 1] || 'bg-gray-50'
+									return (
+										<th key={month} className={`px-2 py-2 text-center font-medium min-w-16 whitespace-nowrap text-xs sm:text-sm ${bgColor}`}>{month.slice(5)}月</th>
+									)
+								})}
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
 							{members.map(member => (
 								<tr key={member.id}>
-									<td className="sticky left-0 z-10 bg-white px-2 py-2 sm:px-4 sm:py-3 font-medium whitespace-nowrap text-xs sm:text-sm border-r">{getDisplayName(member)}</td>
+									<td className="sticky left-0 z-10 bg-white px-2 py-2 sm:px-4 sm:py-3 font-medium sm:whitespace-nowrap text-xs sm:text-sm border-r max-w-[60px] sm:max-w-none break-words">{getDisplayName(member)}</td>
 									<td className="sticky left-[60px] sm:left-[80px] z-10 bg-white px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap border-r">
 										{canManage ? (
 											<MemberTypeSelect
@@ -437,10 +455,28 @@ export default async function MembersManagePage({
 										const registrationCount = memberRegistrationCounts.get(member.id)?.get(month) || 0
 										const isJulyAugSep2025 = month === '2025-07' || month === '2025-08' || month === '2025-09'
 										
+										// 為不同月份設定背景色
+										const monthNum = parseInt(month.slice(5))
+										const bgColors = [
+											'bg-blue-50',    // 1月
+											'bg-purple-50',  // 2月
+											'bg-pink-50',    // 3月
+											'bg-rose-50',    // 4月
+											'bg-orange-50',  // 5月
+											'bg-amber-50',   // 6月
+											'bg-yellow-50',  // 7月
+											'bg-lime-50',    // 8月
+											'bg-green-50',   // 9月
+											'bg-emerald-50', // 10月
+											'bg-teal-50',    // 11月
+											'bg-cyan-50',    // 12月
+										]
+										const bgColor = bgColors[monthNum - 1] || ''
+										
 										if (isFixed) {
 											const isPaid = Boolean(payment?.isPaid) || isJulyAugSep2025
 											return (
-												<td key={month} className="px-2 py-2 text-center">
+												<td key={month} className={`px-2 py-2 text-center ${bgColor}`}>
 													{isPaid ? (
 														<div className="flex flex-col items-center gap-1">
 															<span className="text-green-600 font-medium text-xs">已繳費</span>
@@ -470,7 +506,7 @@ export default async function MembersManagePage({
 										} else {
 											if (isJulyAugSep2025) {
 												return (
-													<td key={month} className="px-2 py-2 text-center text-gray-600">
+													<td key={month} className={`px-2 py-2 text-center text-gray-600 ${bgColor}`}>
 														<div className="space-y-1.5 text-xs">
 															<div>報名 {registrationCount} 次</div>
 															<span className="text-green-600 font-medium">已繳費</span>
@@ -485,7 +521,7 @@ export default async function MembersManagePage({
 											const remainingCount = registrationCount - currentPaidCount
 											
 											return (
-												<td key={month} className="px-2 py-2 text-center text-gray-600">
+												<td key={month} className={`px-2 py-2 text-center text-gray-600 ${bgColor}`}>
 													<div className="space-y-1.5 text-xs">
 														<div>報名 {registrationCount} 次</div>
 														{payment?.isPaid && canManage ? (
