@@ -383,7 +383,36 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	const totalCount = registrations.length + speakers.length + internalSpeakers.length
 	const checkedInCount = registrations.filter(r => r.checkedInAt).length + speakers.filter(s => s.checkedInAt).length + internalSpeakers.filter(r => r.checkedInAt).length
-	const unpaidCount = registrations.filter(r => r.paymentStatus === 'UNPAID').length + speakers.filter(s => s.paymentStatus === 'UNPAID').length + internalSpeakers.filter(r => r.paymentStatus === 'UNPAID').length
+	
+	// 正確計算未繳費人數，考慮月費邏輯
+	const unpaidCount = (() => {
+		let count = 0
+		
+		// 一般報名者（成員+來賓）
+		registrations.forEach(reg => {
+			const paymentStatus = getPaymentStatus(reg)
+			if (paymentStatus.status === 'unpaid') {
+				count++
+			}
+		})
+		
+		// 外部講師
+		speakers.forEach(speaker => {
+			if (speaker.paymentStatus === 'UNPAID') {
+				count++
+			}
+		})
+		
+		// 內部講師
+		internalSpeakers.forEach(reg => {
+			const paymentStatus = getPaymentStatus(reg)
+			if (paymentStatus.status === 'unpaid') {
+				count++
+			}
+		})
+		
+		return count
+	})()
 
 	return (
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
