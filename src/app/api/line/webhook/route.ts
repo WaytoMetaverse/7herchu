@@ -4,10 +4,23 @@ import crypto from 'crypto'
 import { replyToLine } from '@/lib/line'
 
 function verifySignature(rawBody: string, signature?: string | null) {
-	const secret = process.env.LINE_CHANNEL_SECRET || ''
-	if (!secret || !signature) return false
-	const hmac = crypto.createHmac('sha256', secret).update(rawBody).digest('base64')
-	return hmac === signature
+	if (!signature) return false
+	
+	// 嘗試主要機器人的secret
+	const primarySecret = process.env.LINE_CHANNEL_SECRET || ''
+	if (primarySecret) {
+		const hmac = crypto.createHmac('sha256', primarySecret).update(rawBody).digest('base64')
+		if (hmac === signature) return true
+	}
+	
+	// 嘗試備用機器人的secret
+	const backupSecret = process.env.LINE_CHANNEL_SECRET_2 || ''
+	if (backupSecret) {
+		const hmac = crypto.createHmac('sha256', backupSecret).update(rawBody).digest('base64')
+		if (hmac === signature) return true
+	}
+	
+	return false
 }
 
 export async function POST(req: NextRequest) {
