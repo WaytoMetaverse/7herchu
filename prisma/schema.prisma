@@ -353,6 +353,9 @@ model OrgSettings {
   bankInfo    String
   linePayInfo String?
   lineGroupId String?
+  currentLineBot String? @default("primary")  // 當前使用的LINE機器人 (primary/backup)
+  lineBotStatus String? @default("active")    // LINE機器人狀態 (active/quota_exceeded/error)
+  lastLineBotSwitch DateTime?                 // 最後一次切換機器人的時間
   invitationCardUrl String?  // 預設邀請卡（向後相容）
   invitationCardGeneral String?  // 簡報組聚/聯合組聚/封閉會議
   invitationCardDinner String?   // 餐敘
