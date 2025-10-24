@@ -60,6 +60,28 @@ export async function getAvailableBotToken(): Promise<{ token: string | null; bo
 	const orgSettings = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
 	const currentBot = orgSettings?.currentLineBot || 'primary'
 	
+	// 如果主要機器人已達到額度上限，直接切換到備用機器人
+	if (currentBot === 'primary' && orgSettings?.lineBotStatus === 'quota_exceeded') {
+		console.log('主要機器人已達到額度上限，切換到備用機器人')
+		const backupConfig = configs.find(config => config.name === 'backup')
+		if (backupConfig) {
+			const token = await getChannelAccessToken(backupConfig)
+			if (token) {
+				// 切換到備用機器人
+				await prisma.orgSettings.update({
+					where: { id: 'singleton' },
+					data: { 
+						currentLineBot: 'backup',
+						lineBotStatus: 'active',
+						lastLineBotSwitch: new Date()
+					}
+				})
+				console.log('已切換到備用機器人')
+				return { token, botName: 'backup' }
+			}
+		}
+	}
+	
 	// 檢查是否需要嘗試恢復主要機器人
 	if (currentBot === 'backup' && orgSettings?.botRecoveryAttempts && orgSettings.botRecoveryAttempts < 3) {
 		const lastErrorTime = orgSettings.lastPrimaryBotError
