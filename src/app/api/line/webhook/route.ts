@@ -49,12 +49,25 @@ export async function POST(req: NextRequest) {
 			const text = (ev.message.text || '').trim()
 			if (text === '綁定') {
 				if (source.type === 'group' && source.groupId) {
+					// 獲取當前機器人狀態
+					const orgSettings = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
+					const currentBot = orgSettings?.currentLineBot || 'primary'
+					
+					// 更新群組ID和機器人狀態
 					await prisma.orgSettings.upsert({
 						where: { id: 'singleton' },
-						create: { id: 'singleton', bankInfo: '', lineGroupId: source.groupId },
-						update: { lineGroupId: source.groupId },
+						create: { 
+							id: 'singleton', 
+							bankInfo: '', 
+							lineGroupId: source.groupId,
+							currentLineBot: currentBot
+						},
+						update: { 
+							lineGroupId: source.groupId,
+							currentLineBot: currentBot
+						},
 					})
-					if (ev.replyToken) await replyToLine(ev.replyToken, '綁定成功，之後將自動推送接龍訊息。')
+					if (ev.replyToken) await replyToLine(ev.replyToken, `綁定成功，之後將自動推送接龍訊息。(機器人: ${currentBot})`)
 				} else if (ev.replyToken) {
 					await replyToLine(ev.replyToken, '請將機器人邀進群組後，在群組內輸入「綁定」。')
 				}

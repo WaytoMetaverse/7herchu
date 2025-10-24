@@ -132,7 +132,10 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 	if (!token) return false
 	const org = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
 	const to = org?.lineGroupId
-	if (!to) return false
+	if (!to) {
+		console.log('LINE推送失敗: 沒有綁定群組ID')
+		return false
+	}
 	
 	try {
 		const res = await fetch('https://api.line.me/v2/bot/message/push', {
