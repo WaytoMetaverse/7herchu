@@ -4,22 +4,35 @@ import crypto from 'crypto'
 import { replyToLine } from '@/lib/line'
 
 function verifySignature(rawBody: string, signature?: string | null) {
-	if (!signature) return false
+	if (!signature) {
+		console.log('Webhook: 沒有簽名')
+		return false
+	}
 	
 	// 嘗試主要機器人的secret
 	const primarySecret = process.env.LINE_CHANNEL_SECRET || ''
 	if (primarySecret) {
 		const hmac = crypto.createHmac('sha256', primarySecret).update(rawBody).digest('base64')
-		if (hmac === signature) return true
+		if (hmac === signature) {
+			console.log('Webhook: 主要機器人簽名驗證成功')
+			return true
+		}
 	}
 	
 	// 嘗試備用機器人的secret
 	const backupSecret = process.env.LINE_CHANNEL_SECRET_2 || ''
 	if (backupSecret) {
 		const hmac = crypto.createHmac('sha256', backupSecret).update(rawBody).digest('base64')
-		if (hmac === signature) return true
+		if (hmac === signature) {
+			console.log('Webhook: 備用機器人簽名驗證成功')
+			return true
+		}
 	}
 	
+	console.log('Webhook: 簽名驗證失敗')
+	console.log('Primary secret length:', primarySecret.length)
+	console.log('Backup secret length:', backupSecret.length)
+	console.log('Signature:', signature)
 	return false
 }
 
