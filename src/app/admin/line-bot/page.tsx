@@ -91,6 +91,27 @@ export default async function LineBotStatusPage() {
 								}
 							</p>
 						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">主要機器人錯誤次數</label>
+							<p className="mt-1 text-sm text-gray-900">
+								{orgSettings?.primaryBotErrorCount || 0}
+							</p>
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">最後錯誤時間</label>
+							<p className="mt-1 text-sm text-gray-900">
+								{orgSettings?.lastPrimaryBotError ? 
+									new Date(orgSettings.lastPrimaryBotError).toLocaleString('zh-TW') : 
+									'無錯誤記錄'
+								}
+							</p>
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">恢復嘗試次數</label>
+							<p className="mt-1 text-sm text-gray-900">
+								{orgSettings?.botRecoveryAttempts || 0}
+							</p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -99,10 +120,12 @@ export default async function LineBotStatusPage() {
 			<div className="mt-8 bg-blue-50 p-6 rounded-lg">
 				<h3 className="text-lg font-semibold mb-3 text-blue-900">使用說明</h3>
 				<div className="text-blue-800 space-y-2">
-					<p>• <strong>自動切換機制</strong>：當主要機器人達到額度上限時，系統會自動切換到備用機器人</p>
-					<p>• <strong>額度監控</strong>：系統會監控LINE API回應，當收到429或403錯誤時會嘗試切換機器人</p>
-					<p>• <strong>狀態追蹤</strong>：系統會記錄當前使用的機器人和最後切換時間</p>
+					<p>• <strong>額度監控輪流</strong>：主要機器人正常使用，當出現額度問題時自動切換到備用機器人</p>
+					<p>• <strong>智能監控</strong>：系統會監控LINE API回應，當收到429或403錯誤時會記錄錯誤次數</p>
+					<p>• <strong>自動恢復</strong>：當距離最後一次錯誤超過1小時時，系統會嘗試恢復主要機器人</p>
+					<p>• <strong>狀態追蹤</strong>：系統會記錄錯誤次數、切換時間和恢復嘗試次數</p>
 					<p>• <strong>配置要求</strong>：需要設定LINE_CHANNEL_ID_2和LINE_CHANNEL_SECRET_2環境變數來啟用備用機器人</p>
+					<p>• <strong>群組限制</strong>：兩個機器人不能在同一個群組中，需要分別綁定不同的群組</p>
 				</div>
 			</div>
 		</div>
