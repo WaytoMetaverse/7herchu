@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { sendPushNotificationToAll } from '@/lib/webpush'
+import { sendPushNotificationToUser } from '@/lib/webpush'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { NextResponse } from 'next/server'
@@ -54,8 +54,37 @@ export async function GET() {
 			const timeLabel = format(event.startAt, 'HH:mm', { locale: zhTW })
 			const locationText = event.location ? ` @ ${event.location}` : ''
 
-			// 發送推播通知給已報名的成員
-			await sendPushNotificationToAll({
+			// 只發送給已報名且未請假的內部成員（過濾掉沒有 userId 的記錄）
+			const registeredMembers = event.registrations.filter(reg => reg.userId !== null)
+			
+			if (registeredMembers.length === 0) {
+				console.log(`[Cron] 活動 ${event.title} 沒有有效的已報名成員，跳過`)
+				continue
+			}
+
+			// 檢查哪些用戶有啟用活動提醒通知偏好
+			const userIds = registeredMembers.map(reg => reg.userId!).filter(Boolean)
+			const usersWithReminderEnabled = await prisma.pushSubscription.findMany({
+				where: {
+					userId: { in: userIds },
+					isEnabled: true,
+					notifyEventReminder: true
+				},
+				select: {
+					userId: true
+				}
+			})
+
+			const enabledUserIds = new Set(usersWithReminderEnabled.map(sub => sub.userId))
+			const membersToNotify = registeredMembers.filter(reg => enabledUserIds.has(reg.userId!))
+
+			if (membersToNotify.length === 0) {
+				console.log(`[Cron] 活動 ${event.title} 沒有啟用活動提醒的已報名成員，跳過`)
+				continue
+			}
+
+			// 逐個發送推播通知給已報名且啟用提醒的成員
+			const notificationPayload = {
 				title: `⏰ 今日活動提醒`,
 				body: `${event.title} | ${timeLabel}${locationText}`,
 				icon: '/logo.jpg',
@@ -65,9 +94,16 @@ export async function GET() {
 					eventId: event.id,
 					type: 'event_reminder'
 				}
-			}, 'event_reminder')
+			}
 
-			console.log(`[Cron] 已發送提醒給活動 ${event.title} 的 ${event.registrations.length} 位成員`)
+			const results = await Promise.allSettled(
+				membersToNotify.map(reg => 
+					sendPushNotificationToUser(reg.userId!, notificationPayload)
+				)
+			)
+
+			const successCount = results.filter(r => r.status === 'fulfilled').length
+			console.log(`[Cron] 已發送提醒給活動 ${event.title} 的 ${successCount}/${membersToNotify.length} 位已報名且啟用提醒的成員`)
 		}
 
 		return NextResponse.json({ 
