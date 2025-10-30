@@ -27,6 +27,7 @@ export async function GET() {
 				notifyOnRegistration: true,
 				notifyEventReminder: true,
 				notifyNoResponse: true,
+				notifyAnnouncement: true,
 				createdAt: true
 			}
 		})
@@ -37,7 +38,8 @@ export async function GET() {
 		const preferences = subscriptions[0] ? {
 			notifyOnRegistration: subscriptions[0].notifyOnRegistration,
 			notifyEventReminder: subscriptions[0].notifyEventReminder,
-			notifyNoResponse: subscriptions[0].notifyNoResponse
+			notifyNoResponse: subscriptions[0].notifyNoResponse,
+			notifyAnnouncement: subscriptions[0].notifyAnnouncement
 		} : null
 
 		return NextResponse.json({ 

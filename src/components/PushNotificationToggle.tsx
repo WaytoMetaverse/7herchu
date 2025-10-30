@@ -12,6 +12,7 @@ export default function PushNotificationToggle() {
 	const [notifyOnRegistration, setNotifyOnRegistration] = useState(true)
 	const [notifyEventReminder, setNotifyEventReminder] = useState(true)
 	const [notifyNoResponse, setNotifyNoResponse] = useState(true)
+	const [notifyAnnouncement, setNotifyAnnouncement] = useState(true)
 
 	useEffect(() => {
 		// 檢查瀏覽器是否支援推送通知
@@ -43,6 +44,7 @@ export default function PushNotificationToggle() {
 						setNotifyOnRegistration(data.preferences.notifyOnRegistration ?? true)
 						setNotifyEventReminder(data.preferences.notifyEventReminder ?? true)
 						setNotifyNoResponse(data.preferences.notifyNoResponse ?? true)
+						setNotifyAnnouncement(data.preferences.notifyAnnouncement ?? true)
 					}
 				}
 			} else {
@@ -263,6 +265,23 @@ export default function PushNotificationToggle() {
 						<div className="flex-1">
 							<div className="text-sm font-medium">未報組聚提醒</div>
 							<div className="text-xs text-gray-500">管理員發送提醒時，提醒您尚未回應的活動</div>
+						</div>
+					</label>
+
+					<label className="flex items-start gap-3 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={notifyAnnouncement}
+							onChange={async (e) => {
+								const newValue = e.target.checked
+								setNotifyAnnouncement(newValue)
+								await updatePreference('notifyAnnouncement', newValue)
+							}}
+							className="mt-1"
+						/>
+						<div className="flex-1">
+							<div className="text-sm font-medium">公告推播</div>
+							<div className="text-xs text-gray-500">接收管理員發送的公告推播通知</div>
 						</div>
 					</label>
 				</div>

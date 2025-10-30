@@ -34,9 +34,9 @@ export interface PushNotificationPayload {
 /**
  * 發送推送通知給所有啟用通知的用戶
  * @param payload 通知內容
- * @param notificationType 通知類型：'registration' | 'event_reminder' | 'no_response'
+ * @param notificationType 通知類型：'registration' | 'event_reminder' | 'no_response' | 'announcement'
  */
-export async function sendPushNotificationToAll(payload: PushNotificationPayload, notificationType?: 'registration' | 'event_reminder' | 'no_response') {
+export async function sendPushNotificationToAll(payload: PushNotificationPayload, notificationType?: 'registration' | 'event_reminder' | 'no_response' | 'announcement') {
 	try {
 		// 根據通知類型過濾訂閱
 		const whereClause: {
@@ -44,6 +44,7 @@ export async function sendPushNotificationToAll(payload: PushNotificationPayload
 			notifyOnRegistration?: boolean
 			notifyEventReminder?: boolean
 			notifyNoResponse?: boolean
+			notifyAnnouncement?: boolean
 		} = { isEnabled: true }
 		
 		if (notificationType === 'registration') {
@@ -52,6 +53,8 @@ export async function sendPushNotificationToAll(payload: PushNotificationPayload
 			whereClause.notifyEventReminder = true
 		} else if (notificationType === 'no_response') {
 			whereClause.notifyNoResponse = true
+		} else if (notificationType === 'announcement') {
+			whereClause.notifyAnnouncement = true
 		}
 		
 		// 獲取所有啟用推送通知的訂閱

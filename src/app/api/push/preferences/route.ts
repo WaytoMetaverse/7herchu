@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest) {
 		}
 
 		const body = await req.json()
-		const { notifyOnRegistration, notifyEventReminder, notifyNoResponse } = body
+		const { notifyOnRegistration, notifyEventReminder, notifyNoResponse, notifyAnnouncement } = body
 
 		// 更新所有該用戶的訂閱偏好
 		await prisma.pushSubscription.updateMany({
@@ -27,7 +27,8 @@ export async function PUT(req: NextRequest) {
 			data: {
 				...(notifyOnRegistration !== undefined && { notifyOnRegistration }),
 				...(notifyEventReminder !== undefined && { notifyEventReminder }),
-				...(notifyNoResponse !== undefined && { notifyNoResponse })
+				...(notifyNoResponse !== undefined && { notifyNoResponse }),
+				...(notifyAnnouncement !== undefined && { notifyAnnouncement })
 			}
 		})
 

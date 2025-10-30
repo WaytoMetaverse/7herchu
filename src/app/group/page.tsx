@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 // import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Users, DollarSign, UtensilsCrossed, Image, Monitor } from 'lucide-react'
+import { Users, DollarSign, UtensilsCrossed, Image, Monitor, Bell } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import GalleryCarousel from './GalleryCarousel'
 
@@ -128,6 +128,29 @@ export default async function GroupHomePage() {
 							</div>
 						</CardContent>
 					</Card>
+
+				{/* 公告管理卡片（僅管理員可見） */}
+					{isAdmin && (
+						<Card>
+							<CardContent className="p-6">
+								<div className="flex items-center gap-3 mb-4">
+									<Bell className="w-6 h-6 text-yellow-600" />
+									<h2 className="text-lg font-semibold">公告管理</h2>
+								</div>
+								<div className="space-y-4">
+									<p className="text-gray-600 text-sm">
+										發送推播通知給所有啟用通知的用戶，可查看發送歷史記錄。
+									</p>
+									<Link
+										href="/admin/announcements"
+										className="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-2 px-4 rounded transition-colors"
+									>
+										公告管理
+									</Link>
+								</div>
+							</CardContent>
+						</Card>
+					)}
 
 				{/* 展示設定卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
 					<Card>

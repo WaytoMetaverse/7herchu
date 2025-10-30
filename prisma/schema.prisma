@@ -106,6 +106,7 @@ model User {
   cards         BusinessCard[]
   createdInvites InviteToken[]
   pushSubscriptions PushSubscription[]
+  announcements    Announcement[]
   createdAt     DateTime @default(now())
 }
 
@@ -436,10 +437,25 @@ model PushSubscription {
   notifyOnRegistration Boolean @default(true)  // 組聚有人報名
   notifyEventReminder  Boolean @default(true)  // 已報活動提醒（活動當天早上10:00）
   notifyNoResponse     Boolean @default(true)  // 未報組聚提醒
+  notifyAnnouncement   Boolean @default(true)  // 公告推播
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@unique([userId, endpoint])
   @@index([userId, isEnabled])
+}
+
+// 公告推播記錄
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String   // 通知標題
+  body      String   // 通知內容
+  sentBy    String   // 發送者用戶ID
+  sender    User     @relation(fields: [sentBy], references: [id])
+  sentCount Int      @default(0) // 成功發送數量
+  totalCount Int     @default(0) // 總訂閱數量
+  createdAt DateTime @default(now())
+  
+  @@index([createdAt])
 }
