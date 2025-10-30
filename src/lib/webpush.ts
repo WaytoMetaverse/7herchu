@@ -57,15 +57,21 @@ export async function sendPushNotificationToAll(payload: PushNotificationPayload
 			whereClause.notifyAnnouncement = true
 		}
 		
-		// 獲取所有啟用推送通知的訂閱
+		// 獲取所有啟用推送通知的訂閱（僅限活躍用戶）
 		const subscriptions = await prisma.pushSubscription.findMany({
-			where: whereClause,
+			where: {
+				...whereClause,
+				user: {
+					isActive: true
+				}
+			},
 			include: {
 				user: {
 					select: {
 						id: true,
 						name: true,
-						email: true
+						email: true,
+						isActive: true
 					}
 				}
 			}
@@ -129,7 +135,10 @@ export async function sendPushNotificationToUser(userId: string, payload: PushNo
 		const subscriptions = await prisma.pushSubscription.findMany({
 			where: { 
 				userId,
-				isEnabled: true 
+				isEnabled: true,
+				user: {
+					isActive: true
+				}
 			}
 		})
 

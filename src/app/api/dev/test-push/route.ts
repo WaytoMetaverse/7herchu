@@ -8,12 +8,17 @@ import { sendPushNotificationToAll } from '@/lib/webpush'
 export async function GET() {
 	try {
 
-		// 檢查訂閱數量
+		// 檢查訂閱數量（僅限活躍用戶）
 		const subscriptions = await prisma.pushSubscription.findMany({
-			where: { isEnabled: true },
+			where: { 
+				isEnabled: true,
+				user: {
+					isActive: true
+				}
+			},
 			include: {
 				user: {
-					select: { name: true, email: true }
+					select: { name: true, email: true, isActive: true }
 				}
 			}
 		})
