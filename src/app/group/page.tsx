@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 // import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Users, DollarSign, UtensilsCrossed, Image, Monitor, Bell } from 'lucide-react'
+import { Users, DollarSign, UtensilsCrossed, Image, Monitor, Bell, BellRing } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import GalleryCarousel from './GalleryCarousel'
 
@@ -146,6 +146,29 @@ export default async function GroupHomePage() {
 										className="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-2 px-4 rounded transition-colors"
 									>
 										公告管理
+									</Link>
+								</div>
+							</CardContent>
+						</Card>
+					)}
+
+				{/* 推播通知狀態卡片（僅管理員可見） */}
+					{isAdmin && (
+						<Card>
+							<CardContent className="p-6">
+								<div className="flex items-center gap-3 mb-4">
+									<BellRing className="w-6 h-6 text-indigo-600" />
+									<h2 className="text-lg font-semibold">推播通知狀態</h2>
+								</div>
+								<div className="space-y-4">
+									<p className="text-gray-600 text-sm">
+										查看所有成員的推播通知開啟狀態和通知偏好設定。
+									</p>
+									<Link
+										href="/admin/push-status"
+										className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2 px-4 rounded transition-colors"
+									>
+										查看狀態
 									</Link>
 								</div>
 							</CardContent>
