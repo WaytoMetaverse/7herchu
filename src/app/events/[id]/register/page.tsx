@@ -10,6 +10,7 @@ import { zhTW } from 'date-fns/locale'
 import { pushSolonByEvent } from '@/lib/line'
 import { sendRegistrationNotification, getDisplayName } from '@/lib/notificationHelper'
 import { generateSolonMessage } from '@/lib/solon'
+import RegisterForm from './RegisterForm'
 
 export default async function EventRegisterPage({ params }: { params: Promise<{ id: string }> }) {
 	try {
@@ -74,6 +75,9 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 		'use server'
 		if (!user) return
 		
+		// 防重複提交：使用資料庫事務確保原子性
+		const result = await prisma.$transaction(async (tx) => {
+		
 		const mealCode = String(formData.get('mealCode') || '')
 		const noBeef = formData.get('noBeef') === 'on'
 		const noPork = formData.get('noPork') === 'on'
@@ -118,61 +122,73 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 			// 沒有餐點設定時，finalMealCode 保持為空字串
 		}
 
-		// Server Action 內再查一次，避免前後態或併發造成重複建立
-		// 支援 MEMBER 和 SPEAKER 角色（內部成員講師也可以報名）
-		const prevReg = await prisma.registration.findFirst({
-			where: {
-				eventId,
-				role: { in: ['MEMBER', 'SPEAKER'] },
-				OR: [
-					{ userId: user.id },
-					...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
-				]
-			},
-			orderBy: { createdAt: 'asc' }
+			// Server Action 內再查一次，避免前後態或併發造成重複建立
+			// 支援 MEMBER 和 SPEAKER 角色（內部成員講師也可以報名）
+			const prevReg = await tx.registration.findFirst({
+				where: {
+					eventId,
+					role: { in: ['MEMBER', 'SPEAKER'] },
+					OR: [
+						{ userId: user.id },
+						...(user.phone ? [{ phone: user.phone }] as Array<{ phone: string }> : [])
+					]
+				},
+				orderBy: { createdAt: 'asc' }
+			})
+
+			if (prevReg) {
+				// 更新現有報名
+				const updatedReg = await tx.registration.update({
+					where: { id: prevReg.id },
+					data: {
+						mealCode: finalMealCode,
+						diet,
+						noBeef,
+						noPork,
+						status: 'REGISTERED',
+						// 如果之前是講師，保持講師身份；否則設為成員
+						role: prevReg.role === 'SPEAKER' ? 'SPEAKER' : 'MEMBER'
+					}
+				})
+				return { isNewRegistration: false, registration: updatedReg }
+			} else {
+				// 創建新報名
+				const newReg = await tx.registration.create({
+					data: {
+						eventId,
+						userId: user.id,
+						role: 'MEMBER',
+						name: user.name || '',
+						...(user.phone ? { phone: user.phone } : {}),
+						mealCode: finalMealCode,
+						diet,
+						noBeef,
+						noPork,
+						status: 'REGISTERED',
+						paymentStatus: 'UNPAID'
+					}
+				})
+				return { isNewRegistration: true, registration: newReg }
+			}
 		})
 
-		if (prevReg) {
-			await prisma.registration.update({
-				where: { id: prevReg.id },
-				data: {
-					mealCode: finalMealCode,
-					diet,
-					noBeef,
-					noPork,
-					status: 'REGISTERED',
-					// 如果之前是講師，保持講師身份；否則設為成員
-					role: prevReg.role === 'SPEAKER' ? 'SPEAKER' : 'MEMBER'
-				}
-			})
-		} else {
-			await prisma.registration.create({
-				data: {
-					eventId,
-					userId: user.id,
-					role: 'MEMBER',
-					name: user.name || '',
-					...(user.phone ? { phone: user.phone } : {}),
-					mealCode: finalMealCode,
-					diet,
-					noBeef,
-					noPork,
-					status: 'REGISTERED',
-					paymentStatus: 'UNPAID'
-				}
-			})
-			
-			// 發送推送通知（僅新報名時發送）
+		// 只有新報名時才發送通知
+		if (result.isNewRegistration) {
+			// 發送推送通知
 			try {
 				const displayName = getDisplayName(user, user.name)
 				await sendRegistrationNotification(eventId, displayName, 'MEMBER')
 			} catch (e) {
 				console.warn('[register] sendPushNotification failed', { eventId, err: (e as Error)?.message })
 			}
-		}
 
-		// 推送接龍訊息（忽略失敗）
-		pushSolonByEvent(eventId, generateSolonMessage)
+			// 推送接龍訊息
+			try {
+				await pushSolonByEvent(eventId, generateSolonMessage)
+			} catch (e) {
+				console.warn('[register] pushSolonByEvent failed', { eventId, err: (e as Error)?.message })
+			}
+		}
 
 		revalidatePath(`/hall/${eventId}`)
 		redirect(`/hall/${eventId}`)
@@ -197,7 +213,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 				</div>
 			)}
 
-			<form action={submitRegistration} className="space-y-6">
+			<RegisterForm action={submitRegistration} existingReg={existingReg}>
 				<div>
 					<h2 className="font-medium mb-4">菜單選擇</h2>
 					{eventMenu?.hasMealService ? (
