@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 // import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Users, DollarSign, UtensilsCrossed, Image, Monitor, Bell, Settings } from 'lucide-react'
+import { Users, DollarSign, UtensilsCrossed, Image as ImageIcon, Monitor, Bell, Settings } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import GalleryCarousel from './GalleryCarousel'
 
@@ -13,8 +13,6 @@ export default async function GroupHomePage() {
 	const session = await getServerSession(authOptions)
 	const roles = ((session?.user as { roles?: string[] } | undefined)?.roles) ?? []
 	const isAdmin = roles.includes('admin')
-	const canManageFinance = isAdmin || roles.includes('finance_manager')
-	const canManageMenu = isAdmin || roles.includes('menu_manager')
 	const isLoggedIn = !!session?.user
 
 	// 如果未登入，顯示圖片輪播
@@ -112,7 +110,7 @@ export default async function GroupHomePage() {
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center gap-3 mb-4">
-								<Image className="w-6 h-6 text-purple-600" />
+								<ImageIcon className="w-6 h-6 text-purple-600" />
 								<h2 className="text-lg font-semibold">邀請管理</h2>
 							</div>
 							<div className="space-y-4">

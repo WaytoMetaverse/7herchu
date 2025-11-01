@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 interface RegisterFormProps {
 	children: React.ReactNode
 	action: (formData: FormData) => Promise<void>
-	existingReg?: any
+	existingReg?: unknown
 }
 
 export default function RegisterForm({ children, action, existingReg }: RegisterFormProps) {

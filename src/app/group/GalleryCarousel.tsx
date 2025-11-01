@@ -71,6 +71,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 	// 簡化版輪播：單一 <img> 自動切換 src（每 5 秒）
 	return (
 		<div className="min-h-screen w-full">
+			{/* eslint-disable-next-line @next/next/no-img-element */}
 			<img
 				src={images[currentIndex]}
 				alt="小組展示圖片"
@@ -82,7 +83,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 				}}
 				onLoad={(e) => {
 					console.log('Image loaded successfully (simple view):', images[currentIndex])
-					const img = e.target as HTMLImageElement
+					const img = (e.target as HTMLImageElement)
 					console.log('Image dimensions (simple view):', { width: img.naturalWidth, height: img.naturalHeight })
 					setImageLoadStates(prev => ({ ...prev, [images[currentIndex]]: 'loaded' }))
 				}}
@@ -117,6 +118,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							opacity: index === currentIndex ? 1 : 0 // 強制設定透明度
 						}}
 					>
+						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img
 							src={image}
 							alt={`小組展示圖片 ${index + 1}`}
@@ -128,7 +130,7 @@ export default function GalleryCarousel({ mobileImages, desktopImages }: Gallery
 							}}
 							onLoad={(e) => {
 								console.log('Image loaded successfully:', image)
-								const img = e.target as HTMLImageElement
+								const img = (e.target as HTMLImageElement)
 								console.log('Image dimensions:', { width: img.naturalWidth, height: img.naturalHeight })
 								setImageLoadStates(prev => ({ ...prev, [image]: 'loaded' }))
 							}}

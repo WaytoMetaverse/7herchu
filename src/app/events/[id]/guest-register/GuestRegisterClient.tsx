@@ -193,10 +193,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 								src={invitationCardUrl} 
 								alt="邀請卡"
 								className="w-full rounded-lg shadow-sm"
-								onContextMenu={(e) => {
-									// 允許右鍵儲存圖片
-									return true
-								}}
+								onContextMenu={() => true}
 							/>
 							<div className="text-xs text-gray-500 text-center mt-2">
 								長按圖片可儲存到手機
