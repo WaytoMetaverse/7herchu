@@ -135,10 +135,6 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	return lines.filter(Boolean).join('\n')
 }
 
-function typeLabel(t: EventType) {
-	return ({ GENERAL: '簡報組聚', JOINT: '聯合組聚', CLOSED: '封閉會議', BOD: 'BOD', DINNER: '餐敘', SOFT: '軟性活動', VISIT: '職業參訪' } as Record<EventType, string>)[t]
-}
-
 function is19Start(t: EventType) {
 	return t === 'GENERAL' || t === 'JOINT' || t === 'CLOSED'
 }

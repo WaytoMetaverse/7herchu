@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Button from '@/components/ui/Button'
 import SubcategoryPicker from '@/components/cards/SubcategoryPicker'
 import { Phone, Tag } from 'lucide-react'
 

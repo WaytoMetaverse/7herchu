@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Button from './ui/Button'
 
 interface ChecklistItem {
@@ -24,14 +24,7 @@ export default function ChecklistModal({ eventId, isOpen, onClose }: ChecklistMo
 	const [expandedId, setExpandedId] = useState<string | null>(null)
 	const [noteText, setNoteText] = useState('')
 
-	// 載入檢核清單
-	useEffect(() => {
-		if (isOpen && eventId) {
-			loadChecklist()
-		}
-	}, [isOpen, eventId])
-
-	const loadChecklist = async () => {
+	const loadChecklist = useCallback(async () => {
 		setLoading(true)
 		try {
 			const res = await fetch(`/api/events/${eventId}/checklist`)
@@ -44,7 +37,14 @@ export default function ChecklistModal({ eventId, isOpen, onClose }: ChecklistMo
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [eventId])
+
+	// 載入檢核清單
+	useEffect(() => {
+		if (isOpen && eventId) {
+			loadChecklist()
+		}
+	}, [isOpen, eventId, loadChecklist])
 
 	// 重置檢核清單
 	const resetChecklist = async () => {

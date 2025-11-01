@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
-import { Copy } from 'lucide-react'
 
 export default function MemberInvitation() {
 	const [inviteUrl, setInviteUrl] = useState<string>('')
@@ -31,13 +30,6 @@ export default function MemberInvitation() {
 		} finally {
 			setLoading(false)
 		}
-	}
-
-	const copyToClipboard = (text: string, buttonElement: HTMLButtonElement) => {
-		navigator.clipboard.writeText(text)
-		const original = buttonElement.textContent
-		buttonElement.textContent = '已複製！'
-		setTimeout(() => { buttonElement.textContent = original }, 2000)
 	}
 
 	const shareInvite = async () => {

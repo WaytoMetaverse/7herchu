@@ -125,7 +125,7 @@ export default function MobileQueryPage() {
 					/>
 				</div>
 				<div className="flex flex-col gap-3">
-					<Button type="submit" variant="primary" size="sm" className="w-full min-h-[44px]">送出</Button>
+					<Button type="submit" variant="primary" size="sm" className="w-full min-h-[44px]" disabled={loading}>{loading ? '處理中…' : '送出'}</Button>
 					<Button as={Link} href="/hall" variant="outline" size="sm" className="w-full min-h-[44px]">取消</Button>
 				</div>
 			</form>
