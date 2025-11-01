@@ -29,6 +29,7 @@ export default async function InvitationsPage() {
 		if (!cardType) return
 
 		const updateField = {
+			speaker: 'invitationCardSpeaker',
 			general: 'invitationCardGeneral',
 			dinner: 'invitationCardDinner',
 			soft: 'invitationCardSoft',
@@ -38,9 +39,14 @@ export default async function InvitationsPage() {
 		
 		if (!updateField) return
 
-		await prisma.orgSettings.update({
+		await prisma.orgSettings.upsert({
 			where: { id: 'singleton' },
-			data: {
+			create: {
+				id: 'singleton',
+				bankInfo: '',
+				[updateField]: null
+			},
+			update: {
 				[updateField]: null
 			}
 		})
