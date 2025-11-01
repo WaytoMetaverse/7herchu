@@ -31,10 +31,21 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		include: { category: true } 
 	})
 
-	// 計算累積餘額
-	const totalIncome = txns.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amountCents, 0)
-	const totalExpense = txns.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amountCents, 0)
-	const balance = totalIncome - totalExpense
+	// 計算當期（受篩選）小計
+	const periodIncome = txns.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amountCents, 0)
+	const periodExpense = txns.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amountCents, 0)
+	const periodBalance = periodIncome - periodExpense
+
+	// 計算累積餘額（不受篩選，至今）
+	const allIncomeAgg = await prisma.financeTransaction.aggregate({
+		_sum: { amountCents: true },
+		where: { type: 'INCOME' }
+	})
+	const allExpenseAgg = await prisma.financeTransaction.aggregate({
+		_sum: { amountCents: true },
+		where: { type: 'EXPENSE' }
+	})
+	const cumulativeBalance = (allIncomeAgg._sum.amountCents || 0) - (allExpenseAgg._sum.amountCents || 0)
 
 	// 處理匯出
 	if (sp?.export === 'csv') {
@@ -178,19 +189,23 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				<h2 className="font-medium mb-2">小計</h2>
 				<div className="grid grid-cols-3 gap-4 text-sm">
 					<div>
-						<div className="text-gray-600">收入</div>
-						<div className="text-lg font-semibold text-green-600">{(totalIncome / 100).toLocaleString()}</div>
+						<div className="text-gray-600">收入（本期）</div>
+						<div className="text-lg font-semibold text-green-600">{(periodIncome / 100).toLocaleString()}</div>
 					</div>
 					<div>
-						<div className="text-gray-600">支出</div>
-						<div className="text-lg font-semibold text-red-600">{(totalExpense / 100).toLocaleString()}</div>
+						<div className="text-gray-600">支出（本期）</div>
+						<div className="text-lg font-semibold text-red-600">{(periodExpense / 100).toLocaleString()}</div>
 					</div>
-					<div>
-						<div className="text-gray-600">累積餘額</div>
-						<div className={`text-lg font-semibold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-							{(balance / 100).toLocaleString()}
+					<div className="pl-4 border-l">
+						<div className="text-gray-600">累積餘額（至今，不受篩選）</div>
+						<div className={`text-lg font-semibold ${cumulativeBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+							{(cumulativeBalance / 100).toLocaleString()}
 						</div>
 					</div>
+				</div>
+				<div className="mt-2 text-xs text-gray-500">
+					<span>本期結餘：</span>
+					<span className={`${periodBalance >= 0 ? 'text-green-600' : 'text-red-600'} font-medium`}>{(periodBalance / 100).toLocaleString()}</span>
 				</div>
 			</div>
 
