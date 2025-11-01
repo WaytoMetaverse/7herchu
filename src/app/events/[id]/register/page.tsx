@@ -356,7 +356,7 @@ export default async function EventRegisterPage({ params }: { params: Promise<{ 
 					</Button>
 					<Button as={Link} href={`/hall/${eventId}`} variant="ghost">取消</Button>
 				</div>
-			</form>
+			</RegisterForm>
 
 
 		</div>
