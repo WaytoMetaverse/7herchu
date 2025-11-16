@@ -46,7 +46,9 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	const registrations = await prisma.registration.findMany({
 		where: { 
 			eventId,
-			role: { in: ['MEMBER', 'SPEAKER'] }
+			role: { in: ['MEMBER', 'SPEAKER'] },
+			// 只顯示有綁定使用者（內部成員/內部講師），避免來賓升講師同時出現在兩邊
+			userId: { not: null }
 		},
 		orderBy: { createdAt: 'asc' },
 		include: { 
@@ -98,6 +100,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	const [externalSpeakersCount] = await Promise.all([
 		prisma.speakerBooking.count({ where: { eventId } })
 	])
+	// 這裡 totalSpeakers 僅顯示「內部講師」數量 + 外部講師數量（頁面顯示用途）
 	const totalSpeakers = externalSpeakersCount + speakerMembers.length
 	const isSpeakerQuotaFull = event.speakerQuota !== null && event.speakerQuota !== undefined && totalSpeakers >= event.speakerQuota
 
