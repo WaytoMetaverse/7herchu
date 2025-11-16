@@ -387,6 +387,26 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 						</Button>
 					)}
 				</div>
+				{/* 個人狀態徽章 - 顯示在報名資訊下方，僅登入者可見 */}
+				{isLoggedIn && (() => {
+					const me = currentUser
+					const myReg = me ? regs.find(r => r.userId === me.id) : null
+					let badge: { text: string; className: string } | null = null
+					if (myReg?.role === 'SPEAKER') {
+						badge = { text: '您是講師', className: 'bg-purple-100 text-purple-700' }
+					} else if (myReg?.status === 'REGISTERED') {
+						badge = { text: '已報名', className: 'bg-green-100 text-green-700' }
+					} else if (myReg?.status === 'LEAVE') {
+						badge = { text: '已請假', className: 'bg-gray-100 text-gray-700' }
+					}
+					return badge ? (
+						<div className="mt-1">
+							<span className={`inline-block px-2 py-0.5 rounded text-xs ${badge.className}`}>
+								{badge.text}
+							</span>
+						</div>
+					) : null
+				})()}
 				{/* 活動內容（顯示於報名資訊下方） */}
 				{event.content && (
 					<div className="text-sm text-gray-800">
