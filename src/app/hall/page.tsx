@@ -19,6 +19,22 @@ export default async function HallPage() {
 	const canManage = roles.includes('admin' as Role) || roles.includes('event_manager' as Role)
 	const isLoggedIn = !!(session?.user)
 
+	// 目前登入者及其在各活動的報名/講師狀態（僅登入時）
+	const currentUser = session?.user?.email
+		? await prisma.user.findUnique({ where: { email: session.user.email } })
+		: null
+	const myRegs = currentUser
+		? await prisma.registration.findMany({
+				where: { userId: currentUser.id, eventId: { in: events.map(e => e.id) } },
+				select: { eventId: true, role: true, status: true },
+		  })
+		: []
+	const myRegByEvent: Record<string, { role: 'MEMBER' | 'GUEST' | 'SPEAKER'; status: 'REGISTERED' | 'LEAVE' }> = {}
+	for (const r of myRegs) {
+		// @ts-ignore
+		myRegByEvent[r.eventId] = { role: r.role as any, status: r.status as any }
+	}
+
 	// 計算報名人數（成員 + 來賓）
 	const registrationCounts = Object.fromEntries(
 		(
@@ -127,6 +143,29 @@ export default async function HallPage() {
 												</div>
 												<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
 											</div>
+											{/* 個人狀態徽章：顯示在簽到行下方，僅登入者且有報名/講師紀錄時顯示 */}
+											{isLoggedIn && myRegByEvent[e.id] && (
+												<div className="mt-1">
+													{(() => {
+														const me = myRegByEvent[e.id]
+														let text = ''
+														let cls = ''
+														if (me.role === 'SPEAKER') {
+															text = '您是講師'
+															cls = 'bg-purple-100 text-purple-700'
+														} else if (me.status === 'REGISTERED') {
+															text = '已報名'
+															cls = 'bg-green-100 text-green-700'
+														} else if (me.status === 'LEAVE') {
+															text = '已請假'
+															cls = 'bg-gray-100 text-gray-700'
+														}
+														return text ? (
+															<span className={`inline-block px-2 py-0.5 rounded text-xs ${cls}`}>{text}</span>
+														) : null
+													})()}
+												</div>
+											)}
 										</CardContent>
 									</Link>
 								) : (
@@ -194,6 +233,29 @@ export default async function HallPage() {
 												</div>
 												<div className="text-sm text-gray-500 ml-2 whitespace-nowrap">簽到{checked[e.id] ?? 0}/{counts[e.id] ?? 0}</div>
 											</div>
+											{/* 個人狀態徽章：顯示在簽到行下方，僅登入者且有報名/講師紀錄時顯示 */}
+											{isLoggedIn && myRegByEvent[e.id] && (
+												<div className="mt-1">
+													{(() => {
+														const me = myRegByEvent[e.id]
+														let text = ''
+														let cls = ''
+														if (me.role === 'SPEAKER') {
+															text = '您是講師'
+															cls = 'bg-purple-100 text-purple-700'
+														} else if (me.status === 'REGISTERED') {
+															text = '已報名'
+															cls = 'bg-green-100 text-green-700'
+														} else if (me.status === 'LEAVE') {
+															text = '已請假'
+															cls = 'bg-gray-100 text-gray-700'
+														}
+														return text ? (
+															<span className={`inline-block px-2 py-0.5 rounded text-xs ${cls}`}>{text}</span>
+														) : null
+													})()}
+												</div>
+											)}
 										</CardContent>
 									</Link>
 								) : (
