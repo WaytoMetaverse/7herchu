@@ -23,16 +23,16 @@ export default async function HallPage() {
 	const currentUser = session?.user?.email
 		? await prisma.user.findUnique({ where: { email: session.user.email } })
 		: null
-	const myRegs = currentUser
-		? await prisma.registration.findMany({
+	type MyReg = { eventId: string; role: 'MEMBER' | 'GUEST' | 'SPEAKER'; status: 'REGISTERED' | 'LEAVE' }
+	const myRegs: MyReg[] = currentUser
+		? (await prisma.registration.findMany({
 				where: { userId: currentUser.id, eventId: { in: events.map(e => e.id) } },
 				select: { eventId: true, role: true, status: true },
-		  })
+		  })) as unknown as MyReg[]
 		: []
 	const myRegByEvent: Record<string, { role: 'MEMBER' | 'GUEST' | 'SPEAKER'; status: 'REGISTERED' | 'LEAVE' }> = {}
 	for (const r of myRegs) {
-		// @ts-ignore
-		myRegByEvent[r.eventId] = { role: r.role as any, status: r.status as any }
+		myRegByEvent[r.eventId] = { role: r.role, status: r.status }
 	}
 
 	// 計算報名人數（成員 + 來賓）
