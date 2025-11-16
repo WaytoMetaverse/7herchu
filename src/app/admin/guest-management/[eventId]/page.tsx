@@ -55,6 +55,15 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 		where: { eventId }
 	})
 
+	// 取得目前講師總數（外部講師預約 + 內部講師）以供按鈕狀態與檢查使用
+	const [externalSpeakersCount, internalSpeakersCount] = await Promise.all([
+		prisma.speakerBooking.count({ where: { eventId } }),
+		prisma.registration.count({ where: { eventId, role: 'SPEAKER' } })
+	])
+	const totalSpeakers = externalSpeakersCount + internalSpeakersCount
+	const isSpeakerQuotaSet = event.speakerQuota !== null && event.speakerQuota !== undefined
+	const isSpeakerQuotaFull = isSpeakerQuotaSet ? totalSpeakers >= (event.speakerQuota as number) : false
+
 	// 刪除來賓報名記錄
 	async function deleteGuest(formData: FormData) {
 		'use server'
@@ -63,6 +72,39 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 
 		await prisma.registration.delete({
 			where: { id: registrationId }
+		})
+
+		revalidatePath(`/admin/guest-management/${eventId}`)
+		revalidatePath(`/hall/${eventId}`)
+	}
+
+	// 將來賓升為講師（遵守講師名額限制；邏輯與成員管理一致）
+	async function promoteGuestToSpeaker(formData: FormData) {
+		'use server'
+		const registrationId = String(formData.get('registrationId'))
+		if (!registrationId) return
+
+		// 重新讀取活動，確保名額資訊最新
+		const evt = await prisma.event.findUnique({ where: { id: eventId } })
+		if (!evt) return
+
+		// 若有設定講師名額，需檢查當前總數（外部 + 內部）
+		if (evt.speakerQuota !== null && evt.speakerQuota !== undefined) {
+			const [extCount, intCount] = await Promise.all([
+				prisma.speakerBooking.count({ where: { eventId } }),
+				prisma.registration.count({ where: { eventId, role: 'SPEAKER' } })
+			])
+			const total = extCount + intCount
+			if (total >= evt.speakerQuota) {
+				// 名額已滿，靜默返回（與成員管理行為一致）
+				return
+			}
+		}
+
+		// 將此筆來賓記錄改為講師
+		await prisma.registration.update({
+			where: { id: registrationId },
+			data: { role: 'SPEAKER' }
 		})
 
 		revalidatePath(`/admin/guest-management/${eventId}`)
@@ -149,6 +191,18 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 											</div>
 										</div>
 										<div className="flex items-center gap-2">
+											<form action={promoteGuestToSpeaker}>
+												<input type="hidden" name="registrationId" value={guest.id} />
+												<Button 
+													type="submit" 
+													variant="primary" 
+													size="sm" 
+													disabled={isSpeakerQuotaFull}
+													className="whitespace-nowrap"
+												>
+													升為講師
+												</Button>
+											</form>
 											<form action={deleteGuest}>
 												<input type="hidden" name="registrationId" value={guest.id} />
 												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700 whitespace-nowrap">
