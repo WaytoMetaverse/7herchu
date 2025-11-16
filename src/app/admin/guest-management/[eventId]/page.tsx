@@ -55,6 +55,16 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 		where: { eventId }
 	})
 
+	// 取得由「來賓升為講師」的清單（registration.role = 'SPEAKER' 且沒有綁 userId）
+	const guestSpeakers = await prisma.registration.findMany({
+		where: {
+			eventId,
+			role: 'SPEAKER',
+			userId: null
+		},
+		orderBy: { createdAt: 'asc' }
+	})
+
 	// 取得目前講師總數（外部講師預約 + 內部講師）以供按鈕狀態與檢查使用
 	const [externalSpeakersCount, internalSpeakersCount] = await Promise.all([
 		prisma.speakerBooking.count({ where: { eventId } }),
@@ -72,6 +82,25 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 
 		await prisma.registration.delete({
 			where: { id: registrationId }
+		})
+
+		revalidatePath(`/admin/guest-management/${eventId}`)
+		revalidatePath(`/hall/${eventId}`)
+	}
+
+	// 來賓講師取消，改回來賓
+	async function demoteSpeakerToGuest(formData: FormData) {
+		'use server'
+		const registrationId = String(formData.get('registrationId'))
+		if (!registrationId) return
+
+		// 僅允許處理「沒有 userId 的講師」（由來賓升級而來）
+		const reg = await prisma.registration.findUnique({ where: { id: registrationId } })
+		if (!reg || reg.role !== 'SPEAKER' || reg.userId) return
+
+		await prisma.registration.update({
+			where: { id: registrationId },
+			data: { role: 'GUEST' }
 		})
 
 		revalidatePath(`/admin/guest-management/${eventId}`)
@@ -221,12 +250,76 @@ export default async function GuestManagementPage({ params }: { params: Promise<
 			{/* 操作說明 */}
 			<div className="bg-blue-50 p-4 rounded-lg">
 				<h3 className="font-medium text-blue-800 mb-2">管理說明</h3>
-				<ul className="text-sm text-blue-700 space-y-1">
-					<li>• 來賓報名後無法自行取消，只能由管理員刪除</li>
-					<li>• 刪除來賓記錄會同時移除其報名和簽到資訊</li>
-					<li>• 來賓的餐點選擇會根據活動設定自動顯示</li>
+				<ul className="text-sm text-blue-700 space-y-1 leading-relaxed">
+					<li>• 來賓升為講師與成員相同：遵守講師名額（外部＋內部總數）。</li>
+					<li>• 「取消講師」請在本頁操作，會將該筆講師恢復為「來賓」。</li>
+					<li>• 刪除來賓記錄會同時移除其報名和簽到資訊。</li>
+					<li>• 來賓的餐點選擇會根據活動設定自動顯示。</li>
 				</ul>
 			</div>
+
+			{/* 來賓講師列表（由來賓升級，無 userId） */}
+			{guestSpeakers.length > 0 && (
+				<div className="bg-white rounded-lg shadow">
+					<div className="p-4 border-b">
+						<h2 className="text-lg font-medium">來賓講師（{guestSpeakers.length}）</h2>
+					</div>
+					<div className="p-4">
+						<div className="space-y-3">
+							{guestSpeakers.map(gs => {
+								let mealInfo = ''
+								if (eventMenu?.hasMealService) {
+									if (gs.mealCode) {
+										const mealName = gs.mealCode === 'A' ? eventMenu.mealCodeA :
+											             gs.mealCode === 'B' ? eventMenu.mealCodeB :
+											             gs.mealCode === 'C' ? eventMenu.mealCodeC : null
+										mealInfo = mealName ? ` - ${gs.mealCode}餐（${mealName}）` : ` - ${gs.mealCode}餐`
+									} else {
+										mealInfo = ' - 待分配'
+									}
+								} else {
+									if (gs.diet === 'veg') {
+										mealInfo = ' - 素食'
+									} else {
+										const restrictions = []
+										if (gs.noBeef) restrictions.push('不吃牛')
+										if (gs.noPork) restrictions.push('不吃豬')
+										if (restrictions.length > 0) {
+											mealInfo = ` - 葷食（${restrictions.join('、')}）`
+										} else {
+											mealInfo = ' - 葷食'
+										}
+									}
+								}
+
+								return (
+									<div key={gs.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg bg-purple-50">
+										<div className="flex-1">
+											<div className="font-medium text-sm sm:text-base">
+												{[gs.name, gs.companyName, gs.industry, gs.bniChapter].filter(Boolean).join(' · ')}{mealInfo}
+											</div>
+											<div className="text-xs sm:text-sm text-gray-600">
+												手機：{gs.phone} · 邀請人：{gs.invitedBy}
+											</div>
+											<div className="text-[10px] sm:text-xs text-gray-500">
+												升為講師時間：{format(gs.createdAt, 'MM/dd HH:mm')}
+											</div>
+										</div>
+										<div className="flex items-center gap-2">
+											<form action={demoteSpeakerToGuest}>
+												<input type="hidden" name="registrationId" value={gs.id} />
+												<Button type="submit" variant="outline" size="sm" className="whitespace-nowrap">
+													取消講師
+												</Button>
+											</form>
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

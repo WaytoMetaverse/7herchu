@@ -431,12 +431,15 @@ export default async function MemberManagementPage({ params }: { params: Promise
 											</div>
 										</div>
 										<div className="flex items-center gap-2">
-											<form action={removeFromSpeaker}>
-												<input type="hidden" name="registrationId" value={reg.id} />
-												<Button type="submit" variant="outline" size="sm">
-													取消講師
-												</Button>
-											</form>
+											{/* 僅對有 userId（內部成員）顯示取消講師；來賓升級的講師請到「來賓管理」取消 */}
+											{reg.userId ? (
+												<form action={removeFromSpeaker}>
+													<input type="hidden" name="registrationId" value={reg.id} />
+													<Button type="submit" variant="outline" size="sm">
+														取消講師
+													</Button>
+												</form>
+											) : null}
 											<form action={deleteRegistration}>
 												<input type="hidden" name="registrationId" value={reg.id} />
 												<Button type="submit" variant="outline" size="sm" className="text-red-600 hover:text-red-700">
