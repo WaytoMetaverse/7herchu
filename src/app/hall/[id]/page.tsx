@@ -184,7 +184,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const hasLocks = regs.length > 0 || speakers.length > 0
 	const memberNames = members.map(r => getDisplayName(r.user) || r.name || '-').slice(0, 30)
 	const guestNames = guests.map(r => r.name || '-').slice(0, 30)
-	const speakerNames = [...speakers.map(s => s.name), ...internalSpeakers.map(r => getDisplayName(r.user) || r.name || '-')].slice(0, 30)
+	const speakerNames = [...speakers.map(s => s.name), ...internalSpeakers.map(r => r.name || getDisplayName(r.user) || '-')].slice(0, 30)
 
 	// 顯示費用資訊（僅在有設定金額時顯示）
 	const formatCents = (v?: number | null) => {
@@ -473,7 +473,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 								
 								return (
 									<li key={m.id}>
-										{getDisplayName(m.user) || m.name || '-'}{mealInfo}
+										{m.name || getDisplayName(m.user) || '-'}{mealInfo}
 									</li>
 								)
 							})}
