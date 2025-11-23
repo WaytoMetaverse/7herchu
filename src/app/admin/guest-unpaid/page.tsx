@@ -18,11 +18,15 @@ export default async function GuestUnpaidPage() {
 	// 查詢所有活動中未繳費的來賓
 	const events = await prisma.event.findMany({
 		where: {
-			type: { in: ['BOD', 'DINNER', 'SOFT', 'VISIT'] },
-			// 只查詢有設定來賓價格的活動
+			type: { in: ['BOD', 'DINNER', 'SOFT', 'VISIT', 'GENERAL', 'JOINT'] },
+			// 只查詢有設定價格的活動（GENERAL/JOINT 即使沒有設定價格，來賓也是 250 元）
 			OR: [
+				{ defaultPriceCents: { not: null } },
 				{ guestPriceCents: { not: null } },
-				{ bodGuestPriceCents: { not: null } }
+				{ bodMemberPriceCents: { not: null } },
+				{ bodGuestPriceCents: { not: null } },
+				{ type: 'GENERAL' },
+				{ type: 'JOINT' }
 			]
 		},
 		include: {
@@ -43,7 +47,9 @@ export default async function GuestUnpaidPage() {
 		BOD: 'BOD',
 		DINNER: '餐敘',
 		SOFT: '軟性活動',
-		VISIT: '職業參訪'
+		VISIT: '職業參訪',
+		GENERAL: '一般活動',
+		JOINT: '聯合活動'
 	}
 
 	// 計算來賓價格
@@ -52,16 +58,22 @@ export default async function GuestUnpaidPage() {
 			return (event.bodGuestPriceCents || 0) / 100
 		}
 		
+		// GENERAL 和 JOINT 類型，來賓固定 250 元
+		if (event.type === 'GENERAL' || event.type === 'JOINT') {
+			return 250
+		}
+		
 		if (event.type === 'DINNER' || event.type === 'SOFT' || event.type === 'VISIT') {
-			return (event.guestPriceCents || 0) / 100
+			return (event.guestPriceCents || 25000) / 100  // 如果沒有設定，預設 250 元
 		}
 		
 		return 0
 	}
 
-	// 過濾出有未繳費來賓的活動
+	// 過濾出有未繳費來賓的活動（只顯示價格大於0的）
 	const eventsWithUnpaidGuests = events.filter(event => {
 		const price = getGuestPrice(event)
+		// 只顯示有未繳費來賓且價格大於0的活動
 		return event.registrations.length > 0 && price > 0
 	})
 
