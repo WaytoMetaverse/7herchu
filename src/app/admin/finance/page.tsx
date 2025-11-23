@@ -165,6 +165,7 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 			)}
 			<Button as={Link} href="/admin/members" variant="outline" className="whitespace-nowrap">成員管理</Button>
 			<Button as={Link} href="/admin/activity-unpaid" variant="outline" className="whitespace-nowrap">活動未繳費</Button>
+			<Button as={Link} href="/admin/guest-unpaid" variant="outline" className="whitespace-nowrap">來賓未繳費</Button>
 		</div>
 
 			{/* 篩選區（手機直向堆疊，桌面橫排） */}
