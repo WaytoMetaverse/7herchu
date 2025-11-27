@@ -58,7 +58,7 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	// 合併外部講師和內部成員講師
 	const allSpeakers = [
 		...speakers.map(s => ({ name: s.name, bniChapter: s.bniChapter, industry: s.industry, companyName: s.companyName, invitedBy: s.invitedBy, mealCode: s.mealCode, diet: s.diet, noBeef: s.noBeef, noPork: s.noPork })),
-		...internalSpeakers.map(r => ({ name: displayMemberName(r.user?.nickname, r.user?.name || r.name), bniChapter: r.bniChapter, industry: r.industry, companyName: r.companyName, invitedBy: r.invitedBy, mealCode: r.mealCode, diet: r.diet, noBeef: r.noBeef, noPork: r.noPork }))
+		...internalSpeakers.map(r => ({ name: (r.user?.name || r.name || '').trim() || '-', bniChapter: r.bniChapter, industry: r.industry, companyName: r.companyName, invitedBy: r.invitedBy, mealCode: r.mealCode, diet: r.diet, noBeef: r.noBeef, noPork: r.noPork }))
 	]
 	const speakerListArr = allSpeakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
 
