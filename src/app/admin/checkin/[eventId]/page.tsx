@@ -595,11 +595,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 						{internalSpeakers.map(registration => {
 							const price = getPrice(registration)
 							const displayName = (() => {
-								const nick = (registration.user as { nickname?: string } | null | undefined)?.nickname?.trim()
-								if (nick) return nick
 								const nm = (registration.user?.name || registration.name || '').trim()
-								if (!nm) return '未命名'
-								return nm.length >= 2 ? nm.slice(-2) : nm
+								return nm || '未命名'
 							})()
 
 							return (
