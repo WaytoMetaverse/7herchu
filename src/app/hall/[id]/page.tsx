@@ -107,7 +107,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 			const updatedRegs = await prisma.registration.findMany({ 
 				where: { eventId: id }, 
 				orderBy: { createdAt: 'asc' }, 
-				include: { user: { select: { name: true, nickname: true } } } 
+				include: { user: { select: { name: true, nickname: true, memberProfile: { select: { companyName: true, occupation: true } } } } } 
 			})
 			
 			// 更新 regs 變數
