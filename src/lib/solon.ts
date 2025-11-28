@@ -12,7 +12,7 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	if (!event) return ''
 	const [eventMenu, regs, speakers, leaves] = await Promise.all([
 		prisma.eventMenu.findUnique({ where: { eventId } }),
-		prisma.registration.findMany({ where: { eventId, status: 'REGISTERED' as RegistrationStatus }, include: { user: { select: { nickname: true, name: true } } }, orderBy: { createdAt: 'asc' } }),
+		prisma.registration.findMany({ where: { eventId, status: 'REGISTERED' as RegistrationStatus }, include: { user: { select: { nickname: true, name: true, memberProfile: { select: { companyName: true, occupation: true } } } } }, orderBy: { createdAt: 'asc' } }),
 		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } }),
 		prisma.registration.findMany({ where: { eventId, status: 'LEAVE' as RegistrationStatus, role: 'MEMBER' as RegRole }, include: { user: { select: { nickname: true, name: true } } }, orderBy: { createdAt: 'asc' } }),
 	])
@@ -57,10 +57,29 @@ export async function generateSolonMessage(eventId: string): Promise<string> {
 	
 	// 合併外部講師和內部成員講師
 	const allSpeakers = [
-		...speakers.map(s => ({ name: s.name, bniChapter: s.bniChapter, industry: s.industry, companyName: s.companyName, invitedBy: s.invitedBy, mealCode: s.mealCode, diet: s.diet, noBeef: s.noBeef, noPork: s.noPork })),
-		...internalSpeakers.map(r => ({ name: (r.user?.name || r.name || '').trim() || '-', bniChapter: r.bniChapter, industry: r.industry, companyName: r.companyName, invitedBy: r.invitedBy, mealCode: r.mealCode, diet: r.diet, noBeef: r.noBeef, noPork: r.noPork }))
+		...speakers.map(s => ({ name: s.name, bniChapter: s.bniChapter, industry: s.industry, companyName: s.companyName, invitedBy: s.invitedBy, mealCode: s.mealCode, diet: s.diet, noBeef: s.noBeef, noPork: s.noPork, isInternal: false })),
+		...internalSpeakers.map(r => ({ 
+			name: (r.user?.name || r.name || '').trim() || '-', 
+			bniChapter: r.bniChapter || null, 
+			industry: r.industry || r.user?.memberProfile?.occupation || null, 
+			companyName: r.companyName || r.user?.memberProfile?.companyName || null, 
+			invitedBy: r.invitedBy, 
+			mealCode: r.mealCode, 
+			diet: r.diet, 
+			noBeef: r.noBeef, 
+			noPork: r.noPork,
+			isInternal: true
+		}))
 	]
-	const speakerListArr = allSpeakers.map((s, idx) => `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`)
+	const speakerListArr = allSpeakers.map((s, idx) => {
+		if (s.isInternal) {
+			// 內部成員講師：姓名/磐石/職業代表/公司
+			return `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`
+		} else {
+			// 外部講師：保持原格式
+			return `${idx + 1}.${[s.name, s.bniChapter, s.industry, s.companyName, s.invitedBy].filter(Boolean).join('/')}${mealOrDiet(eventMenu, s.mealCode, s.diet, s.noBeef, s.noPork)}`
+		}
+	})
 
 	// 追加兩個空白序號（僅在已有名單時）
 	const appendPlaceholders = (arr: string[]) => {

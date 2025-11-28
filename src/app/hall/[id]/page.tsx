@@ -51,7 +51,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	}) : null
 
 	const [regs, speakers, eventMenu, orgSettings] = await Promise.all([
-		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true } } } }),
+		prisma.registration.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, nickname: true, memberProfile: { select: { companyName: true, occupation: true } } } } } }),
 		prisma.speakerBooking.findMany({ where: { eventId: id }, orderBy: { createdAt: 'asc' } }),
 		prisma.eventMenu.findUnique({ where: { eventId: id } }),
 		prisma.orgSettings.findFirst()
@@ -173,11 +173,12 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 	const registeredMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'REGISTERED')
 	const leftMembers = regs.filter(r => r.role === 'MEMBER' && r.status === 'LEAVE')
 	const guests = regs.filter(r => r.role === 'GUEST')
-	const internalSpeakers = regs.filter(r => r.role === 'SPEAKER') // 內部成員講師
+	const guestSpeakers = regs.filter(r => r.role === 'SPEAKER' && !r.userId) // 來賓講師（由來賓升級）
+	const internalSpeakers = regs.filter(r => r.role === 'SPEAKER' && r.userId) // 內部成員講師
 	const members = registeredMembers // 保持向後兼容
 
-	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length + internalSpeakers.filter(r => r.checkedInAt != null).length
-	const totalCount = registeredMembers.length + guests.length + speakers.length + internalSpeakers.length
+	const checkedCount = registeredMembers.filter(r => r.checkedInAt != null).length + guests.filter(r => r.checkedInAt != null).length + speakers.filter(s => s.checkedInAt != null).length + internalSpeakers.filter(r => r.checkedInAt != null).length + guestSpeakers.filter(r => r.checkedInAt != null).length
+	const totalCount = registeredMembers.length + guests.length + speakers.length + internalSpeakers.length + guestSpeakers.length
 
 	// removed unused currentUserRegistration
 
@@ -420,7 +421,7 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 				<Card>
 					<CardContent>
 						<div className="flex items-center justify-between mb-2">
-							<h2 className="font-medium">講師（{speakers.length + internalSpeakers.length}）</h2>
+							<h2 className="font-medium">講師（{speakers.length + internalSpeakers.length + guestSpeakers.length}）</h2>
 							{canEditDelete ? (
 								<Button as={Link} href={`/calendar/${event.id}`} variant="outline" size="sm">
 									講師管理
@@ -464,7 +465,39 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 									</li>
 								)
 							})}
-							{/* 內部成員講師（Registration role=SPEAKER） */}
+							{/* 來賓講師（由來賓升級，role=SPEAKER 且 userId=null） */}
+							{guestSpeakers.map(g => {
+								const getMealInfo = (guest: typeof g) => {
+									if (eventMenu?.hasMealService) {
+										if (guest.mealCode) {
+											const mealName = guest.mealCode === 'A' ? eventMenu.mealCodeA :
+															 guest.mealCode === 'B' ? eventMenu.mealCodeB :
+															 guest.mealCode === 'C' ? eventMenu.mealCodeC : null
+											return mealName ? ` · ${guest.mealCode}餐（${mealName}）` : ` · ${guest.mealCode}餐`
+										}
+										return ' · 待分配'
+									} else {
+										if (guest.diet === 'veg') {
+											return ' · 素食'
+										} else {
+											const restrictions = []
+											if (guest.noBeef) restrictions.push('不吃牛')
+											if (guest.noPork) restrictions.push('不吃豬')
+											if (restrictions.length > 0) {
+												return ` · 葷食（${restrictions.join('、')}）`
+											}
+											return ' · 葷食'
+										}
+									}
+								}
+								
+								return (
+									<li key={g.id}>
+										{[g.name, g.companyName, g.industry, g.bniChapter].filter(Boolean).join(' · ')}{getMealInfo(g)}
+									</li>
+								)
+							})}
+							{/* 內部成員講師（Registration role=SPEAKER 且 userId!=null） */}
 							{internalSpeakers.map(m => {
 								let mealInfo = ''
 								if (eventMenu?.hasMealService) {
@@ -472,28 +505,34 @@ export default async function HallEventDetailPage({ params, searchParams }: { pa
 										const mealName = m.mealCode === 'A' ? eventMenu.mealCodeA :
 														 m.mealCode === 'B' ? eventMenu.mealCodeB :
 														 m.mealCode === 'C' ? eventMenu.mealCodeC : null
-										mealInfo = mealName ? ` - ${m.mealCode}餐（${mealName}）` : ` - ${m.mealCode}餐`
+										mealInfo = mealName ? ` · ${m.mealCode}餐（${mealName}）` : ` · ${m.mealCode}餐`
 									} else {
-										mealInfo = ' - 待分配'
+										mealInfo = ' · 待分配'
 									}
 								} else {
 									if (m.diet === 'veg') {
-										mealInfo = ' - 素食'
+										mealInfo = ' · 素食'
 									} else {
 										const restrictions = []
 										if (m.noBeef) restrictions.push('不吃牛')
 										if (m.noPork) restrictions.push('不吃豬')
 										if (restrictions.length > 0) {
-											mealInfo = ` - 葷食（${restrictions.join('、')}）`
+											mealInfo = ` · 葷食（${restrictions.join('、')}）`
 										} else {
-											mealInfo = ' - 葷食'
+											mealInfo = ' · 葷食'
 										}
 									}
 								}
 								
+								// 內部成員講師：姓名 · 公司 · 職業代表 · 磐石
+								const name = (m.user?.name || m.name || '').trim() || '-'
+								const company = m.companyName || m.user?.memberProfile?.companyName || null
+								const industry = m.industry || m.user?.memberProfile?.occupation || null
+								const bniChapter = m.bniChapter || null
+								
 								return (
 									<li key={m.id}>
-										{m.name || getDisplayName(m.user) || '-'}{mealInfo}
+										{[name, company, industry, bniChapter].filter(Boolean).join(' · ')}{mealInfo}
 									</li>
 								)
 							})}
