@@ -205,17 +205,25 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		}
 		
 		try {
-			console.log(`[LINE推送] 嘗試發送訊息 (機器人: ${botName}, 嘗試: ${attempt + 1}/${maxAttempts})`)
+			const messageText = message.slice(0, 5000)
+			console.log(`[LINE推送] 嘗試發送訊息 (機器人: ${botName}, 嘗試: ${attempt + 1}/${maxAttempts}, 訊息長度: ${messageText.length}, 群組ID: ${to})`)
+			
 			const res = await fetch('https://api.line.me/v2/bot/message/push', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
-				body: JSON.stringify({ to, messages: [{ type: 'text', text: message.slice(0, 5000) }] }),
+				body: JSON.stringify({ to, messages: [{ type: 'text', text: messageText }] }),
 			})
 			
 			// 監控API回應狀態
 			if (!res.ok) {
 				const errorText = await res.text().catch(() => 'Unknown error')
 				console.log(`LINE API錯誤 (機器人: ${botName}): ${res.status} - ${errorText}`)
+				
+				// 400 錯誤通常是請求格式問題，不是額度問題，不應該切換機器人
+				if (res.status === 400) {
+					console.log(`[LINE推送] 400錯誤：請求格式可能有問題，不切換機器人`)
+					return false
+				}
 				
 				// 檢查是否為額度相關錯誤
 				if (res.status === 429 || res.status === 403) {
