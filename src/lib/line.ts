@@ -157,10 +157,46 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		return false
 	}
 	
+	const configs = getBotConfigs()
+	if (configs.length === 0) {
+		console.log('LINE推送失敗: 沒有配置機器人')
+		return false
+	}
+	
 	// 最多嘗試3次（主要機器人 → 備用機器人 → 主要機器人）
 	let maxAttempts = 2
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
-		const { token, botName } = await getAvailableBotToken()
+		let token: string | null = null
+		let botName: string = 'none'
+		
+		// 第一次嘗試：強制使用主要機器人（即使狀態是 quota_exceeded）
+		if (attempt === 0) {
+			const primaryConfig = configs.find(config => config.name === 'primary')
+			if (primaryConfig) {
+				token = await getChannelAccessToken(primaryConfig)
+				botName = 'primary'
+				console.log('第一次嘗試：使用主要機器人')
+			}
+		}
+		// 第二次嘗試：使用備用機器人
+		else if (attempt === 1) {
+			const backupConfig = configs.find(config => config.name === 'backup')
+			if (backupConfig) {
+				token = await getChannelAccessToken(backupConfig)
+				botName = 'backup'
+				console.log('第二次嘗試：使用備用機器人')
+			}
+		}
+		// 第三次嘗試：再次嘗試主要機器人（如果備用機器人也滿了）
+		else if (attempt === 2) {
+			const primaryConfig = configs.find(config => config.name === 'primary')
+			if (primaryConfig) {
+				token = await getChannelAccessToken(primaryConfig)
+				botName = 'primary'
+				console.log('第三次嘗試：再次嘗試主要機器人')
+			}
+		}
+		
 		if (!token) {
 			console.log(`LINE推送失敗: 無法獲取機器人Token (嘗試 ${attempt + 1}/${maxAttempts})`)
 			continue
@@ -203,6 +239,14 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 					// 如果是第一次嘗試且是主要機器人，繼續嘗試備用機器人
 					if (attempt === 0 && botName === 'primary') {
 						console.log('主要機器人額度已滿，嘗試使用備用機器人')
+						// 更新狀態為備用機器人
+						await prisma.orgSettings.update({
+							where: { id: 'singleton' },
+							data: { 
+								currentLineBot: 'backup',
+								lineBotStatus: 'active'
+							}
+						})
 						continue
 					}
 					// 如果是第二次嘗試且是備用機器人，嘗試切回主要機器人（可能額度已重置）
