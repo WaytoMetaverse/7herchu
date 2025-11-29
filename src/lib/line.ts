@@ -150,8 +150,6 @@ export async function getAvailableBotToken(): Promise<{ token: string | null; bo
 }
 
 export async function pushToLineGroup(message: string): Promise<boolean> {
-	const { token, botName } = await getAvailableBotToken()
-	if (!token) return false
 	const org = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
 	const to = org?.lineGroupId
 	if (!to) {
@@ -159,49 +157,88 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		return false
 	}
 	
-	try {
-		const res = await fetch('https://api.line.me/v2/bot/message/push', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
-			body: JSON.stringify({ to, messages: [{ type: 'text', text: message.slice(0, 5000) }] }),
-		})
+	// 最多嘗試3次（主要機器人 → 備用機器人 → 主要機器人）
+	let maxAttempts = 2
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		const { token, botName } = await getAvailableBotToken()
+		if (!token) {
+			console.log(`LINE推送失敗: 無法獲取機器人Token (嘗試 ${attempt + 1}/${maxAttempts})`)
+			continue
+		}
 		
-		// 監控API回應狀態
-		if (!res.ok) {
-			const errorText = await res.text().catch(() => 'Unknown error')
-			console.log(`LINE API錯誤 (機器人: ${botName}): ${res.status} - ${errorText}`)
+		try {
+			const res = await fetch('https://api.line.me/v2/bot/message/push', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+				body: JSON.stringify({ to, messages: [{ type: 'text', text: message.slice(0, 5000) }] }),
+			})
 			
-			// 檢查是否為額度相關錯誤
-			if (res.status === 429 || res.status === 403) {
-				console.log(`機器人 ${botName} 可能已達到額度上限，嘗試切換機器人`)
+			// 監控API回應狀態
+			if (!res.ok) {
+				const errorText = await res.text().catch(() => 'Unknown error')
+				console.log(`LINE API錯誤 (機器人: ${botName}): ${res.status} - ${errorText}`)
 				
-				// 更新錯誤計數和狀態
-				await prisma.orgSettings.upsert({
-					where: { id: 'singleton' },
-					create: { 
-						id: 'singleton', 
-						bankInfo: '', 
-						currentLineBot: 'primary',
-						lineBotStatus: 'quota_exceeded',
-						primaryBotErrorCount: 1,
-						lastPrimaryBotError: new Date()
-					},
-					update: { 
-						lineBotStatus: 'quota_exceeded',
-						primaryBotErrorCount: { increment: 1 },
-						lastPrimaryBotError: new Date()
+				// 檢查是否為額度相關錯誤
+				if (res.status === 429 || res.status === 403) {
+					console.log(`機器人 ${botName} 已達到額度上限，標記狀態並嘗試切換機器人`)
+					
+					// 更新錯誤計數和狀態
+					await prisma.orgSettings.upsert({
+						where: { id: 'singleton' },
+						create: { 
+							id: 'singleton', 
+							bankInfo: '', 
+							currentLineBot: botName,
+							lineBotStatus: 'quota_exceeded',
+							primaryBotErrorCount: 1,
+							lastPrimaryBotError: new Date()
+						},
+						update: { 
+							lineBotStatus: 'quota_exceeded',
+							primaryBotErrorCount: { increment: 1 },
+							lastPrimaryBotError: new Date()
+						}
+					})
+					
+					// 如果是第一次嘗試且是主要機器人，繼續嘗試備用機器人
+					if (attempt === 0 && botName === 'primary') {
+						console.log('主要機器人額度已滿，嘗試使用備用機器人')
+						continue
 					}
-				})
+					// 如果是第二次嘗試且是備用機器人，嘗試切回主要機器人（可能額度已重置）
+					if (attempt === 1 && botName === 'backup') {
+						console.log('備用機器人額度已滿，嘗試切回主要機器人')
+						// 重置主要機器人狀態，嘗試使用
+						await prisma.orgSettings.update({
+							where: { id: 'singleton' },
+							data: { 
+								currentLineBot: 'primary',
+								lineBotStatus: 'active'
+							}
+						})
+						// 增加一次嘗試機會
+						maxAttempts = 3
+						continue
+					}
+				}
+				// 如果不是額度錯誤，或已經嘗試過所有機器人，直接返回失敗
+				return false
+			}
+			
+			console.log(`LINE訊息推送成功 (機器人: ${botName})`)
+			return true
+		} catch (error) {
+			console.log(`LINE推送異常 (機器人: ${botName}):`, error)
+			// 如果是第一次嘗試，繼續嘗試備用機器人
+			if (attempt === 0) {
+				continue
 			}
 			return false
 		}
-		
-		console.log(`LINE訊息推送成功 (機器人: ${botName})`)
-		return true
-	} catch (error) {
-		console.log(`LINE推送異常 (機器人: ${botName}):`, error)
-		return false
 	}
+	
+	console.log('LINE推送失敗: 所有機器人都無法使用')
+	return false
 }
 
 export async function replyToLine(replyToken: string, message: string): Promise<boolean> {
