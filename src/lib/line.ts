@@ -175,7 +175,9 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 			if (primaryConfig) {
 				token = await getChannelAccessToken(primaryConfig)
 				botName = 'primary'
-				console.log('第一次嘗試：使用主要機器人')
+				console.log(`[LINE推送] 第一次嘗試：強制使用主要機器人，Token: ${token ? '已獲取' : '獲取失敗'}`)
+			} else {
+				console.log('[LINE推送] 第一次嘗試：找不到主要機器人配置')
 			}
 		}
 		// 第二次嘗試：使用備用機器人
@@ -203,6 +205,7 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		}
 		
 		try {
+			console.log(`[LINE推送] 嘗試發送訊息 (機器人: ${botName}, 嘗試: ${attempt + 1}/${maxAttempts})`)
 			const res = await fetch('https://api.line.me/v2/bot/message/push', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
@@ -270,6 +273,16 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 			}
 			
 			console.log(`LINE訊息推送成功 (機器人: ${botName})`)
+			
+			// 成功時更新資料庫狀態
+			await prisma.orgSettings.update({
+				where: { id: 'singleton' },
+				data: { 
+					currentLineBot: botName,
+					lineBotStatus: 'active'
+				}
+			})
+			
 			return true
 		} catch (error) {
 			console.log(`LINE推送異常 (機器人: ${botName}):`, error)
