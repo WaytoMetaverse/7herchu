@@ -26,7 +26,9 @@ export async function sendRegistrationNotification(eventId: string, registrantNa
 		}
 
 		// 統計人數
-		const speakers = event.speakerBookings.length
+		const externalSpeakers = event.speakerBookings.length
+		const internalSpeakers = event.registrations.filter(r => r.role === 'SPEAKER').length
+		const speakers = externalSpeakers + internalSpeakers
 		const members = event.registrations.filter(r => r.role === 'MEMBER').length
 		const guests = event.registrations.filter(r => r.role === 'GUEST').length
 		const total = speakers + members + guests
