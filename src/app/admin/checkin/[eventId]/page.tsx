@@ -183,7 +183,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			registration.user?.memberProfile?.memberType === 'SINGLE' &&
 			registration.userId
 		) {
-			const month = new Date(registration.event!.startAt).toISOString().slice(0,7)
+			// 使用本地時間獲取月份，避免時區問題
+			const eventDate = new Date(registration.event!.startAt)
+			const month = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`
 			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId!, month } } })
 			const newAmount = (existing?.amount || 0) + price * 100
 			const m = await prisma.memberMonthlyPayment.upsert({
@@ -269,8 +271,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			registration.user?.memberProfile?.memberType === 'SINGLE' &&
 			registration.userId
 		) {
-			// 該活動月份
-			const month = new Date(registration.event!.startAt).toISOString().slice(0,7)
+			// 該活動月份（使用本地時間，避免時區問題）
+			const eventDate = new Date(registration.event!.startAt)
+			const month = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`
 			// 單次成員固定價格 220 元
 			const deductCents = 220 * 100
 			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId, month } } })

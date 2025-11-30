@@ -50,17 +50,24 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	// 處理匯出
 	if (sp?.export === 'csv') {
 		const headers = ['日期','類型','金額(元)','項目','對象','備註']
-		const lines = txns.map(r => [
-			new Date(r.date).toLocaleDateString('zh-TW'),
-			r.type === 'INCOME' ? '收入' : '支出',
-			(r.amountCents/100).toString(),
-			r.category?.name || '',
-			r.counterparty || '',
-			r.note || '',
-		].map(s => `"${String(s).replaceAll('"','""')}"`).join(','))
+		const lines = txns.map(r => {
+			const date = new Date(r.date)
+			const dateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`
+			return [
+				dateStr,
+				r.type === 'INCOME' ? '收入' : '支出',
+				(r.amountCents/100).toString(),
+				r.category?.name || '',
+				r.counterparty || '',
+				r.note || '',
+			].map(s => `"${String(s).replaceAll('"','""')}"`).join(','))
 		const csv = [headers.join(','), ...lines].join('\n')
 		
-		return new Response(csv, {
+		// 添加 UTF-8 BOM 以便 Excel 正確讀取中文
+		const BOM = '\uFEFF'
+		const csvWithBOM = BOM + csv
+		
+		return new Response(csvWithBOM, {
 			headers: {
 				'Content-Type': 'text/csv; charset=utf-8',
 				'Content-Disposition': `attachment; filename="finance-${month}.csv"`

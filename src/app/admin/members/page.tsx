@@ -304,13 +304,21 @@ export default async function MembersManagePage({
 			where: { id: lastTransaction.id }
 		})
 
+		// 檢查是否還有其他財務交易記錄
+		const remainingTransactions = await prisma.financeTransaction.count({
+			where: {
+				monthlyPaymentId: monthlyPayment.id
+			}
+		})
+
 		if (rollbackAmount > 0) {
-			// 更新月費記錄為新的金額
+			// 更新月費記錄為新的金額，並根據是否還有其他交易來設定 isPaid
 			await prisma.memberMonthlyPayment.update({
 				where: { id: monthlyPayment.id },
 				data: {
 					amount: rollbackAmount,
-					paidAt: new Date()
+					isPaid: remainingTransactions > 0, // 如果還有其他交易，則 isPaid 為 true
+					paidAt: remainingTransactions > 0 ? new Date() : null
 				}
 			})
 		} else {
