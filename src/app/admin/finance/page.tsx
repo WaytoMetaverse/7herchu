@@ -60,7 +60,8 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 				r.category?.name || '',
 				r.counterparty || '',
 				r.note || '',
-			].map(s => `"${String(s).replaceAll('"','""')}"`).join(','))
+			].map(s => `"${String(s).replaceAll('"','""')}"`).join(',')
+		})
 		const csv = [headers.join(','), ...lines].join('\n')
 		
 		// 添加 UTF-8 BOM 以便 Excel 正確讀取中文
