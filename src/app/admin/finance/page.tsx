@@ -47,34 +47,24 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 	})
 	const cumulativeBalance = (allIncomeAgg._sum.amountCents || 0) - (allExpenseAgg._sum.amountCents || 0)
 
-	// 處理匯出
-	if (sp?.export === 'csv') {
-		const headers = ['日期','類型','金額(元)','項目','對象','備註']
-		const lines = txns.map(r => {
-			const date = new Date(r.date)
-			const dateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`
-			return [
-				dateStr,
-				r.type === 'INCOME' ? '收入' : '支出',
-				(r.amountCents/100).toString(),
-				r.category?.name || '',
-				r.counterparty || '',
-				r.note || '',
-			].map(s => `"${String(s).replaceAll('"','""')}"`).join(',')
-		})
-		const csv = [headers.join(','), ...lines].join('\n')
-		
-		// 添加 UTF-8 BOM 以便 Excel 正確讀取中文
-		const BOM = '\uFEFF'
-		const csvWithBOM = BOM + csv
-		
-		return new Response(csvWithBOM, {
-			headers: {
-				'Content-Type': 'text/csv; charset=utf-8',
-				'Content-Disposition': `attachment; filename="finance-${month}.csv"`
-			}
-		})
-	}
+	// 準備匯出用的 CSV（改成 data: URL，在前端下載，避免伺服器回傳 Response 造成錯誤）
+	const csvHeaders = ['日期','類型','金額(元)','項目','對象','備註']
+	const csvLines = txns.map(r => {
+		const date = new Date(r.date)
+		const dateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`
+		return [
+			dateStr,
+			r.type === 'INCOME' ? '收入' : '支出',
+			(r.amountCents / 100).toString(),
+			r.category?.name || '',
+			r.counterparty || '',
+			r.note || '',
+		].map(s => `"${String(s).replaceAll('"','""')}"`).join(',')
+	})
+	const rawCsv = [csvHeaders.join(','), ...csvLines].join('\n')
+	// 添加 UTF-8 BOM 以便 Excel 正確讀取中文
+	const csvWithBOM = '\uFEFF' + rawCsv
+	const csvDataUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(csvWithBOM)}`
 
 	const CATEGORY_INCOME = ['組聚收入','來賓收入','贊助','其他收入']
 	const CATEGORY_EXPENSE = ['活動支出','場地支出','其他支出']
@@ -186,10 +176,13 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 					<Button as={Link} href="/admin/finance" variant="ghost" className="whitespace-nowrap ml-2">取消</Button>
 				</form>
 				<div className="flex items-center gap-2">
-					<form method="GET" className="flex items-center">
-						<input type="hidden" name="month" value={month} />
-						<Button type="submit" name="export" value="csv" variant="secondary" className="whitespace-nowrap">匯出</Button>
-					</form>
+					<a
+						href={csvDataUrl}
+						download={`finance-${month}.csv`}
+						className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-secondary px-3 py-2 text-xs sm:text-sm font-medium text-gray-900 shadow-sm hover:bg-secondary/80"
+					>
+						匯出
+					</a>
 				</div>
 			</div>
 

@@ -215,6 +215,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		})
 
 		revalidatePath(`/admin/checkin/${eventId}`)
+		// 同步刷新成員管理頁，讓單次成員的繳費狀態立即更新
+		revalidatePath('/admin/members')
 	}
 
 	// 取消繳費
@@ -288,6 +290,8 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		}
 
 		revalidatePath(`/admin/checkin/${eventId}`)
+		// 同步刷新成員管理頁，讓單次成員的繳費狀態立即更新
+		revalidatePath('/admin/members')
 	}
 
 	// 講師繳費
