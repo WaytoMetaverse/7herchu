@@ -177,10 +177,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 對於「單次成員」（含內部講師）在（GENERAL/JOINT/CLOSED）情境，累加月度明細，方便成員管理頁同步
 		let monthlyPaymentId: string | undefined = undefined
+		// 判斷是否為固定成員：若 memberType 為 FIXED 則為固定成員，否則（SINGLE/null/undefined）視為單次成員
+		const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
+		
 		if (
 			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
-			registration.user?.memberProfile?.memberType === 'SINGLE' &&
+			!isFixed && // 改為：只要不是固定成員，就執行單次成員的繳費累加邏輯（解決 memberType 可能為 null 的問題）
 			registration.userId
 		) {
 			// 使用本地時間獲取月份，避免時區問題
@@ -267,10 +270,13 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 同步「成員管理」月度單次繳費累計（若為單次成員或內部講師且屬固定價格活動）
 		const eventType = registration.event?.type as EventType
+		// 判斷是否為固定成員：若 memberType 為 FIXED 則為固定成員，否則（SINGLE/null/undefined）視為單次成員
+		const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
+
 		if (
 			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
-			registration.user?.memberProfile?.memberType === 'SINGLE' &&
+			!isFixed && // 改為：只要不是固定成員，就執行單次成員的繳費取消邏輯
 			registration.userId
 		) {
 			// 該活動月份（使用本地時間，避免時區問題）
