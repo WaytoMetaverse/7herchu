@@ -6,8 +6,8 @@ import { NextResponse } from 'next/server'
 import { del, list, type ListBlobResult } from '@vercel/blob'
 
 /**
- * Vercel Cron Job: 每週一凌晨 2:00 執行
- * 1. 發送明天（週二）活動的提醒推播
+ * Vercel Cron Job: 每週二凌晨 2:00 UTC 執行（台灣時間週二早上 10:00）
+ * 1. 發送當日（週二）活動的提醒推播
  * 2. 清除 3 個月前的上傳檔案
  */
 export async function GET() {
@@ -18,19 +18,38 @@ export async function GET() {
 
 	// ========== 1. 發送活動提醒 ==========
 	try {
-		// 取得明天的日期範圍（00:00 ~ 23:59）
+		// 使用台灣時區（UTC+8）計算今天的日期範圍
+		// 活動在資料庫中存儲時，buildDate 創建的 Date 在 UTC 伺服器上會被解釋為 UTC 時間
+		// 但用戶輸入的是台灣時間，所以存儲的 UTC 時間 = 台灣時間（沒有轉換）
+		// 因此查詢時，需要將台灣時間的日期範圍直接作為 UTC 查詢
 		const now = new Date()
-		const tomorrow = new Date(now)
-		tomorrow.setDate(tomorrow.getDate() + 1)
-		const tomorrowStart = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 0, 0, 0)
-		const tomorrowEnd = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 23, 59, 59)
+		const taiwanOffsetMs = 8 * 60 * 60 * 1000 // UTC+8
+		
+		// 取得台灣時間的當前時間戳
+		const taiwanNowMs = now.getTime() + taiwanOffsetMs
+		const taiwanNow = new Date(taiwanNowMs)
+		
+		// 台灣時間的今天（年、月、日）
+		const taiwanYear = taiwanNow.getUTCFullYear()
+		const taiwanMonth = taiwanNow.getUTCMonth()
+		const taiwanDate = taiwanNow.getUTCDate()
+		
+		// 由於活動存儲時沒有時區轉換，直接使用台灣時間作為 UTC 查詢
+		// 台灣時間今天的 00:00:00（作為 UTC 查詢）
+		const todayStartUTC = new Date(Date.UTC(taiwanYear, taiwanMonth, taiwanDate, 0, 0, 0, 0))
+		
+		// 台灣時間今天的 23:59:59（作為 UTC 查詢）
+		const todayEndUTC = new Date(Date.UTC(taiwanYear, taiwanMonth, taiwanDate, 23, 59, 59, 999))
 
-		// 查詢明天有哪些活動
-		const tomorrowEvents = await prisma.event.findMany({
+		console.log(`[Weekly Cron] 查詢台灣時間 ${taiwanYear}-${String(taiwanMonth + 1).padStart(2, '0')}-${String(taiwanDate).padStart(2, '0')} 的活動`)
+		console.log(`[Weekly Cron] UTC 查詢範圍: ${todayStartUTC.toISOString()} ~ ${todayEndUTC.toISOString()}`)
+
+		// 查詢今天有哪些活動
+		const todayEvents = await prisma.event.findMany({
 			where: {
 				startAt: {
-					gte: tomorrowStart,
-					lte: tomorrowEnd
+					gte: todayStartUTC,
+					lte: todayEndUTC
 				}
 			},
 			include: {
@@ -52,12 +71,12 @@ export async function GET() {
 			}
 		})
 
-		console.log(`[Weekly Cron] 明天有 ${tomorrowEvents.length} 個活動`)
+		console.log(`[Weekly Cron] 今天有 ${todayEvents.length} 個活動`)
 
 		let totalSent = 0
 
 		// 為每個活動發送提醒
-		for (const event of tomorrowEvents) {
+		for (const event of todayEvents) {
 			if (event.registrations.length === 0) {
 				console.log(`[Weekly Cron] 活動 ${event.title} 沒有已報名成員，跳過`)
 				continue
@@ -97,7 +116,7 @@ export async function GET() {
 
 			// 逐個發送推播通知給已報名且啟用提醒的成員
 			const notificationPayload = {
-				title: `⏰ 明日活動提醒`,
+				title: `⏰ 今日活動提醒`,
 				body: `${event.title} | ${timeLabel}${locationText}`,
 				icon: '/logo.jpg',
 				badge: '/logo.jpg',
@@ -121,7 +140,7 @@ export async function GET() {
 
 		results.eventReminders = {
 			ok: true,
-			events: tomorrowEvents.length,
+			events: todayEvents.length,
 			sent: totalSent,
 			error: null
 		}
