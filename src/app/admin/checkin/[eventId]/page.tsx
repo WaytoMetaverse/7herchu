@@ -67,7 +67,12 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		const isMonthlyPaid = monthlyPayment?.isPaid || false
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId && isFixedMember) {
-				return { status: 'monthly_paid', text: '月費已繳', clickable: false }
+				// 根據實際月費狀態判斷
+				if (isMonthlyPaid) {
+					return { status: 'monthly_paid', text: '月費已繳', clickable: false }
+				} else {
+					return { status: 'monthly_unpaid', text: '月費未繳', clickable: false }
+				}
 			} else {
 				return { status: registration.paymentStatus === 'PAID' ? 'paid' : 'unpaid', text: registration.paymentStatus === 'PAID' ? '已繳費' : '未繳費', clickable: true }
 			}
