@@ -85,7 +85,7 @@ export default function SpeakersGuestsClient({
 
 			{/* 列表 */}
 			<div className="bg-white rounded-lg border overflow-hidden">
-				<div className="overflow-x-auto -mx-4 sm:mx-0">
+				<div className="overflow-x-auto">
 					<table className="w-full text-sm min-w-[800px]">
 						<thead className="bg-gray-50">
 							<tr>

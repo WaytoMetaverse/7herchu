@@ -30,7 +30,7 @@ export default async function SpeakersGuestsDetailPage({
 					<h1 className="text-lg font-medium mb-1">無權限</h1>
 					<p className="text-sm">此頁僅內部成員可查看。</p>
 					<div className="mt-3">
-						<Link href="/group" className="text-blue-600 hover:text-blue-800 underline">返回小組管理</Link>
+						<Link href="/admin/speakers-guests" className="text-blue-600 hover:text-blue-800 underline">返回來賓庫</Link>
 					</div>
 				</div>
 			</div>

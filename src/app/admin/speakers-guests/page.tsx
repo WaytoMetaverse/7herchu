@@ -33,7 +33,7 @@ export default async function SpeakersGuestsPage({
 					<h1 className="text-lg font-medium mb-1">無權限</h1>
 					<p className="text-sm">此頁僅內部成員可查看。</p>
 					<div className="mt-3">
-						<Link href="/group" className="text-blue-600 hover:text-blue-800 underline">返回小組管理</Link>
+						<Link href="/admin/speakers-guests" className="text-blue-600 hover:text-blue-800 underline">返回來賓庫</Link>
 					</div>
 				</div>
 			</div>
@@ -96,7 +96,6 @@ export default async function SpeakersGuestsPage({
 		<div className="max-w-6xl mx-auto p-4 space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-semibold">來賓/講師管理</h1>
-				<Button as={Link} href="/group" variant="outline">返回小組管理</Button>
 			</div>
 
 			<SpeakersGuestsClient 
