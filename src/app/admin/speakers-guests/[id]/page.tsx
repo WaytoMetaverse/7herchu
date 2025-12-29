@@ -4,8 +4,6 @@ import { authOptions } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { format } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 import { revalidatePath } from 'next/cache'
 import { getDisplayName } from '@/lib/displayName'
 import { GuestType } from '@prisma/client'
@@ -255,7 +253,7 @@ export default async function SpeakersGuestsDetailPage({
 	}
 
 	// 刪除資料（管理員）
-	async function deleteProfile(_formData?: FormData) {
+	async function deleteProfile() {
 		'use server'
 		if (!user || !isAdmin) return
 

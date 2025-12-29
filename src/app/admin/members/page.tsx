@@ -478,8 +478,6 @@ export default async function MembersManagePage({
 																<CancelFixedPaymentButton
 																	userId={member.id}
 																	month={month}
-																	amount={payment.amount || 0}
-																	activityCount={currentMonthEventCount}
 																	onCancel={cancelFixedPayment}
 																/>
 															)}

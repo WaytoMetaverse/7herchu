@@ -45,7 +45,8 @@ export default async function SpeakersGuestsPage({
 	
 	// 驗證 sortBy 欄位，防止無效欄位
 	const validSortFields = ['role', 'lastEventDate', 'name', 'companyName', 'industry', 'bniChapter', 'invitedBy'] as const
-	const sortBy = (sp?.sortBy && validSortFields.includes(sp.sortBy as any)) ? sp.sortBy : 'lastEventDate'
+	type ValidSortField = typeof validSortFields[number]
+	const sortBy = (sp?.sortBy && validSortFields.includes(sp.sortBy as ValidSortField)) ? sp.sortBy as ValidSortField : 'lastEventDate'
 	const sortOrder = (sp?.sortOrder === 'asc' || sp?.sortOrder === 'desc') ? sp.sortOrder : 'desc'
 
 	// 檢查是否需要初始化歷史資料

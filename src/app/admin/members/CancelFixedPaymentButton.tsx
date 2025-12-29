@@ -5,16 +5,12 @@ import { useState } from 'react'
 interface CancelFixedPaymentButtonProps {
 	userId: string
 	month: string
-	amount: number
-	activityCount: number
 	onCancel: (formData: FormData) => Promise<void>
 }
 
 export default function CancelFixedPaymentButton({ 
 	userId, 
 	month, 
-	amount, 
-	activityCount, 
 	onCancel 
 }: CancelFixedPaymentButtonProps) {
 	const [showConfirm, setShowConfirm] = useState(false)
