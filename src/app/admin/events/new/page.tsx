@@ -6,7 +6,7 @@ import EventTypePricing from '@/components/EventTypePricing'
 import DateWithWeekday from '@/components/DateWithWeekday'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react'
+import { Clock, MapPin } from 'lucide-react'
 
 function cents(v: FormDataEntryValue | null) {
 	const n = Number(String(v ?? '').trim())

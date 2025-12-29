@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Button from '@/components/ui/Button'
 
 const MAX_SIZE = 1024 * 1024 // 1MB
 
