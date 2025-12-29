@@ -2,12 +2,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { CalendarCheck, Building2, Users, User } from 'lucide-react'
+import { CalendarCheck, Building2, Users, User, UserCheck } from 'lucide-react'
 
 const items = [
   { href: '/calendar', label: '講師', Icon: CalendarCheck },
   { href: '/hall', label: '活動', Icon: Building2 },
   { href: '/group', label: '小組', Icon: Users },
+  { href: '/admin/speakers-guests', label: '來賓庫', Icon: UserCheck },
   { href: '/profile', label: '個人', Icon: User },
 ]
 
@@ -26,7 +27,7 @@ export default function MobileTabBar() {
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t" style={{ paddingBottom: 'max(4px, env(safe-area-inset-bottom))', height: 'var(--mobile-tabbar-h)' }}>
-      <ul className="grid grid-cols-4 h-full text-xs">
+      <ul className="grid grid-cols-5 h-full text-xs">
         {items.map(({ href, label, Icon }) => {
           const finalHref = label === '個人' ? (hasSession ? '/profile' : '/auth/signin?callbackUrl=%2Fprofile') : href
           const active = pathname?.startsWith(href)

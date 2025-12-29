@@ -42,8 +42,11 @@ export default async function SpeakersGuestsPage({
 
 	const sp = await searchParams
 	const q = (sp?.q || '').trim()
-	const sortBy = sp?.sortBy || 'lastEventDate'
-	const sortOrder = sp?.sortOrder || 'desc'
+	
+	// 驗證 sortBy 欄位，防止無效欄位
+	const validSortFields = ['role', 'lastEventDate', 'name', 'companyName', 'industry', 'bniChapter', 'invitedBy'] as const
+	const sortBy = (sp?.sortBy && validSortFields.includes(sp.sortBy as any)) ? sp.sortBy : 'lastEventDate'
+	const sortOrder = (sp?.sortOrder === 'asc' || sp?.sortOrder === 'desc') ? sp.sortOrder : 'desc'
 
 	// 檢查是否需要初始化歷史資料
 	const profileCount = await prisma.guestSpeakerProfile.count()
