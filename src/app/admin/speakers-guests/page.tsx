@@ -154,6 +154,7 @@ async function initHistoricalData() {
 	// 處理講師預約（SpeakerBooking）
 	for (const event of pastEvents) {
 		for (const speaker of event.speakerBookings) {
+			if (!speaker.phone || !speaker.name) continue
 			const key = `${speaker.phone}_${speaker.name}`
 			const existing = profileMap.get(key)
 			
@@ -243,50 +244,55 @@ async function initHistoricalData() {
 	const profiles = Array.from(profileMap.values())
 	if (profiles.length > 0) {
 		for (const p of profiles) {
-			// 檢查是否已存在
-			const existing = await prisma.guestSpeakerProfile.findUnique({
-				where: {
-					phone_name: {
-						phone: p.phone,
-						name: p.name
-					}
-				}
-			})
-
-			if (existing) {
-				// 更新：如果新活動日期更晚，更新 lastEventDate；如果新角色是講師，更新 role
-				await prisma.guestSpeakerProfile.update({
+			try {
+				// 檢查是否已存在
+				const existing = await prisma.guestSpeakerProfile.findUnique({
 					where: {
 						phone_name: {
 							phone: p.phone,
 							name: p.name
 						}
-					},
-					data: {
-						lastEventDate: p.lastEventDate > existing.lastEventDate ? p.lastEventDate : existing.lastEventDate,
-						role: p.role === 'SPEAKER' ? 'SPEAKER' : existing.role,
-						companyName: p.companyName || existing.companyName,
-						industry: p.industry || existing.industry,
-						guestType: p.guestType || existing.guestType,
-						bniChapter: p.bniChapter || existing.bniChapter,
-						invitedBy: p.invitedBy || existing.invitedBy
 					}
 				})
-			} else {
-				// 建立新資料
-				await prisma.guestSpeakerProfile.create({
-					data: {
-						name: p.name,
-						phone: p.phone,
-						companyName: p.companyName,
-						industry: p.industry,
-						guestType: p.guestType,
-						bniChapter: p.bniChapter,
-						invitedBy: p.invitedBy,
-						role: p.role,
-						lastEventDate: p.lastEventDate
-					}
-				})
+
+				if (existing) {
+					// 更新：如果新活動日期更晚，更新 lastEventDate；如果新角色是講師，更新 role
+					await prisma.guestSpeakerProfile.update({
+						where: {
+							phone_name: {
+								phone: p.phone,
+								name: p.name
+							}
+						},
+						data: {
+							lastEventDate: p.lastEventDate > existing.lastEventDate ? p.lastEventDate : existing.lastEventDate,
+							role: p.role === 'SPEAKER' ? 'SPEAKER' : existing.role,
+							companyName: p.companyName || existing.companyName,
+							industry: p.industry || existing.industry,
+							guestType: p.guestType || existing.guestType,
+							bniChapter: p.bniChapter || existing.bniChapter,
+							invitedBy: p.invitedBy || existing.invitedBy
+						}
+					})
+				} else {
+					// 建立新資料
+					await prisma.guestSpeakerProfile.create({
+						data: {
+							name: p.name,
+							phone: p.phone,
+							companyName: p.companyName,
+							industry: p.industry,
+							guestType: p.guestType,
+							bniChapter: p.bniChapter,
+							invitedBy: p.invitedBy,
+							role: p.role,
+							lastEventDate: p.lastEventDate
+						}
+					})
+				}
+			} catch (error) {
+				console.error(`[initHistoricalData] 處理 ${p.name} (${p.phone}) 時發生錯誤:`, error)
+				// 繼續處理下一筆資料
 			}
 		}
 	}

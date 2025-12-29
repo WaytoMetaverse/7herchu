@@ -46,6 +46,7 @@ async function main() {
 	// 處理講師預約（SpeakerBooking）
 	for (const event of pastEvents) {
 		for (const speaker of event.speakerBookings) {
+			if (!speaker.phone || !speaker.name) continue
 			const key = `${speaker.phone}_${speaker.name}`
 			const existing = profileMap.get(key)
 			
