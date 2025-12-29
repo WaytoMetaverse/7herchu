@@ -191,7 +191,6 @@ export default async function LeaderboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEADERBOARD_CONFIG.map((config) => {
           const leaderboard = data[config.key] || []
-          const isAscending = config.key === 'closedMeeting'
 
           return (
             <div

@@ -14,7 +14,7 @@ import {
   UtensilsCrossed, 
   MapPin, 
   Handshake, 
-  BowlFood, 
+  Bowl, 
   CheckCircle, 
   Mic 
 } from 'lucide-react'
@@ -27,7 +27,7 @@ const BADGE_CONFIG: Record<BadgeType, { name: string; icon: React.ComponentType<
   DINNER: { name: '餐敘勇士', icon: UtensilsCrossed, color: 'bg-orange-500' },
   VISIT: { name: '探索者', icon: MapPin, color: 'bg-green-500' },
   JOINT: { name: '外交官', icon: Handshake, color: 'bg-yellow-500' },
-  MEAL_SERVICE: { name: '便當大胃王', icon: BowlFood, color: 'bg-red-500' },
+  MEAL_SERVICE: { name: '便當大胃王', icon: Bowl, color: 'bg-red-500' },
   CHECKIN: { name: '簽到忠實粉', icon: CheckCircle, color: 'bg-teal-500' },
   SPEAKER: { name: '講師大師', icon: Mic, color: 'bg-indigo-500' }
 }

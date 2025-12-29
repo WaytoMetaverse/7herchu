@@ -1,5 +1,5 @@
 import { prisma } from './prisma'
-import { BadgeType, EventType, RegRole, RegistrationStatus } from '@prisma/client'
+import { BadgeType } from '@prisma/client'
 
 // 勳章門檻設定
 export const BADGE_THRESHOLDS = {
@@ -33,7 +33,7 @@ export function getBadgeLevel(count: number): keyof typeof BADGE_THRESHOLDS | nu
 // 取得下一個等級需要的次數
 export function getNextLevelThreshold(currentCount: number): number | null {
   const levels = Object.entries(BADGE_THRESHOLDS).sort((a, b) => a[1] - b[1])
-  for (const [level, threshold] of levels) {
+  for (const [, threshold] of levels) {
     if (currentCount < threshold) {
       return threshold
     }
