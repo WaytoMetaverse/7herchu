@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt'
 
 export async function middleware(req: NextRequest) {
 	const p = req.nextUrl.pathname
-	const isProtected = p.startsWith('/admin') || p.startsWith('/cards')
+	const isProtected = p.startsWith('/admin')
 	if (!isProtected) return NextResponse.next()
 
 	// 開發暫時跳過保護：未配置 Google 或設為停用
@@ -23,4 +23,4 @@ export async function middleware(req: NextRequest) {
 	return NextResponse.next()
 }
 
-export const config = { matcher: ['/admin/:path*', '/cards/:path*'] }
+export const config = { matcher: ['/admin/:path*'] }

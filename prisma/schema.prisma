@@ -107,6 +107,7 @@ model User {
   createdInvites InviteToken[]
   pushSubscriptions PushSubscription[]
   announcements    Announcement[]
+  guestSpeakerNotes GuestSpeakerNote[]
   createdAt     DateTime @default(now())
 }
 
@@ -173,7 +174,7 @@ model Event {
   bodGuestPriceCents  Int?
   defaultPriceCents   Int?
 
-
+  speakersGuestsSyncedAt DateTime? // 來賓/講師資料同步時間
 
   registrations     Registration[]
   speakerBookings   SpeakerBooking[]
@@ -223,6 +224,7 @@ model SpeakerBooking {
   paymentMethod    String?
   companyName      String?
   industry         String?
+  guestType        GuestType?     // 來賓類型（磐石分會/其他分會/非BNI）
   bniChapter       String?
   invitedBy        String?
   checkedInAt      DateTime?      // 簽到時間
@@ -457,5 +459,43 @@ model Announcement {
   totalCount Int     @default(0) // 總訂閱數量
   createdAt DateTime @default(now())
   
+  @@index([createdAt])
+}
+
+// 來賓/講師統一資料表
+model GuestSpeakerProfile {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  companyName   String?
+  industry      String?
+  guestType     GuestType? // 來賓類型（磐石分會/其他分會/非BNI）
+  bniChapter    String?   // 具體分會名稱
+  invitedBy     String?
+  role          String   // 'GUEST' | 'SPEAKER'（優先顯示講師）
+  lastEventDate DateTime // 最新參加日期
+  notes         GuestSpeakerNote[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([phone, name])
+  @@index([phone])
+  @@index([name])
+  @@index([guestType])
+  @@index([lastEventDate])
+}
+
+// 來賓/講師留言
+model GuestSpeakerNote {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       GuestSpeakerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  content       String   @db.VarChar(100)
+  createdBy     String
+  creator       User     @relation(fields: [createdBy], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([profileId])
   @@index([createdAt])
 }

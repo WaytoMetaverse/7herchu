@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 // PUT body: { id, phone, ...updatableFields }
 export async function PUT(req: NextRequest) {
   const body = await req.json()
-  const { id, phone, name, diet, noBeef, noPork, companyName, industry, bniChapter, invitedBy, pptUrl, mealCode } = body || {}
+  const { id, phone, name, diet, noBeef, noPork, companyName, industry, guestType, bniChapter, invitedBy, pptUrl, mealCode } = body || {}
   if (!id || !phone) return NextResponse.json({ error: '缺少必要欄位' }, { status: 400 })
 
   const existing = await prisma.speakerBooking.findUnique({ where: { id } })
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
 
   const updated = await prisma.speakerBooking.update({
     where: { id },
-    data: { name, diet, noBeef, noPork, companyName, industry, bniChapter, invitedBy, pptUrl, mealCode },
+    data: { name, diet, noBeef, noPork, companyName, industry, guestType, bniChapter, invitedBy, pptUrl, mealCode },
   })
   return NextResponse.json({ ok: true, id: updated.id })
 }

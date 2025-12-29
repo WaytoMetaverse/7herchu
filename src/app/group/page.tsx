@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 // import { Role } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Users, DollarSign, UtensilsCrossed, Image as ImageIcon, Monitor, Bell, Settings } from 'lucide-react'
+import { Users, DollarSign, UtensilsCrossed, Image as ImageIcon, Monitor, Bell, Settings, UserCheck } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import GalleryCarousel from './GalleryCarousel'
 
@@ -172,6 +172,27 @@ export default async function GroupHomePage() {
 							</CardContent>
 						</Card>
 					)}
+
+				{/* 來賓/講師管理卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center gap-3 mb-4">
+								<UserCheck className="w-6 h-6 text-pink-600" />
+								<h2 className="text-lg font-semibold">來賓/講師管理</h2>
+							</div>
+							<div className="space-y-4">
+								<p className="text-gray-600 text-sm">
+									查看和管理所有參與過活動的來賓與講師資料，包含參與記錄和留言功能。
+								</p>
+								<Link
+									href="/admin/speakers-guests"
+									className="block w-full bg-pink-600 hover:bg-pink-700 text-white text-center py-2 px-4 rounded transition-colors"
+								>
+									來賓/講師管理
+								</Link>
+							</div>
+						</CardContent>
+					</Card>
 
 				{/* 展示設定卡片（所有內部成員可見，可點進去；操作權限於內頁控管） */}
 					<Card>

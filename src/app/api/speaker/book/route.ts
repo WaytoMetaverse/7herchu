@@ -7,7 +7,7 @@ import { sendRegistrationNotification } from '@/lib/notificationHelper'
 
 export async function POST(req: NextRequest) {
 	const body = await req.json()
-	const { eventId, name, phone, diet, noBeef, noPork, mealCode, companyName, industry, bniChapter, invitedBy, pptUrl } = body
+	const { eventId, name, phone, diet, noBeef, noPork, mealCode, companyName, industry, guestType, bniChapter, invitedBy, pptUrl } = body
 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event || !event.allowSpeakers || event.speakerQuota == null) {
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
 				mealCode,
 				companyName,
 				industry,
+				guestType,
 				bniChapter,
 				invitedBy,
 				pptUrl,
