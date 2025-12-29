@@ -88,7 +88,8 @@ async function main() {
 			const key = `${reg.phone}_${reg.name}`
 			const existing = profileMap.get(key)
 			
-			if (!existing || event.startAt > existing.lastEventDate) {
+			if (!existing) {
+				// 新資料
 				profileMap.set(key, {
 					name: reg.name,
 					phone: reg.phone,
@@ -100,18 +101,32 @@ async function main() {
 					role: reg.role === 'SPEAKER' ? 'SPEAKER' : 'GUEST',
 					lastEventDate: event.startAt
 				})
-			} else if (existing.role === 'GUEST' && reg.role === 'SPEAKER' && event.startAt > existing.lastEventDate) {
-				// 如果原本是來賓，但這次是講師，優先顯示講師
-				profileMap.set(key, {
-					...existing,
-					role: 'SPEAKER',
-					lastEventDate: event.startAt,
-					guestType: reg.guestType || existing.guestType,
-					bniChapter: reg.bniChapter || existing.bniChapter,
-					companyName: reg.companyName || existing.companyName,
-					industry: reg.industry || existing.industry,
-					invitedBy: reg.invitedBy || existing.invitedBy
-				})
+			} else if (event.startAt > existing.lastEventDate) {
+				// 如果新活動日期更晚，更新資料
+				if (existing.role === 'GUEST' && reg.role === 'SPEAKER') {
+					// 如果原本是來賓，但這次是講師，優先顯示講師
+					profileMap.set(key, {
+						...existing,
+						role: 'SPEAKER',
+						lastEventDate: event.startAt,
+						guestType: reg.guestType || existing.guestType,
+						bniChapter: reg.bniChapter || existing.bniChapter,
+						companyName: reg.companyName || existing.companyName,
+						industry: reg.industry || existing.industry,
+						invitedBy: reg.invitedBy || existing.invitedBy
+					})
+				} else {
+					// 更新 lastEventDate 和其他資料
+					profileMap.set(key, {
+						...existing,
+						lastEventDate: event.startAt,
+						companyName: reg.companyName || existing.companyName,
+						industry: reg.industry || existing.industry,
+						guestType: reg.guestType || existing.guestType,
+						bniChapter: reg.bniChapter || existing.bniChapter,
+						invitedBy: reg.invitedBy || existing.invitedBy
+					})
+				}
 			}
 		}
 	}
