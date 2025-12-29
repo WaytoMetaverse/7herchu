@@ -25,14 +25,12 @@ export default function SpeakersGuestsClient({
 	profiles,
 	initialQ,
 	initialSortBy,
-	initialSortOrder,
-	isAdmin
+	initialSortOrder
 }: {
 	profiles: Profile[]
 	initialQ: string
 	initialSortBy: string
 	initialSortOrder: 'asc' | 'desc'
-	isAdmin: boolean
 }) {
 	const router = useRouter()
 	const searchParams = useSearchParams()

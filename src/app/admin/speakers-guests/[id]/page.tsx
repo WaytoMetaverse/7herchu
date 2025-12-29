@@ -284,7 +284,7 @@ export default async function SpeakersGuestsDetailPage({
 					bniChapter: profile.bniChapter || '',
 					bniChapterDisplay: formatBniChapter(profile.guestType, profile.bniChapter),
 					invitedBy: profile.invitedBy || '',
-					role: profile.role
+					role: profile.role as 'GUEST' | 'SPEAKER'
 				}}
 				participations={participations.map(p => ({
 					eventId: p.eventId,

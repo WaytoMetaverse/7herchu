@@ -113,7 +113,6 @@ export default async function SpeakersGuestsPage({
 				initialQ={q}
 				initialSortBy={sortBy}
 				initialSortOrder={sortOrder}
-				isAdmin={isAdmin}
 			/>
 		</div>
 	)

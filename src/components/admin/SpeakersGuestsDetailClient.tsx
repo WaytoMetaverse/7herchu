@@ -58,7 +58,6 @@ export default function SpeakersGuestsDetailClient({
 }) {
 	const router = useRouter()
 	const [isEditing, setIsEditing] = useState(false)
-	const [isDeleting, setIsDeleting] = useState(false)
 	const [editForm, setEditForm] = useState({
 		name: profile.name,
 		phone: profile.phone,
