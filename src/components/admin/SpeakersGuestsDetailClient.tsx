@@ -75,7 +75,8 @@ export default function SpeakersGuestsDetailClient({
 		e.preventDefault()
 		const formData = new FormData()
 		formData.append('name', editForm.name)
-		formData.append('phone', editForm.phone)
+		// 不提交手機號碼，後端會使用原有的手機號碼
+		formData.append('phone', '')
 		formData.append('companyName', editForm.companyName)
 		formData.append('industry', editForm.industry)
 		formData.append('guestType', editForm.guestType)
@@ -154,10 +155,6 @@ export default function SpeakersGuestsDetailClient({
 							<div className="font-medium">{profile.name}</div>
 						</div>
 						<div>
-							<div className="text-gray-500 mb-1">手機</div>
-							<div>{profile.phone}</div>
-						</div>
-						<div>
 							<div className="text-gray-500 mb-1">公司名稱</div>
 							<div>{profile.companyName || '-'}</div>
 						</div>
@@ -184,18 +181,6 @@ export default function SpeakersGuestsDetailClient({
 									required
 									value={editForm.name}
 									onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-									className="w-full px-3 py-2 border rounded"
-								/>
-							</div>
-							<div>
-								<label className="block text-sm font-medium mb-1">手機 *</label>
-								<input
-									type="text"
-									required
-									maxLength={10}
-									pattern="\d{10}"
-									value={editForm.phone}
-									onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
 									className="w-full px-3 py-2 border rounded"
 								/>
 							</div>

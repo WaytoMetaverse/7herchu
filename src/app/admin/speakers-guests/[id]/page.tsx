@@ -219,12 +219,21 @@ export default async function SpeakersGuestsDetailPage({
 		const bniChapter = String(formData.get('bniChapter') || '').trim() || null
 		const invitedBy = String(formData.get('invitedBy') || '').trim() || null
 
-		if (!name || !phone) return
+		if (!name) return
+
+		// 如果是講師，需要手機號碼；來賓則使用原有的手機號碼
+		const currentProfile = await prisma.guestSpeakerProfile.findUnique({
+			where: { id }
+		})
+		if (!currentProfile) return
+
+		const finalPhone = phone || currentProfile.phone
+		if (!finalPhone) return
 
 		// 檢查新的「手機+姓名」組合是否已存在（排除自己）
 		const existing = await prisma.guestSpeakerProfile.findFirst({
 			where: {
-				phone,
+				phone: finalPhone,
 				name,
 				NOT: { id }
 			}
@@ -237,7 +246,7 @@ export default async function SpeakersGuestsDetailPage({
 			where: { id },
 			data: {
 				name,
-				phone,
+				phone: finalPhone,
 				companyName,
 				industry,
 				guestType,
