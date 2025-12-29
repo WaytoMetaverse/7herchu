@@ -11,6 +11,7 @@ import MemberTypeSelect from '@/components/admin/MemberTypeSelect'
 import MonthSelector from '@/components/admin/MonthSelector'
 import CancelPaymentButton from './CancelPaymentButton'
 import CancelFixedPaymentButton from './CancelFixedPaymentButton'
+import MarkPaidForm from '@/components/admin/MarkPaidForm'
 
 export default async function MembersManagePage({ 
 	searchParams 
@@ -182,18 +183,30 @@ export default async function MembersManagePage({
 			})
 		}
 
-		// 新增財務交易記錄，並關聯到月費記錄
-		await prisma.financeTransaction.create({
-			data: {
-				date: new Date(),
-				type: 'INCOME',
+		// 檢查是否已經存在相同的財務交易記錄（防止重複提交）
+		const existingTransaction = await prisma.financeTransaction.findFirst({
+			where: {
+				monthlyPaymentId: monthlyPayment.id,
 				amountCents: amountCents,
-				counterparty: user.name || '未命名',
-				note: `${month} 固定成員月費 (${currentMonthEventCount}次活動 × $180)`,
-				categoryId: category.id,
-				monthlyPaymentId: monthlyPayment.id
+				type: 'INCOME',
+				categoryId: category.id
 			}
 		})
+
+		// 只有不存在相同記錄時才創建新的財務交易記錄
+		if (!existingTransaction) {
+			await prisma.financeTransaction.create({
+				data: {
+					date: new Date(),
+					type: 'INCOME',
+					amountCents: amountCents,
+					counterparty: user.name || '未命名',
+					note: `${month} 固定成員月費 (${currentMonthEventCount}次活動 × $180)`,
+					categoryId: category.id,
+					monthlyPaymentId: monthlyPayment.id
+				}
+			})
+		}
 
 		// 同步更新該成員當月所有活動的繳費狀態
 		// 使用上面已經計算的 startDate 和 endDate
@@ -473,11 +486,11 @@ export default async function MembersManagePage({
 														</div>
 													) : (
 														canManage ? (
-															<form action={markPaid} className="inline">
-																<input type="hidden" name="userId" value={member.id} />
-																<input type="hidden" name="month" value={month} />
-																<button type="submit" className="text-xs text-red-600 hover:text-red-800 whitespace-nowrap">未繳費</button>
-															</form>
+															<MarkPaidForm 
+																action={markPaid}
+																userId={member.id}
+																month={month}
+															/>
 														) : (
 															<span className="text-xs text-red-600 font-medium">未繳費</span>
 														)

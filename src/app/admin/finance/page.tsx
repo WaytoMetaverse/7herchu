@@ -109,25 +109,33 @@ export default async function FinancePage({ searchParams }: { searchParams?: Pro
 		if (!id) return { success: false, error: '缺少交易ID' }
 
 		try {
-			// 檢查是否為系統自動產生的記錄
+			// 檢查交易記錄是否存在
 			const transaction = await prisma.financeTransaction.findUnique({
-				where: { id },
-				include: { event: true, monthlyPayment: true }
+				where: { id }
 			})
 
 			if (!transaction) return { success: false, error: '找不到該交易記錄' }
 
-			// 檢查是否為系統自動產生的活動繳費記錄
-			if (transaction.eventId) {
-				return { success: false, error: '系統生成繳費無法刪除' }
+			// 如果是系統生成的記錄（有 monthlyPaymentId 或 eventId），需要檢查是否有重複
+			if (transaction.monthlyPaymentId || transaction.eventId) {
+				// 檢查是否有重複的交易記錄（同一月費記錄或活動，相同金額）
+				const duplicateCount = await prisma.financeTransaction.count({
+					where: {
+						monthlyPaymentId: transaction.monthlyPaymentId,
+						eventId: transaction.eventId,
+						amountCents: transaction.amountCents,
+						type: transaction.type,
+						categoryId: transaction.categoryId
+					}
+				})
+
+				// 只有當有重複記錄（>= 2筆）時才允許刪除，避免影響唯一記錄的關聯狀態
+				if (duplicateCount < 2) {
+					return { success: false, error: '此為唯一記錄，刪除會影響關聯狀態。僅允許刪除重複記錄。' }
+				}
 			}
 
-			// 檢查是否為系統自動產生的月費記錄
-			if (transaction.monthlyPaymentId) {
-				return { success: false, error: '系統生成繳費無法刪除' }
-			}
-
-			// 只有手動新增的記錄才可以刪除
+			// 允許刪除：手動新增的記錄，或系統生成的重複記錄
 			await prisma.financeTransaction.delete({ where: { id } })
 			revalidatePath('/admin/finance')
 			return { success: true }
