@@ -54,7 +54,7 @@ export default function SpeakersGuestsDetailClient({
 	updateNote: (formData: FormData) => Promise<void>
 	deleteNote: (formData: FormData) => Promise<void>
 	updateProfile: (formData: FormData) => Promise<{ error?: string } | void>
-	deleteProfile: (formData: FormData) => Promise<void>
+	deleteProfile: () => Promise<void>
 }) {
 	const router = useRouter()
 	const [isEditing, setIsEditing] = useState(false)
@@ -93,8 +93,7 @@ export default function SpeakersGuestsDetailClient({
 
 	async function handleDeleteProfile() {
 		if (!confirm('確定要刪除此人的所有資料嗎？此操作無法復原。')) return
-		const formData = new FormData()
-		await deleteProfile(formData)
+		await deleteProfile()
 	}
 
 	async function handleAddNote(e: React.FormEvent) {

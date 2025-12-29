@@ -255,7 +255,7 @@ export default async function SpeakersGuestsDetailPage({
 	}
 
 	// 刪除資料（管理員）
-	async function deleteProfile(formData: FormData) {
+	async function deleteProfile(_formData?: FormData) {
 		'use server'
 		if (!user || !isAdmin) return
 

@@ -73,8 +73,6 @@ export default async function SpeakersGuestsPage({
 		}
 	})
 
-	const isAdmin = ((session?.user as { roles?: string[] } | undefined)?.roles ?? []).includes('admin')
-
 	// 格式化 BNI 分會顯示
 	function formatBniChapter(guestType: GuestType | null, bniChapter: string | null): string {
 		if (!guestType) return '-'
@@ -100,7 +98,7 @@ export default async function SpeakersGuestsPage({
 			<SpeakersGuestsClient 
 				profiles={profiles.map(p => ({
 					id: p.id,
-					role: p.role,
+					role: p.role as 'GUEST' | 'SPEAKER',
 					lastEventDate: p.lastEventDate,
 					name: p.name,
 					phone: p.phone,
