@@ -85,12 +85,12 @@ export default function SpeakersGuestsClient({
 
 			{/* 列表 */}
 			<div className="bg-white rounded-lg border overflow-hidden">
-				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
+				<div className="overflow-x-auto -mx-4 sm:mx-0">
+					<table className="w-full text-sm min-w-[800px]">
 						<thead className="bg-gray-50">
 							<tr>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('role')}
 								>
 									<div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('lastEventDate')}
 								>
 									<div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('name')}
 								>
 									<div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('companyName')}
 								>
 									<div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('industry')}
 								>
 									<div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('bniChapter')}
 								>
 									<div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function SpeakersGuestsClient({
 									</div>
 								</th>
 								<th 
-									className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100"
+									className="px-2 sm:px-4 py-3 text-left font-medium cursor-pointer hover:bg-gray-100 whitespace-nowrap"
 									onClick={() => handleSort('invitedBy')}
 								>
 									<div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function SpeakersGuestsClient({
 										<SortIcon field="invitedBy" />
 									</div>
 								</th>
-								<th className="px-4 py-3 text-left font-medium">詳細</th>
+								<th className="px-2 sm:px-4 py-3 text-left font-medium whitespace-nowrap">詳細</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200">
@@ -165,7 +165,7 @@ export default function SpeakersGuestsClient({
 							) : (
 								profiles.map((profile) => (
 									<tr key={profile.id} className="hover:bg-gray-50">
-										<td className="px-4 py-3">
+										<td className="px-2 sm:px-4 py-3 whitespace-nowrap">
 											<span className={`px-2 py-1 rounded text-xs ${
 												profile.role === 'SPEAKER' 
 													? 'bg-blue-100 text-blue-700' 
@@ -174,15 +174,15 @@ export default function SpeakersGuestsClient({
 												{profile.role === 'SPEAKER' ? '講師' : '來賓'}
 											</span>
 										</td>
-										<td className="px-4 py-3 text-gray-700">
+										<td className="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">
 											{format(new Date(profile.lastEventDate), 'yyyy/MM/dd', { locale: zhTW })}
 										</td>
-										<td className="px-4 py-3 font-medium">{profile.name}</td>
-										<td className="px-4 py-3 text-gray-700">{profile.companyName || '-'}</td>
-										<td className="px-4 py-3 text-gray-700">{profile.industry || '-'}</td>
-										<td className="px-4 py-3 text-gray-700">{profile.bniChapter || '-'}</td>
-										<td className="px-4 py-3 text-gray-700">{profile.invitedBy || '-'}</td>
-										<td className="px-4 py-3">
+										<td className="px-2 sm:px-4 py-3 font-medium whitespace-nowrap">{profile.name}</td>
+										<td className="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">{profile.companyName || '-'}</td>
+										<td className="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">{profile.industry || '-'}</td>
+										<td className="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">{profile.bniChapter || '-'}</td>
+										<td className="px-2 sm:px-4 py-3 text-gray-700 whitespace-nowrap">{profile.invitedBy || '-'}</td>
+										<td className="px-2 sm:px-4 py-3 whitespace-nowrap">
 											<Button 
 												as={Link} 
 												href={`/admin/speakers-guests/${profile.id}`}
