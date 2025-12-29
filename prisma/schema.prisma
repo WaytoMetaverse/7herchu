@@ -89,6 +89,32 @@ enum CardCategory {
   MANAGEMENT      // 管理專業（旅宿管理、包租代管、律師等）
 }
 
+enum BadgeType {
+  GROUP_MEETING   // 組聚達人
+  CLOSED_MEETING  // 封閉勇者
+  SOFT_ACTIVITY   // 玩樂達人
+  BOD             // 會議老司機
+  DINNER          // 餐敘勇士
+  VISIT           // 探索者
+  JOINT           // 外交官
+  MEAL_SERVICE    // 便當大胃王
+  CHECKIN         // 簽到忠實粉
+  SPEAKER         // 講師大師
+}
+
+enum BadgeLevel {
+  BRONZE          // 銅牌（3次）
+  COPPER          // 青銅牌（5次）
+  SILVER          // 白銀牌（10次）
+  GOLD            // 黃金牌（30次）
+  PLATINUM        // 白金牌（80次）
+  EMERALD         // 翡翠牌（100次）
+  DIAMOND         // 鑽石牌（150次）
+  MASTER          // 大師牌（200次）
+  GRANDMASTER     // 宗師牌（250次）
+  ELITE           // 菁英牌（300次）
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -108,6 +134,7 @@ model User {
   pushSubscriptions PushSubscription[]
   announcements    Announcement[]
   guestSpeakerNotes GuestSpeakerNote[]
+  badges           UserBadge[]
   createdAt     DateTime @default(now())
 }
 
@@ -498,4 +525,19 @@ model GuestSpeakerNote {
 
   @@index([profileId])
   @@index([createdAt])
+}
+
+// 用戶勳章記錄
+model UserBadge {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeType BadgeType
+  level     BadgeLevel
+  count     Int        // 達成次數
+  unlockedAt DateTime  @default(now())
+  
+  @@unique([userId, badgeType, level])
+  @@index([userId])
+  @@index([badgeType, level])
 }
