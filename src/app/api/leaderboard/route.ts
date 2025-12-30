@@ -67,25 +67,45 @@ export async function GET() {
     )
     generalAttendanceLeaderboard.sort((a, b) => b.count - a.count)
 
-    // 5. 沒什麼用 - 封閉會議參與次數（由少到多）
+    // 5. 沒什麼用 - 封閉會議/活動總參與次數
     const closedMeetingLeaderboard = await Promise.all(
-      users.map(async (user) => ({
-        userId: user.id,
-        displayName: getDisplayName(user),
-        count: await getClosedMeetingCount(user.id)
-      }))
+      users.map(async (user) => {
+        const closedCount = await getClosedMeetingCount(user.id)
+        const totalCount = await getAllEventCount(user.id)
+        // 計算比例，如果總參與次數為 0，比例為 0
+        const ratio = totalCount > 0 ? closedCount / totalCount : 0
+        return {
+          userId: user.id,
+          displayName: getDisplayName(user),
+          count: ratio, // 存儲比例
+          closedCount, // 保留封閉會議次數用於顯示
+          totalCount // 保留總次數用於顯示
+        }
+      })
     )
-    closedMeetingLeaderboard.sort((a, b) => a.count - b.count)
+    // 只顯示有參與活動的用戶，按比例從大到小排序
+    const filteredClosedMeetingLeaderboard = closedMeetingLeaderboard.filter(item => item.totalCount > 0)
+    filteredClosedMeetingLeaderboard.sort((a, b) => b.count - a.count)
 
-    // 6. 沒來賓沒有我 - BOD 參與次數
+    // 6. 沒來賓沒有我 - BOD 參與次數/活動總參與次數
     const bodLeaderboard = await Promise.all(
-      users.map(async (user) => ({
-        userId: user.id,
-        displayName: getDisplayName(user),
-        count: await getBodCount(user.id)
-      }))
+      users.map(async (user) => {
+        const bodCount = await getBodCount(user.id)
+        const totalCount = await getAllEventCount(user.id)
+        // 計算比例，如果總參與次數為 0，比例為 0
+        const ratio = totalCount > 0 ? bodCount / totalCount : 0
+        return {
+          userId: user.id,
+          displayName: getDisplayName(user),
+          count: ratio, // 存儲比例
+          bodCount, // 保留 BOD 次數用於顯示
+          totalCount // 保留總次數用於顯示
+        }
+      })
     )
-    bodLeaderboard.sort((a, b) => b.count - a.count)
+    // 只顯示有參與活動的用戶，按比例從大到小排序
+    const filteredBodLeaderboard = bodLeaderboard.filter(item => item.totalCount > 0)
+    filteredBodLeaderboard.sort((a, b) => b.count - a.count)
 
     // 7. 玩樂跑第一 - 軟性活動參與次數
     const softActivityLeaderboard = await Promise.all(
@@ -158,13 +178,29 @@ export async function GET() {
     )
     visitLeaderboard.sort((a, b) => b.count - a.count)
 
-    // 12. 來賓召喚師 - 邀請來賓名字出現最多
+    // 12. 來賓召喚師 - 統計 invitedBy 欄位中相同 userId 的出現次數
     const guestInviteLeaderboard = await Promise.all(
-      users.map(async (user) => ({
-        userId: user.id,
-        displayName: getDisplayName(user),
-        count: await getGuestInviteCount(user.id)
-      }))
+      users.map(async (user) => {
+        // 統計 Registration 中 invitedBy = userId 的記錄
+        const regCount = await prisma.registration.count({
+          where: {
+            invitedBy: user.id,
+            status: 'REGISTERED'
+          }
+        })
+        // 統計 SpeakerBooking 中 invitedBy = userId 的記錄
+        const speakerCount = await prisma.speakerBooking.count({
+          where: {
+            invitedBy: user.id
+          }
+        })
+        const count = regCount + speakerCount
+        return {
+          userId: user.id,
+          displayName: getDisplayName(user),
+          count
+        }
+      })
     )
     guestInviteLeaderboard.sort((a, b) => b.count - a.count)
 
@@ -173,8 +209,8 @@ export async function GET() {
       meal: mealLeaderboard.slice(0, 3),
       noShow: noShowLeaderboard.slice(0, 3),
       generalAttendance: generalAttendanceLeaderboard.slice(0, 3),
-      closedMeeting: closedMeetingLeaderboard.slice(0, 3),
-      bod: bodLeaderboard.slice(0, 3),
+      closedMeeting: filteredClosedMeetingLeaderboard.slice(0, 3),
+      bod: filteredBodLeaderboard.slice(0, 3),
       softActivity: softActivityLeaderboard.slice(0, 3),
       joint: jointLeaderboard.slice(0, 3),
       speaker: speakerLeaderboard.slice(0, 3),

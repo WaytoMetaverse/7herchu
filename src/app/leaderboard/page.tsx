@@ -36,7 +36,7 @@ const LEADERBOARD_CONFIG = [
   { key: 'meal', name: '便當王', description: '便當用餐次數', icon: Soup, color: 'bg-red-500' },
   { key: 'noShow', name: '爽約魔人', description: '報名但未簽到次數', icon: XCircle, color: 'bg-gray-500' },
   { key: 'generalAttendance', name: '組聚鐵人', description: '簡報組聚出席次數', icon: Home, color: 'bg-blue-500' },
-  { key: 'closedMeeting', name: '沒什麼用', description: '封閉會議參與次數（由少到多）', icon: Lock, color: 'bg-gray-400' },
+  { key: 'closedMeeting', name: '沒什麼用', description: '封閉會議/活動總參與次數', icon: Lock, color: 'bg-gray-400' },
   { key: 'bod', name: '沒來賓沒有我', description: 'BOD 參與次數/活動總參與次數', icon: Briefcase, color: 'bg-purple-500' },
   { key: 'softActivity', name: '玩樂跑第一', description: '軟性活動參與次數', icon: PartyPopper, color: 'bg-pink-500' },
   { key: 'joint', name: '外交官', description: '聯合組聚參與次數', icon: Handshake, color: 'bg-yellow-400' },
@@ -100,13 +100,23 @@ export default async function LeaderboardPage() {
   generalAttendanceLeaderboard.sort((a, b) => b.count - a.count)
 
   const closedMeetingLeaderboard = await Promise.all(
-    users.map(async (user) => ({
-      userId: user.id,
-      displayName: getDisplayName(user),
-      count: await getClosedMeetingCount(user.id)
-    }))
+    users.map(async (user) => {
+      const closedCount = await getClosedMeetingCount(user.id)
+      const totalCount = await getAllEventCount(user.id)
+      // 計算比例，如果總參與次數為 0，比例為 0
+      const ratio = totalCount > 0 ? closedCount / totalCount : 0
+      return {
+        userId: user.id,
+        displayName: getDisplayName(user),
+        count: ratio, // 存儲比例
+        closedCount, // 保留封閉會議次數用於顯示
+        totalCount // 保留總次數用於顯示
+      }
+    })
   )
-  closedMeetingLeaderboard.sort((a, b) => a.count - b.count)
+  // 只顯示有參與活動的用戶，按比例從大到小排序
+  const filteredClosedMeetingLeaderboard = closedMeetingLeaderboard.filter(item => item.totalCount > 0)
+  filteredClosedMeetingLeaderboard.sort((a, b) => b.count - a.count)
 
   const bodLeaderboard = await Promise.all(
     users.map(async (user) => {
@@ -183,12 +193,29 @@ export default async function LeaderboardPage() {
   )
   visitLeaderboard.sort((a, b) => b.count - a.count)
 
+  // 來賓召喚師 - 統計 invitedBy 欄位中相同 userId 的出現次數
   const guestInviteLeaderboard = await Promise.all(
-    users.map(async (user) => ({
-      userId: user.id,
-      displayName: getDisplayName(user),
-      count: await getGuestInviteCount(user.id)
-    }))
+    users.map(async (user) => {
+      // 統計 Registration 中 invitedBy = userId 的記錄
+      const regCount = await prisma.registration.count({
+        where: {
+          invitedBy: user.id,
+          status: 'REGISTERED'
+        }
+      })
+      // 統計 SpeakerBooking 中 invitedBy = userId 的記錄
+      const speakerCount = await prisma.speakerBooking.count({
+        where: {
+          invitedBy: user.id
+        }
+      })
+      const count = regCount + speakerCount
+      return {
+        userId: user.id,
+        displayName: getDisplayName(user),
+        count
+      }
+    })
   )
   guestInviteLeaderboard.sort((a, b) => b.count - a.count)
 
@@ -200,7 +227,7 @@ export default async function LeaderboardPage() {
     meal: mealLeaderboard.slice(0, 3),
     noShow: noShowLeaderboard.slice(0, 3),
     generalAttendance: generalAttendanceLeaderboard.slice(0, 3),
-    closedMeeting: closedMeetingLeaderboard.slice(0, 3),
+    closedMeeting: filteredClosedMeetingLeaderboard.slice(0, 3),
     bod: filteredBodLeaderboard.slice(0, 3),
     softActivity: softActivityLeaderboard.slice(0, 3),
     joint: jointLeaderboard.slice(0, 3),
@@ -216,7 +243,7 @@ export default async function LeaderboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEADERBOARD_CONFIG.map((config) => {
-          const leaderboard = (data as Record<string, Array<{ userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number }>>)[config.key] || []
+          const leaderboard = (data as Record<string, Array<{ userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number; closedCount?: number }>>)[config.key] || []
 
           const Icon = config.icon
           return (
@@ -236,7 +263,7 @@ export default async function LeaderboardPage() {
 
               <div className="space-y-2">
                 {leaderboard.length > 0 && leaderboard.some(item => item.count > 0) ? (
-                  leaderboard.map((item: { userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number }, index: number) => (
+                  leaderboard.map((item: { userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number; closedCount?: number }, index: number) => (
                     <div
                       key={item.userId}
                       className="flex items-center gap-2 p-2 rounded bg-gray-50"
