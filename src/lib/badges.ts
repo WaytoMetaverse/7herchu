@@ -261,22 +261,23 @@ export async function getGeneralAttendanceCount(userId: string): Promise<number>
   })
 }
 
-// 計算邀請來賓次數
+// 計算邀請來賓次數（使用 invitedBy 欄位）
 export async function getGuestInviteCount(userId: string): Promise<number> {
-  const [regCount, inviteCount] = await Promise.all([
+  const [regCount, speakerCount] = await Promise.all([
+    // Registration 中 invitedBy = userId 的記錄（所有角色）
     prisma.registration.count({
       where: {
         invitedBy: userId,
-        role: 'GUEST',
         status: 'REGISTERED'
       }
     }),
-    prisma.guestInvite.count({
+    // SpeakerBooking 中 invitedBy = userId 的記錄
+    prisma.speakerBooking.count({
       where: {
         invitedBy: userId
       }
     })
   ])
-  return regCount + inviteCount
+  return regCount + speakerCount
 }
 
