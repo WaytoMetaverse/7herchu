@@ -67,25 +67,15 @@ export async function GET() {
     )
     generalAttendanceLeaderboard.sort((a, b) => b.count - a.count)
 
-    // 5. 沒什麼用 - 封閉會議/活動總參與次數
+    // 5. 沒什麼用 - 封閉會議參與次數（由少到多）
     const closedMeetingLeaderboard = await Promise.all(
-      users.map(async (user) => {
-        const closedCount = await getClosedMeetingCount(user.id)
-        const totalCount = await getAllEventCount(user.id)
-        // 計算比例，如果總參與次數為 0，比例為 0
-        const ratio = totalCount > 0 ? closedCount / totalCount : 0
-        return {
-          userId: user.id,
-          displayName: getDisplayName(user),
-          count: ratio, // 存儲比例
-          closedCount, // 保留封閉會議次數用於顯示
-          totalCount // 保留總次數用於顯示
-        }
-      })
+      users.map(async (user) => ({
+        userId: user.id,
+        displayName: getDisplayName(user),
+        count: await getClosedMeetingCount(user.id)
+      }))
     )
-    // 只顯示有參與活動的用戶，按比例從大到小排序
-    const filteredClosedMeetingLeaderboard = closedMeetingLeaderboard.filter(item => item.totalCount > 0)
-    filteredClosedMeetingLeaderboard.sort((a, b) => b.count - a.count)
+    closedMeetingLeaderboard.sort((a, b) => a.count - b.count)
 
     // 6. 沒來賓沒有我 - BOD 參與次數/活動總參與次數
     const bodLeaderboard = await Promise.all(
@@ -209,7 +199,7 @@ export async function GET() {
       meal: mealLeaderboard.slice(0, 3),
       noShow: noShowLeaderboard.slice(0, 3),
       generalAttendance: generalAttendanceLeaderboard.slice(0, 3),
-      closedMeeting: filteredClosedMeetingLeaderboard.slice(0, 3),
+      closedMeeting: closedMeetingLeaderboard.slice(0, 3),
       bod: filteredBodLeaderboard.slice(0, 3),
       softActivity: softActivityLeaderboard.slice(0, 3),
       joint: jointLeaderboard.slice(0, 3),
