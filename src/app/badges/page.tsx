@@ -16,7 +16,9 @@ import {
   Handshake, 
   Soup, 
   CheckCircle, 
-  Mic 
+  Mic,
+  Building,
+  Sparkles
 } from 'lucide-react'
 
 const BADGE_CONFIG: Record<BadgeType, { name: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
@@ -58,6 +60,57 @@ const LEVEL_NAMES: Record<string, string> = {
   ELITE: '菁英牌'
 }
 
+// 計算個人資料完成度（16格）
+async function calculateProfileCompletion(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { memberProfile: true }
+  })
+  
+  if (!user) return { filled: 0, total: 16, percentage: 0 }
+  
+  let filled = 0
+  const total = 16
+  
+  // 個人資料欄位（12格）
+  if (user.name) filled++
+  if (user.nickname) filled++
+  if (user.phone) filled++
+  if (user.memberProfile?.birthday) filled++
+  if (user.memberProfile?.dietPreference) filled++
+  if (user.memberProfile?.bio) filled++
+  if (user.memberProfile?.occupation) filled++
+  if (user.memberProfile?.companyName) filled++
+  if (user.memberProfile?.companyWebsite) filled++
+  if (user.memberProfile?.workLocation) filled++
+  if (user.memberProfile?.workDescription) filled++
+  
+  // 名片或作品照片（至少有一個）
+  const hasCards = Array.isArray(user.memberProfile?.businessCards) && 
+                   (user.memberProfile.businessCards as string[]).length > 0
+  const hasPhotos = Array.isArray(user.memberProfile?.portfolioPhotos) && 
+                    (user.memberProfile.portfolioPhotos as string[]).length > 0
+  if (hasCards || hasPhotos) filled++
+  
+  // 通知設定（4格）- 需要檢查 PushSubscription
+  const subscription = await prisma.pushSubscription.findFirst({
+    where: { 
+      userId: user.id,
+      isEnabled: true
+    }
+  })
+  
+  if (subscription) {
+    if (subscription.notifyOnRegistration) filled++
+    if (subscription.notifyEventReminder) filled++
+    if (subscription.notifyNoResponse) filled++
+    if (subscription.notifyAnnouncement) filled++
+  }
+  
+  const percentage = Math.round((filled / total) * 100)
+  return { filled, total, percentage }
+}
+
 export default async function BadgesPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
@@ -78,12 +131,38 @@ export default async function BadgesPage() {
   // 取得勳章詳細資訊
   const badgeDetails = await getUserBadgeDetails(user.id)
   const displayName = getDisplayName(user)
+  
+  // 計算個人資料完成度
+  const profileCompletion = await calculateProfileCompletion(user.id)
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">我的獎牌</h1>
         <div className="text-sm text-gray-500">{displayName}</div>
+      </div>
+
+      {/* 蓋房子小超人進度條 */}
+      <div className="bg-white rounded-lg border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            {profileCompletion.percentage === 100 ? (
+              <Sparkles className="w-6 h-6 text-yellow-500" />
+            ) : (
+              <Building className="w-6 h-6 text-gray-400" />
+            )}
+            <h2 className="font-medium text-lg">蓋房子小超人</h2>
+          </div>
+          <div className="text-2xl font-bold text-gray-700">
+            {profileCompletion.percentage}%
+          </div>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div
+            className="bg-blue-500 h-3 rounded-full transition-all"
+            style={{ width: `${profileCompletion.percentage}%` }}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
