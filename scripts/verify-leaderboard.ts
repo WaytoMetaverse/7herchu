@@ -110,90 +110,55 @@ async function main() {
   })
   console.log()
 
-  // 7. 模擬計算講師大師排行榜（前5名）
-  console.log('7. 講師大師排行榜計算（模擬前5名）：')
-  const allUsers = await prisma.user.findMany({
-    where: { isActive: true },
-    select: { id: true, name: true, nickname: true },
-    take: 20 // 只檢查前20個用戶以加快速度
+  // 7. 模擬計算講師大師排行榜（前5名）- 新邏輯：直接統計 invitedBy 出現次數
+  console.log('7. 講師大師排行榜計算（新邏輯，前5名）：')
+  
+  // 1. 從來賓庫取得所有講師的 invitedBy
+  const guestSpeakersForLeaderboard = await prisma.guestSpeakerProfile.findMany({
+    where: { 
+      role: 'SPEAKER',
+      invitedBy: { not: null }
+    },
+    select: { invitedBy: true }
   })
 
-  // 取得所有講師名字
-  const allGuestSpeakers = await prisma.guestSpeakerProfile.findMany({
-    where: { role: 'SPEAKER' },
-    select: { name: true }
-  })
-  const allInternalSpeakers = await prisma.registration.findMany({
+  // 2. 從 Registration 取得內部成員升講師的 invitedBy
+  const internalSpeakersForLeaderboard = await prisma.registration.findMany({
     where: {
       role: 'SPEAKER',
       userId: { not: null },
-      status: 'REGISTERED'
+      status: 'REGISTERED',
+      invitedBy: { not: null }
     },
-    select: {
-      name: true,
-      user: {
-        select: { name: true, nickname: true }
-      }
+    select: { invitedBy: true }
+  })
+
+  // 3. 統計每個邀請人名字的出現次數
+  const speakerInviterCounts = new Map<string, number>()
+  guestSpeakersForLeaderboard.forEach(speaker => {
+    if (speaker.invitedBy) {
+      speakerInviterCounts.set(speaker.invitedBy, (speakerInviterCounts.get(speaker.invitedBy) || 0) + 1)
     }
   })
-
-  // 統計講師名字出現次數
-  const speakerNameCounts = new Map<string, number>()
-  allGuestSpeakers.forEach(speaker => {
-    speakerNameCounts.set(speaker.name, (speakerNameCounts.get(speaker.name) || 0) + 1)
+  internalSpeakersForLeaderboard.forEach(reg => {
+    if (reg.invitedBy) {
+      speakerInviterCounts.set(reg.invitedBy, (speakerInviterCounts.get(reg.invitedBy) || 0) + 1)
+    }
   })
-  allInternalSpeakers.forEach(reg => {
-    const name = reg.name || (reg.user ? `${reg.user.nickname || reg.user.name}` : '未知')
-    speakerNameCounts.set(name, (speakerNameCounts.get(name) || 0) + 1)
-  })
+  
+  // 直接按名字和次數排名
+  const speakerLeaderboard = Array.from(speakerInviterCounts.entries())
+    .map(([name, count]) => ({
+      displayName: name,
+      count
+    }))
+    .sort((a, b) => b.count - a.count)
 
-  // 計算每個用戶的分數
-  const speakerScores = await Promise.all(
-    allUsers.map(async (user) => {
-      const invitedGuestSpeakers = await prisma.guestSpeakerProfile.findMany({
-        where: {
-          role: 'SPEAKER',
-          invitedBy: user.id
-        },
-        select: { name: true }
-      })
-      
-      const invitedInternalSpeakers = await prisma.registration.findMany({
-        where: {
-          role: 'SPEAKER',
-          invitedBy: user.id,
-          status: 'REGISTERED'
-        },
-        select: {
-          name: true,
-          user: {
-            select: { name: true, nickname: true }
-          }
-        }
-      })
-      
-      let totalCount = 0
-      invitedGuestSpeakers.forEach(speaker => {
-        totalCount += speakerNameCounts.get(speaker.name) || 0
-      })
-      invitedInternalSpeakers.forEach(reg => {
-        const name = reg.name || (reg.user ? `${reg.user.nickname || reg.user.name}` : '未知')
-        totalCount += speakerNameCounts.get(name) || 0
-      })
-      
-      return {
-        userId: user.id,
-        displayName: user.nickname || user.name || '未知',
-        count: totalCount,
-        invitedGuestCount: invitedGuestSpeakers.length,
-        invitedInternalCount: invitedInternalSpeakers.length
-      }
-    })
-  )
-
-  speakerScores.sort((a, b) => b.count - a.count)
-  speakerScores.slice(0, 5).forEach((item, i) => {
-    console.log(`   ${i + 1}. ${item.displayName} - 分數: ${item.count} (來賓講師: ${item.invitedGuestCount}, 內部講師: ${item.invitedInternalCount})`)
+  console.log(`   - 來賓庫講師數（有 invitedBy）：${guestSpeakersForLeaderboard.length}`)
+  console.log(`   - 內部講師數（有 invitedBy）：${internalSpeakersForLeaderboard.length}`)
+  console.log(`   - 不重複邀請人數：${speakerInviterCounts.size}`)
+  speakerLeaderboard.slice(0, 5).forEach((item, i) => {
+    console.log(`   ${i + 1}. ${item.displayName} - 邀請次數: ${item.count}`)
   })
   console.log()
 

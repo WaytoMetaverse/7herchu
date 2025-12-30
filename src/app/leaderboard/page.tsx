@@ -161,9 +161,8 @@ export default async function LeaderboardPage() {
   )
   jointLeaderboard.sort((a, b) => b.count - a.count)
 
-  // 講師大師 - 講師邀請最多的人（跟來賓召喚師計算方式一樣）
-  // 1. 從來賓庫取得所有講師的 invitedBy
-  const guestSpeakers = await prisma.guestSpeakerProfile.findMany({
+  // 講師大師 - 講師邀請最多的人（只從來賓庫抓數據，跟來賓召喚師一樣）
+  const speakerProfiles = await prisma.guestSpeakerProfile.findMany({
     where: { 
       role: 'SPEAKER',
       invitedBy: { not: null }
@@ -171,27 +170,11 @@ export default async function LeaderboardPage() {
     select: { invitedBy: true }
   })
 
-  // 2. 從 Registration 取得內部成員升講師的 invitedBy
-  const internalSpeakers = await prisma.registration.findMany({
-    where: {
-      role: 'SPEAKER',
-      userId: { not: null },
-      status: 'REGISTERED',
-      invitedBy: { not: null }
-    },
-    select: { invitedBy: true }
-  })
-
-  // 3. 統計每個邀請人名字的出現次數
+  // 統計每個邀請人名字的出現次數
   const speakerInviterCounts = new Map<string, number>()
-  guestSpeakers.forEach((speaker: { invitedBy: string | null }) => {
-    if (speaker.invitedBy) {
-      speakerInviterCounts.set(speaker.invitedBy, (speakerInviterCounts.get(speaker.invitedBy) || 0) + 1)
-    }
-  })
-  internalSpeakers.forEach(reg => {
-    if (reg.invitedBy) {
-      speakerInviterCounts.set(reg.invitedBy, (speakerInviterCounts.get(reg.invitedBy) || 0) + 1)
+  speakerProfiles.forEach((profile: { invitedBy: string | null }) => {
+    if (profile.invitedBy) {
+      speakerInviterCounts.set(profile.invitedBy, (speakerInviterCounts.get(profile.invitedBy) || 0) + 1)
     }
   })
   
