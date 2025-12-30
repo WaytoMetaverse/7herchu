@@ -162,49 +162,32 @@ async function main() {
   })
   console.log()
 
-  // 8. 模擬計算來賓召喚師排行榜（前5名）
-  console.log('8. 來賓召喚師排行榜計算（模擬前5名）：')
+  // 8. 模擬計算來賓召喚師排行榜（前5名）- 新邏輯：直接統計 invitedBy 出現次數
+  console.log('8. 來賓召喚師排行榜計算（新邏輯，前5名）：')
   const allGuestProfilesForInvite = await prisma.guestSpeakerProfile.findMany({
     where: { invitedBy: { not: null } },
     select: { invitedBy: true }
   })
 
-  const inviterIdsSet = new Set<string>()
-  allGuestProfilesForInvite.forEach(profile => {
-    if (profile.invitedBy) inviterIdsSet.add(profile.invitedBy)
-  })
-
-  const invitersForCheck = await prisma.user.findMany({
-    where: { id: { in: Array.from(inviterIdsSet) } },
-    select: { id: true, name: true, nickname: true }
-  })
-
-  const inviterNameMap = new Map<string, string>()
-  invitersForCheck.forEach(inviter => {
-    const displayName = inviter.nickname || inviter.name || '未知'
-    inviterNameMap.set(inviter.id, displayName)
-  })
-
+  // 統計每個邀請人名字的出現次數（invitedBy 存的就是名字）
   const inviterNameCounts = new Map<string, number>()
   allGuestProfilesForInvite.forEach(profile => {
     if (profile.invitedBy) {
-      const name = inviterNameMap.get(profile.invitedBy) || '未知'
-      inviterNameCounts.set(name, (inviterNameCounts.get(name) || 0) + 1)
+      inviterNameCounts.set(profile.invitedBy, (inviterNameCounts.get(profile.invitedBy) || 0) + 1)
     }
   })
 
-  const guestInviteScores = allUsers.map(user => {
-    const displayName = user.nickname || user.name || '未知'
-    const count = inviterNameCounts.get(displayName) || 0
-    return {
-      userId: user.id,
-      displayName,
+  // 直接按名字和次數排名
+  const guestInviteLeaderboard = Array.from(inviterNameCounts.entries())
+    .map(([name, count]) => ({
+      displayName: name,
       count
-    }
-  })
+    }))
+    .sort((a, b) => b.count - a.count)
 
-  guestInviteScores.sort((a, b) => b.count - a.count)
-  guestInviteScores.slice(0, 5).forEach((item, i) => {
+  console.log(`   - 總來賓/講師資料數（有 invitedBy）：${allGuestProfilesForInvite.length}`)
+  console.log(`   - 不重複邀請人數：${inviterNameCounts.size}`)
+  guestInviteLeaderboard.slice(0, 5).forEach((item, i) => {
     console.log(`   ${i + 1}. ${item.displayName} - 邀請次數: ${item.count}`)
   })
   console.log()
