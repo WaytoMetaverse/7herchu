@@ -75,7 +75,7 @@ export default function SpeakersGuestsClient({
 					type="text"
 					value={q}
 					onChange={(e) => setQ(e.target.value)}
-					placeholder="搜尋姓名、手機、公司、產業、BNI分會、邀請人..."
+					placeholder="搜尋姓名、公司、產業、BNI分會、邀請人..."
 					className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 				/>
 				<Button type="submit" disabled={isPending}>
