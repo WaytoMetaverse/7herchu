@@ -15,19 +15,15 @@ export default async function MemberListPage() {
 	const isAdmin = roles.includes('admin')
 
 	// 取得所有成員（包含停用的，但排除特定帳號）
+	// 排除條件：name、nickname 或 email 完全匹配特定字串的帳號
+	const excludedNames = ['宙公', 'xi', '測試']
 	const allMembers = await prisma.user.findMany({
 		where: {
-			NOT: [
-				{ name: { contains: '宙公' } },
-				{ nickname: { contains: '宙公' } },
-				{ email: { contains: '宙公' } },
-				{ name: { contains: 'xi' } },
-				{ nickname: { contains: 'xi' } },
-				{ email: { contains: 'xi' } },
-				{ name: { contains: '測試' } },
-				{ nickname: { contains: '測試' } },
-				{ email: { contains: '測試' } }
-			]
+			NOT: excludedNames.flatMap(name => [
+				{ name: { equals: name } },
+				{ nickname: { equals: name } },
+				{ email: { equals: name } }
+			])
 		},
 		include: {
 			memberProfile: true
