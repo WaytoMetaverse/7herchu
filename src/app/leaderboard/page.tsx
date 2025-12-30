@@ -40,7 +40,7 @@ const LEADERBOARD_CONFIG = [
   { key: 'bod', name: '沒來賓沒有我', description: 'BOD 參與次數/活動總參與次數', icon: Briefcase, color: 'bg-purple-500' },
   { key: 'softActivity', name: '玩樂跑第一', description: '軟性參與次數/活動總參與次數', icon: PartyPopper, color: 'bg-pink-500' },
   { key: 'joint', name: '外交官', description: '聯合組聚參與次數', icon: Handshake, color: 'bg-yellow-400' },
-  { key: 'speaker', name: '講師大師', description: '講師姓名累積最多', icon: Mic, color: 'bg-indigo-500' },
+  { key: 'speaker', name: '講師大師', description: '講師邀請最多', icon: Mic, color: 'bg-indigo-500' },
   { key: 'dinner', name: '乾杯王', description: '餐敘參與最多', icon: UtensilsCrossed, color: 'bg-orange-500' },
   { key: 'visit', name: '探索者', description: '職業參訪參與最多', icon: MapPin, color: 'bg-green-500' },
   { key: 'guestInvite', name: '來賓召喚師', description: '邀請來賓名字出現最多', icon: UserPlus, color: 'bg-teal-500' }
@@ -161,56 +161,37 @@ export default async function LeaderboardPage() {
   )
   jointLeaderboard.sort((a, b) => b.count - a.count)
 
-  // 講師大師 - 從來賓庫的講師 + 內部成員報名升講師的清單去做排名
-  // 1. 從來賓庫取得所有講師（包含 invitedBy）
+  // 講師大師 - 講師邀請最多的人（跟來賓召喚師計算方式一樣）
+  // 1. 從來賓庫取得所有講師的 invitedBy
   const guestSpeakers = await prisma.guestSpeakerProfile.findMany({
-    where: { role: 'SPEAKER' },
-    select: { name: true, invitedBy: true }
+    where: { 
+      role: 'SPEAKER',
+      invitedBy: { not: null }
+    },
+    select: { invitedBy: true }
   })
 
-  // 2. 從 Registration 取得內部成員升講師的名字
+  // 2. 從 Registration 取得內部成員升講師的 invitedBy
   const internalSpeakers = await prisma.registration.findMany({
     where: {
       role: 'SPEAKER',
       userId: { not: null },
-      status: 'REGISTERED'
+      status: 'REGISTERED',
+      invitedBy: { not: null }
     },
-    select: { 
-      name: true,
-      invitedBy: true,
-      user: {
-        select: { name: true, nickname: true }
-      }
-    }
+    select: { invitedBy: true }
   })
 
-  // 3. 統計所有講師名字的出現次數
-  const speakerNameCounts = new Map<string, number>()
-  guestSpeakers.forEach((speaker: { name: string; invitedBy: string | null }) => {
-    speakerNameCounts.set(speaker.name, (speakerNameCounts.get(speaker.name) || 0) + 1)
-  })
-  internalSpeakers.forEach(reg => {
-    const name = reg.name || (reg.user ? getDisplayName(reg.user) : '未知')
-    speakerNameCounts.set(name, (speakerNameCounts.get(name) || 0) + 1)
-  })
-
-  // 4. 講師大師 - 直接統計邀請講師的名字出現次數
+  // 3. 統計每個邀請人名字的出現次數
   const speakerInviterCounts = new Map<string, number>()
-  
-  // 統計來賓庫中講師的邀請人
-  guestSpeakers.forEach((speaker: { name: string; invitedBy: string | null }) => {
+  guestSpeakers.forEach((speaker: { invitedBy: string | null }) => {
     if (speaker.invitedBy) {
-      const speakerCount = speakerNameCounts.get(speaker.name) || 0
-      speakerInviterCounts.set(speaker.invitedBy, (speakerInviterCounts.get(speaker.invitedBy) || 0) + speakerCount)
+      speakerInviterCounts.set(speaker.invitedBy, (speakerInviterCounts.get(speaker.invitedBy) || 0) + 1)
     }
   })
-  
-  // 統計內部講師的邀請人（從 Registration）
   internalSpeakers.forEach(reg => {
-    const name = reg.name || (reg.user ? getDisplayName(reg.user) : '未知')
-    const speakerCount = speakerNameCounts.get(name) || 0
     if (reg.invitedBy) {
-      speakerInviterCounts.set(reg.invitedBy, (speakerInviterCounts.get(reg.invitedBy) || 0) + speakerCount)
+      speakerInviterCounts.set(reg.invitedBy, (speakerInviterCounts.get(reg.invitedBy) || 0) + 1)
     }
   })
   
