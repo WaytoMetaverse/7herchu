@@ -16,19 +16,19 @@ export default async function MemberListPage() {
 
 	// 取得所有成員（包含停用的，但排除特定帳號）
 	// 排除條件：name、nickname 或 email 完全匹配特定字串的帳號
-	const excludedNames = ['宙公', 'xi', '測試']
-	const allMembers = await prisma.user.findMany({
-		where: {
-			NOT: excludedNames.flatMap(name => [
-				{ name: { equals: name } },
-				{ nickname: { equals: name } },
-				{ email: { equals: name } }
-			])
-		},
+	const excludedNames = ['宙公', 'xi', '測試', 'Lexi']
+	const allUsers = await prisma.user.findMany({
 		include: {
 			memberProfile: true
 		},
 		orderBy: { createdAt: 'asc' }
+	})
+	
+	// 在應用層過濾排除的帳號
+	const allMembers = allUsers.filter(user => {
+		return !excludedNames.some(name => 
+			user.name === name || user.nickname === name || user.email === name
+		)
 	})
 
 	// 停用成員
