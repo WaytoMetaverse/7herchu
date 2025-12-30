@@ -38,7 +38,7 @@ const LEADERBOARD_CONFIG = [
   { key: 'generalAttendance', name: '組聚鐵人', description: '簡報組聚出席次數', icon: Home, color: 'bg-blue-500' },
   { key: 'closedMeeting', name: '沒什麼用', description: '封閉會議參與次數（由少到多）', icon: Lock, color: 'bg-gray-400' },
   { key: 'bod', name: '沒來賓沒有我', description: 'BOD 參與次數/活動總參與次數', icon: Briefcase, color: 'bg-purple-500' },
-  { key: 'softActivity', name: '玩樂跑第一', description: '軟性活動參與次數', icon: PartyPopper, color: 'bg-pink-500' },
+  { key: 'softActivity', name: '玩樂跑第一', description: '軟性參與次數/活動總參與次數', icon: PartyPopper, color: 'bg-pink-500' },
   { key: 'joint', name: '外交官', description: '聯合組聚參與次數', icon: Handshake, color: 'bg-yellow-400' },
   { key: 'speaker', name: '講師大師', description: '講師姓名累積最多', icon: Mic, color: 'bg-indigo-500' },
   { key: 'dinner', name: '乾杯王', description: '餐敘參與最多', icon: UtensilsCrossed, color: 'bg-orange-500' },
@@ -134,13 +134,23 @@ export default async function LeaderboardPage() {
   bodLeaderboard.sort((a, b) => b.count - a.count)
 
   const softActivityLeaderboard = await Promise.all(
-    users.map(async (user) => ({
-      userId: user.id,
-      displayName: getDisplayName(user),
-      count: await getSoftActivityCount(user.id)
-    }))
+    users.map(async (user) => {
+      const softCount = await getSoftActivityCount(user.id)
+      const totalCount = await getAllEventCount(user.id)
+      // 計算比例，如果總參與次數為 0，比例為 0
+      const ratio = totalCount > 0 ? softCount / totalCount : 0
+      return {
+        userId: user.id,
+        displayName: getDisplayName(user),
+        count: ratio, // 存儲比例
+        softCount, // 保留軟性活動次數用於顯示
+        totalCount // 保留總次數用於顯示
+      }
+    })
   )
-  softActivityLeaderboard.sort((a, b) => b.count - a.count)
+  // 只顯示有參與活動的用戶，按比例從大到小排序
+  const filteredSoftActivityLeaderboard = softActivityLeaderboard.filter(item => item.totalCount > 0)
+  filteredSoftActivityLeaderboard.sort((a, b) => b.count - a.count)
 
   const jointLeaderboard = await Promise.all(
     users.map(async (user) => ({
@@ -303,7 +313,7 @@ export default async function LeaderboardPage() {
     generalAttendance: generalAttendanceLeaderboard.slice(0, 3),
     closedMeeting: closedMeetingLeaderboard.slice(0, 3),
     bod: filteredBodLeaderboard.slice(0, 3),
-    softActivity: softActivityLeaderboard.slice(0, 3),
+    softActivity: filteredSoftActivityLeaderboard.slice(0, 3),
     joint: jointLeaderboard.slice(0, 3),
     speaker: speakerLeaderboard.slice(0, 3),
     dinner: dinnerLeaderboard.slice(0, 3),
@@ -317,7 +327,7 @@ export default async function LeaderboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEADERBOARD_CONFIG.map((config) => {
-          const leaderboard = (data as Record<string, Array<{ userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number }>>)[config.key] || []
+          const leaderboard = (data as Record<string, Array<{ userId: string; displayName: string; count: number; bodCount?: number; softCount?: number; totalCount?: number }>>)[config.key] || []
 
           const Icon = config.icon
           return (
@@ -337,7 +347,7 @@ export default async function LeaderboardPage() {
 
               <div className="space-y-2">
                 {leaderboard.length > 0 && (config.key === 'closedMeeting' || leaderboard.some(item => item.count > 0)) ? (
-                  leaderboard.map((item: { userId: string; displayName: string; count: number; bodCount?: number; totalCount?: number }, index: number) => (
+                  leaderboard.map((item: { userId: string; displayName: string; count: number; bodCount?: number; softCount?: number; totalCount?: number }, index: number) => (
                     <div
                       key={item.userId}
                       className="flex items-center gap-2 p-2 rounded bg-gray-50"

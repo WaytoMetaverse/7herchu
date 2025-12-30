@@ -104,15 +104,25 @@ export async function GET() {
     const filteredBodLeaderboard = bodLeaderboard.filter(item => item.totalCount > 0)
     filteredBodLeaderboard.sort((a, b) => b.count - a.count)
 
-    // 7. 玩樂跑第一 - 軟性活動參與次數
+    // 7. 玩樂跑第一 - 軟性參與次數/活動總參與次數
     const softActivityLeaderboard = await Promise.all(
-      users.map(async (user) => ({
-        userId: user.id,
-        displayName: getDisplayName(user),
-        count: await getSoftActivityCount(user.id)
-      }))
+      users.map(async (user) => {
+        const softCount = await getSoftActivityCount(user.id)
+        const totalCount = await getAllEventCount(user.id)
+        // 計算比例，如果總參與次數為 0，比例為 0
+        const ratio = totalCount > 0 ? softCount / totalCount : 0
+        return {
+          userId: user.id,
+          displayName: getDisplayName(user),
+          count: ratio, // 存儲比例
+          softCount, // 保留軟性活動次數用於顯示
+          totalCount // 保留總次數用於顯示
+        }
+      })
     )
-    softActivityLeaderboard.sort((a, b) => b.count - a.count)
+    // 只顯示有參與活動的用戶，按比例從大到小排序
+    const filteredSoftActivityLeaderboard = softActivityLeaderboard.filter(item => item.totalCount > 0)
+    filteredSoftActivityLeaderboard.sort((a, b) => b.count - a.count)
 
     // 8. 外交官 - 聯合組聚參與次數
     const jointLeaderboard = await Promise.all(
@@ -275,7 +285,7 @@ export async function GET() {
       generalAttendance: generalAttendanceLeaderboard.slice(0, 3),
       closedMeeting: closedMeetingLeaderboard.slice(0, 3),
       bod: filteredBodLeaderboard.slice(0, 3),
-      softActivity: softActivityLeaderboard.slice(0, 3),
+      softActivity: filteredSoftActivityLeaderboard.slice(0, 3),
       joint: jointLeaderboard.slice(0, 3),
       speaker: speakerLeaderboard.slice(0, 3),
       dinner: dinnerLeaderboard.slice(0, 3),
