@@ -100,28 +100,97 @@ END $$;
       `.trim()
     }
 
-    // 分割 SQL 語句並執行
-    const statements = migrationSQL
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'))
-
+    // 直接執行 SQL 語句（分別執行每個主要操作）
     const results = []
-    for (const statement of statements) {
+    
+    // 1. 建立 BadgeType enum
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TYPE "public"."BadgeType" AS ENUM ('GROUP_MEETING', 'CLOSED_MEETING', 'SOFT_ACTIVITY', 'BOD', 'DINNER', 'VISIT', 'JOINT', 'MEAL_SERVICE', 'CHECKIN', 'SPEAKER')
+      `)
+      results.push({ statement: 'CREATE TYPE BadgeType', success: true })
+    } catch (error: any) {
+      if (error?.message?.includes('already exists') || error?.message?.includes('duplicate')) {
+        results.push({ statement: 'CREATE TYPE BadgeType', success: true, skipped: true })
+      } else {
+        throw error
+      }
+    }
+    
+    // 2. 建立 BadgeLevel enum
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TYPE "public"."BadgeLevel" AS ENUM ('BRONZE', 'COPPER', 'SILVER', 'GOLD', 'PLATINUM', 'EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'ELITE')
+      `)
+      results.push({ statement: 'CREATE TYPE BadgeLevel', success: true })
+    } catch (error: any) {
+      if (error?.message?.includes('already exists') || error?.message?.includes('duplicate')) {
+        results.push({ statement: 'CREATE TYPE BadgeLevel', success: true, skipped: true })
+      } else {
+        throw error
+      }
+    }
+    
+    // 3. 建立 UserBadge 表
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "public"."UserBadge" (
+          "id" TEXT NOT NULL,
+          "userId" TEXT NOT NULL,
+          "badgeType" "public"."BadgeType" NOT NULL,
+          "level" "public"."BadgeLevel" NOT NULL,
+          "count" INTEGER NOT NULL,
+          "unlockedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "UserBadge_pkey" PRIMARY KEY ("id")
+        )
+      `)
+      results.push({ statement: 'CREATE TABLE UserBadge', success: true })
+    } catch (error: any) {
+      if (error?.message?.includes('already exists') || error?.message?.includes('duplicate')) {
+        results.push({ statement: 'CREATE TABLE UserBadge', success: true, skipped: true })
+      } else {
+        throw error
+      }
+    }
+    
+    // 4. 建立索引
+    const indexes = [
+      { name: 'UserBadge_userId_idx', sql: 'CREATE INDEX IF NOT EXISTS "UserBadge_userId_idx" ON "public"."UserBadge"("userId")' },
+      { name: 'UserBadge_badgeType_level_idx', sql: 'CREATE INDEX IF NOT EXISTS "UserBadge_badgeType_level_idx" ON "public"."UserBadge"("badgeType", "level")' },
+      { name: 'UserBadge_userId_badgeType_level_key', sql: 'CREATE UNIQUE INDEX IF NOT EXISTS "UserBadge_userId_badgeType_level_key" ON "public"."UserBadge"("userId", "badgeType", "level")' }
+    ]
+    
+    for (const idx of indexes) {
       try {
-        // 跳過註釋和空語句
-        if (statement.startsWith('--') || !statement.trim()) continue
-        
-        await prisma.$executeRawUnsafe(statement)
-        results.push({ statement: statement.substring(0, 50) + '...', success: true })
-      } catch (error) {
-        // 如果是「已存在」的錯誤，可以忽略
-        const errorMsg = error instanceof Error ? error.message : String(error)
-        if (errorMsg.includes('already exists') || errorMsg.includes('duplicate')) {
-          results.push({ statement: statement.substring(0, 50) + '...', success: true, skipped: true })
+        await prisma.$executeRawUnsafe(idx.sql)
+        results.push({ statement: `CREATE INDEX ${idx.name}`, success: true })
+      } catch (error: any) {
+        if (error?.message?.includes('already exists') || error?.message?.includes('duplicate')) {
+          results.push({ statement: `CREATE INDEX ${idx.name}`, success: true, skipped: true })
         } else {
           throw error
         }
+      }
+    }
+    
+    // 5. 建立外鍵
+    try {
+      await prisma.$executeRawUnsafe(`
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'UserBadge_userId_fkey'
+          ) THEN
+            ALTER TABLE "public"."UserBadge" ADD CONSTRAINT "UserBadge_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+          END IF;
+        END $$;
+      `)
+      results.push({ statement: 'ADD FOREIGN KEY UserBadge_userId_fkey', success: true })
+    } catch (error: any) {
+      if (error?.message?.includes('already exists') || error?.message?.includes('duplicate')) {
+        results.push({ statement: 'ADD FOREIGN KEY UserBadge_userId_fkey', success: true, skipped: true })
+      } else {
+        throw error
       }
     }
 
