@@ -17,14 +17,17 @@ import {
 
 export async function GET() {
   try {
-    // 取得所有活躍用戶（排除信銘）
+    // 取得所有活躍用戶（排除信銘和小錢）
     const users = await prisma.user.findMany({
       where: { 
         isActive: true,
         NOT: [
           { name: { contains: '信銘' } },
           { nickname: { contains: '信銘' } },
-          { email: { contains: '信銘' } }
+          { email: { contains: '信銘' } },
+          { name: { contains: '小錢' } },
+          { nickname: { contains: '小錢' } },
+          { email: { contains: '小錢' } }
         ]
       },
       select: {
@@ -206,6 +209,16 @@ export async function GET() {
       }))
       .sort((a, b) => b.count - a.count)
 
+    // 13. 山頂洞人 - 所有活動參與次數最少（由少到多）
+    const caveDwellerLeaderboard = await Promise.all(
+      users.map(async (user) => ({
+        userId: user.id,
+        displayName: getDisplayName(user),
+        count: await getAllEventCount(user.id)
+      }))
+    )
+    caveDwellerLeaderboard.sort((a, b) => a.count - b.count)
+
     return NextResponse.json({
       participation: participationLeaderboard.slice(0, 3),
       meal: mealLeaderboard.slice(0, 3),
@@ -218,7 +231,8 @@ export async function GET() {
       speaker: speakerLeaderboard.slice(0, 3),
       dinner: dinnerLeaderboard.slice(0, 3),
       visit: visitLeaderboard.slice(0, 3),
-      guestInvite: guestInviteLeaderboard.slice(0, 3)
+      guestInvite: guestInviteLeaderboard.slice(0, 3),
+      caveDweller: caveDwellerLeaderboard.slice(0, 3)
     })
   } catch (error) {
     console.error('Leaderboard API error:', error)

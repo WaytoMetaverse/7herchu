@@ -28,7 +28,8 @@ import {
   Mic,
   UtensilsCrossed,
   MapPin,
-  UserPlus
+  UserPlus,
+  Mountain
 } from 'lucide-react'
 
 const LEADERBOARD_CONFIG = [
@@ -43,7 +44,8 @@ const LEADERBOARD_CONFIG = [
   { key: 'speaker', name: '講師大師', description: '講師邀請最多', icon: Mic, color: 'bg-indigo-500' },
   { key: 'dinner', name: '乾杯王', description: '餐敘參與最多', icon: UtensilsCrossed, color: 'bg-orange-500' },
   { key: 'visit', name: '探索者', description: '職業參訪參與最多', icon: MapPin, color: 'bg-green-500' },
-  { key: 'guestInvite', name: '來賓召喚師', description: '邀請來賓名字出現最多', icon: UserPlus, color: 'bg-teal-500' }
+  { key: 'guestInvite', name: '來賓召喚師', description: '邀請來賓名字出現最多', icon: UserPlus, color: 'bg-teal-500' },
+  { key: 'caveDweller', name: '山頂洞人', description: '參加組聚次數最少', icon: Mountain, color: 'bg-stone-500' }
 ]
 
 export default async function LeaderboardPage() {
@@ -52,14 +54,17 @@ export default async function LeaderboardPage() {
     redirect('/auth/signin')
   }
 
-  // 取得所有活躍用戶（排除信銘）
+  // 取得所有活躍用戶（排除信銘和小錢）
   const users = await prisma.user.findMany({
     where: { 
       isActive: true,
       NOT: [
         { name: { contains: '信銘' } },
         { nickname: { contains: '信銘' } },
-        { email: { contains: '信銘' } }
+        { email: { contains: '信銘' } },
+        { name: { contains: '小錢' } },
+        { nickname: { contains: '小錢' } },
+        { email: { contains: '小錢' } }
       ]
     },
     select: {
@@ -230,6 +235,16 @@ export default async function LeaderboardPage() {
     }))
     .sort((a, b) => b.count - a.count)
 
+  // 山頂洞人 - 所有活動參與次數最少（由少到多）
+  const caveDwellerLeaderboard = await Promise.all(
+    users.map(async (user) => ({
+      userId: user.id,
+      displayName: getDisplayName(user),
+      count: await getAllEventCount(user.id)
+    }))
+  )
+  caveDwellerLeaderboard.sort((a, b) => a.count - b.count)
+
   // 過濾掉總參與次數為 0 的用戶（對於 bod 排行榜）
   const filteredBodLeaderboard = bodLeaderboard.filter(item => item.totalCount > 0)
 
@@ -245,7 +260,8 @@ export default async function LeaderboardPage() {
     speaker: speakerLeaderboard.slice(0, 3),
     dinner: dinnerLeaderboard.slice(0, 3),
     visit: visitLeaderboard.slice(0, 3),
-    guestInvite: guestInviteLeaderboard.slice(0, 3)
+    guestInvite: guestInviteLeaderboard.slice(0, 3),
+    caveDweller: caveDwellerLeaderboard.slice(0, 3)
   }
 
   return (
@@ -273,7 +289,7 @@ export default async function LeaderboardPage() {
               </div>
 
               <div className="space-y-2">
-                {leaderboard.length > 0 && (config.key === 'closedMeeting' || leaderboard.some(item => item.count > 0)) ? (
+                {leaderboard.length > 0 && (config.key === 'closedMeeting' || config.key === 'caveDweller' || leaderboard.some(item => item.count > 0)) ? (
                   leaderboard.map((item: { userId: string; displayName: string; count: number; bodCount?: number; softCount?: number; totalCount?: number }, index: number) => (
                     <div
                       key={item.userId}
