@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import Button from '@/components/ui/Button'
@@ -10,6 +11,7 @@ import { put } from '@vercel/blob'
 import ProfileUploadClient from '@/components/ProfileUploadClient'
 import DeleteButton from '@/components/DeleteButton'
 import PushNotificationToggle from '@/components/PushNotificationToggle'
+import { Trophy, Medal } from 'lucide-react'
 
 async function saveProfile(formData: FormData) {
 	'use server'
@@ -164,7 +166,25 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
 
 	return (
 		<div className="max-w-2xl mx-auto p-4 space-y-6">
-			<h1 className="text-xl md:text-2xl font-semibold">個人資料</h1>
+			<div className="flex items-center justify-between">
+				<h1 className="text-xl md:text-2xl font-semibold">個人資料</h1>
+				<div className="flex items-center gap-2">
+					<Link 
+						href="/leaderboard"
+						className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+					>
+						<Trophy className="w-4 h-4" />
+						排行榜
+					</Link>
+					<Link 
+						href="/badges"
+						className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+					>
+						<Medal className="w-4 h-4" />
+						獎牌
+					</Link>
+				</div>
+			</div>
 			
 			{saved && (
 				<div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center gap-2">
