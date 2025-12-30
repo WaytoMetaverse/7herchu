@@ -52,9 +52,16 @@ export default async function LeaderboardPage() {
     redirect('/auth/signin')
   }
 
-  // 取得所有活躍用戶
+  // 取得所有活躍用戶（排除信銘）
   const users = await prisma.user.findMany({
-    where: { isActive: true },
+    where: { 
+      isActive: true,
+      NOT: [
+        { name: { contains: '信銘' } },
+        { nickname: { contains: '信銘' } },
+        { email: { contains: '信銘' } }
+      ]
+    },
     select: {
       id: true,
       name: true,
@@ -144,22 +151,32 @@ export default async function LeaderboardPage() {
   )
   jointLeaderboard.sort((a, b) => b.count - a.count)
 
+  // 講師大師 - 統計名字出現次數最多者（不核對ID）
+  const allSpeakers = await prisma.speakerBooking.findMany({
+    select: { name: true }
+  })
+  const speakerNameCounts = new Map<string, number>()
+  for (const speaker of allSpeakers) {
+    const count = speakerNameCounts.get(speaker.name) || 0
+    speakerNameCounts.set(speaker.name, count + 1)
+  }
+  
+  // 找出每個用戶邀請的講師名字出現次數總和
   const speakerLeaderboard = await Promise.all(
     users.map(async (user) => {
       const speakers = await prisma.speakerBooking.findMany({
         where: { invitedBy: user.id },
         select: { name: true }
       })
-      const nameCounts = new Map<string, number>()
+      // 統計該用戶邀請的講師名字在整個系統中出現的總次數
+      let totalCount = 0
       for (const speaker of speakers) {
-        const count = nameCounts.get(speaker.name) || 0
-        nameCounts.set(speaker.name, count + 1)
+        totalCount += speakerNameCounts.get(speaker.name) || 0
       }
-      const count = Array.from(nameCounts.values()).reduce((sum, c) => sum + c, 0)
       return {
         userId: user.id,
         displayName: getDisplayName(user),
-        count
+        count: totalCount
       }
     })
   )
@@ -183,30 +200,65 @@ export default async function LeaderboardPage() {
   )
   visitLeaderboard.sort((a, b) => b.count - a.count)
 
-  // 來賓召喚師 - 統計 invitedBy 欄位中相同 userId 的出現次數
-  const guestInviteLeaderboard = await Promise.all(
-    users.map(async (user) => {
-      // 統計 Registration 中 invitedBy = userId 的記錄
-      const regCount = await prisma.registration.count({
-        where: {
-          invitedBy: user.id,
-          status: 'REGISTERED'
-        }
-      })
-      // 統計 SpeakerBooking 中 invitedBy = userId 的記錄
-      const speakerCount = await prisma.speakerBooking.count({
-        where: {
-          invitedBy: user.id
-        }
-      })
-      const count = regCount + speakerCount
-      return {
-        userId: user.id,
-        displayName: getDisplayName(user),
-        count
-      }
+  // 來賓召喚師 - 統計邀請人名字出現次數最多者
+  // 先取得所有 Registration 和 SpeakerBooking 的 invitedBy，然後找到對應用戶的名字
+  const [allRegs, allSpeakersForInvite] = await Promise.all([
+    prisma.registration.findMany({
+      where: {
+        invitedBy: { not: null },
+        status: 'REGISTERED'
+      },
+      select: { invitedBy: true }
+    }),
+    prisma.speakerBooking.findMany({
+      where: {
+        invitedBy: { not: null }
+      },
+      select: { invitedBy: true }
     })
-  )
+  ])
+  
+  // 取得所有邀請人的用戶資訊
+  const inviterIds = new Set<string>()
+  allRegs.forEach(reg => { if (reg.invitedBy) inviterIds.add(reg.invitedBy) })
+  allSpeakersForInvite.forEach(speaker => { if (speaker.invitedBy) inviterIds.add(speaker.invitedBy) })
+  
+  const inviters = await prisma.user.findMany({
+    where: { id: { in: Array.from(inviterIds) } },
+    select: { id: true, name: true, nickname: true }
+  })
+  
+  const inviterNameMap = new Map<string, string>()
+  inviters.forEach(inviter => {
+    const displayName = getDisplayName(inviter)
+    inviterNameMap.set(inviter.id, displayName)
+  })
+  
+  // 統計每個邀請人名字的出現次數
+  const inviterNameCounts = new Map<string, number>()
+  allRegs.forEach(reg => {
+    if (reg.invitedBy) {
+      const name = inviterNameMap.get(reg.invitedBy) || '未知'
+      inviterNameCounts.set(name, (inviterNameCounts.get(name) || 0) + 1)
+    }
+  })
+  allSpeakersForInvite.forEach(speaker => {
+    if (speaker.invitedBy) {
+      const name = inviterNameMap.get(speaker.invitedBy) || '未知'
+      inviterNameCounts.set(name, (inviterNameCounts.get(name) || 0) + 1)
+    }
+  })
+  
+  // 為每個用戶統計其名字的出現次數
+  const guestInviteLeaderboard = users.map(user => {
+    const displayName = getDisplayName(user)
+    const count = inviterNameCounts.get(displayName) || 0
+    return {
+      userId: user.id,
+      displayName,
+      count
+    }
+  })
   guestInviteLeaderboard.sort((a, b) => b.count - a.count)
 
   // 過濾掉總參與次數為 0 的用戶（對於 bod 排行榜）
