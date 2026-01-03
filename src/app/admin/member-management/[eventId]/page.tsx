@@ -67,10 +67,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 	// 取得所有活躍成員
 	const allMembers = await prisma.user.findMany({
 		where: {
-			isActive: true,
-			memberProfile: {
-				isNot: null
-			}
+			isActive: true
 		},
 		select: {
 			id: true,
@@ -199,10 +196,7 @@ export default async function MemberManagementPage({ params }: { params: Promise
 		// 重新查詢未回應成員
 		const allMembers = await prisma.user.findMany({
 			where: {
-				isActive: true,
-				memberProfile: {
-					isNot: null
-				}
+				isActive: true
 			},
 			select: {
 				id: true
