@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { getMemberTypesForMonths, getMemberTypeForMonth } from '@/lib/memberType'
 
 export default async function CheckinManagePage({ params }: { params: Promise<{ eventId: string }> }) {
 	const { eventId } = await params
@@ -19,19 +20,26 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	const event = await prisma.event.findUnique({ where: { id: eventId } })
 	if (!event) notFound()
 
-	const currentMonth = new Date().toISOString().slice(0, 7)
+	// 活動所屬月份（依此判斷該場次的成員類型與月費）
+	const eventStart = new Date(event.startAt)
+	const eventMonth = `${eventStart.getFullYear()}-${String(eventStart.getMonth() + 1).padStart(2, '0')}`
 
 	const [allRegistrations, speakers] = await Promise.all([
 		prisma.registration.findMany({
 			where: { eventId, status: 'REGISTERED' },
-			include: { 
-				user: { select: { name: true, nickname: true, memberProfile: true, monthlyPayments: { where: { month: currentMonth }, select: { isPaid: true } } } }
+			include: {
+				user: { select: { name: true, nickname: true, memberProfile: true, monthlyPayments: { where: { month: eventMonth }, select: { isPaid: true } } } }
 			},
 			orderBy: [{ role: 'asc' }, { createdAt: 'asc' }]
 		}),
 		prisma.speakerBooking.findMany({ where: { eventId }, orderBy: { createdAt: 'asc' } })
 	])
-	
+
+	// 依「活動月份」的成員類型（只異動當月及以後，過去不變）
+	const userIds = [...new Set(allRegistrations.map(r => r.userId).filter(Boolean) as string[])]
+	const typeForEventMonth = await getMemberTypesForMonths(userIds, [eventMonth])
+	const isFixedForEventMonth = (userId: string | null) => userId ? typeForEventMonth.get(userId)?.get(eventMonth) === 'FIXED' : false
+
 	// 分離內部成員講師和一般成員/來賓
 	const registrations = allRegistrations.filter(r => r.role !== 'SPEAKER')
 	const internalSpeakers = allRegistrations.filter(r => r.role === 'SPEAKER')
@@ -39,9 +47,9 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 	function getPrice(registration: typeof registrations[0]): number {
 		const eventType = event?.type as EventType
 		const isInternalSpeaker = registration.role === 'SPEAKER' && registration.userId
-		
+
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
-			const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
+			const isFixed = isFixedForEventMonth(registration.userId ?? null)
 			// 內部成員講師按成員計費
 			if (registration.role === 'MEMBER' || isInternalSpeaker) {
 				if (registration.userId && isFixed) return 0
@@ -62,12 +70,12 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 	function getPaymentStatus(registration: typeof registrations[0]) {
 		const eventType = event?.type as EventType
-		const isFixedMember = registration.user?.memberProfile?.memberType === 'FIXED'
+		const isFixedMember = isFixedForEventMonth(registration.userId ?? null)
 		const monthlyPayment = registration.user?.monthlyPayments?.[0]
 		const isMonthlyPaid = monthlyPayment?.isPaid || false
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId && isFixedMember) {
-				// 根據實際月費狀態判斷
+				// 根據該活動月份的月費狀態判斷
 				if (isMonthlyPaid) {
 					return { status: 'monthly_paid', text: '月費已繳', clickable: false }
 				} else {
@@ -118,22 +126,16 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
 		
-		// 在 server action 中重新獲取當月月份
-		const currentMonth = new Date().toISOString().slice(0, 7)
-
 		const registration = await prisma.registration.findUnique({
 			where: { id: registrationId },
-			include: { 
-				user: { 
-					include: { 
+			include: {
+				user: {
+					include: {
 						memberProfile: true,
-						monthlyPayments: {
-							where: { month: currentMonth },
-							select: { isPaid: true, id: true, amount: true }
-						}
-					} 
+						monthlyPayments: { select: { isPaid: true, id: true, amount: true, month: true } }
+					}
 				},
-				event: true  // 包含 event 資料
+				event: true
 			}
 		})
 		if (!registration) return
@@ -143,15 +145,19 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 			return
 		}
 
-		// 在 server action 中重新計算價格
+		// 活動所屬月份（依此判斷該場次的成員類型與計價）
+		const eventStart = new Date(registration.event!.startAt)
+		const eventMonth = `${eventStart.getFullYear()}-${String(eventStart.getMonth() + 1).padStart(2, '0')}`
+
+		// 在 server action 中重新計算價格（依活動月份的成員類型）
 		const eventType = registration.event?.type as EventType
 		let price = 0
-		
+
 		// 固定價格活動（簡報組聚/封閉組聚/聯合組聚）
 		if (['GENERAL', 'JOINT', 'CLOSED'].includes(eventType)) {
 			if (registration.userId) {
-				// 登入用戶：內部講師和成員都是 220（固定成員以月費邏輯處理）
-				price = 220
+				const isFixed = (await getMemberTypeForMonth(registration.userId, eventMonth)) === 'FIXED'
+				price = isFixed ? 0 : 220
 			} else {
 				price = 250 // 來賓價格
 			}
@@ -182,18 +188,15 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 對於「單次成員」（含內部講師）在（GENERAL/JOINT/CLOSED）情境，累加月度明細，方便成員管理頁同步
 		let monthlyPaymentId: string | undefined = undefined
-		// 判斷是否為固定成員：若 memberType 為 FIXED 則為固定成員，否則（SINGLE/null/undefined）視為單次成員
-		const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
-		
+		const isFixed = registration.userId ? (await getMemberTypeForMonth(registration.userId, eventMonth)) === 'FIXED' : false
+
 		if (
 			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
-			!isFixed && // 改為：只要不是固定成員，就執行單次成員的繳費累加邏輯（解決 memberType 可能為 null 的問題）
+			!isFixed &&
 			registration.userId
 		) {
-			// 使用本地時間獲取月份，避免時區問題
-			const eventDate = new Date(registration.event!.startAt)
-			const month = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`
+			const month = eventMonth
 			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId!, month } } })
 			const newAmount = (existing?.amount || 0) + price * 100
 			const m = await prisma.memberMonthlyPayment.upsert({
@@ -232,23 +235,12 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 		'use server'
 		const registrationId = String(formData.get('registrationId'))
 		if (!registrationId) return
-		
-		// 在 server action 中重新獲取當月月份
-		const currentMonth = new Date().toISOString().slice(0, 7)
 
 		const registration = await prisma.registration.findUnique({
 			where: { id: registrationId },
-			include: { 
-				user: { 
-					include: { 
-						memberProfile: true,
-						monthlyPayments: {
-							where: { month: currentMonth },
-							select: { isPaid: true }
-						}
-					} 
-				},
-				event: true  // 包含 event 資料
+			include: {
+				user: { include: { memberProfile: true, monthlyPayments: { select: { isPaid: true, month: true } } } },
+				event: true
 			}
 		})
 		if (!registration) return
@@ -275,18 +267,17 @@ export default async function CheckinManagePage({ params }: { params: Promise<{ 
 
 		// 同步「成員管理」月度單次繳費累計（若為單次成員或內部講師且屬固定價格活動）
 		const eventType = registration.event?.type as EventType
-		// 判斷是否為固定成員：若 memberType 為 FIXED 則為固定成員，否則（SINGLE/null/undefined）視為單次成員
-		const isFixed = registration.user?.memberProfile?.memberType === 'FIXED'
+		const eventStart = new Date(registration.event!.startAt)
+		const eventMonth = `${eventStart.getFullYear()}-${String(eventStart.getMonth() + 1).padStart(2, '0')}`
+		const isFixed = registration.userId ? (await getMemberTypeForMonth(registration.userId, eventMonth)) === 'FIXED' : false
 
 		if (
 			(registration.role === 'MEMBER' || registration.role === 'SPEAKER') &&
 			['GENERAL', 'JOINT', 'CLOSED'].includes(eventType) &&
-			!isFixed && // 改為：只要不是固定成員，就執行單次成員的繳費取消邏輯
+			!isFixed &&
 			registration.userId
 		) {
-			// 該活動月份（使用本地時間，避免時區問題）
-			const eventDate = new Date(registration.event!.startAt)
-			const month = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`
+			const month = eventMonth
 			// 單次成員固定價格 220 元
 			const deductCents = 220 * 100
 			const existing = await prisma.memberMonthlyPayment.findUnique({ where: { userId_month: { userId: registration.userId, month } } })

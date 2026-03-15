@@ -4,17 +4,21 @@ import { useRef } from 'react'
 export default function MemberTypeSelect({ 
 	userId, 
 	defaultValue, 
+	effectiveMonth,
 	updateMemberType 
 }: { 
 	userId: string
 	defaultValue: string
+	/** 生效月份 YYYY-MM，異動只影響此月及以後 */
+	effectiveMonth?: string
 	updateMemberType: (formData: FormData) => Promise<void>
 }) {
 	const formRef = useRef<HTMLFormElement>(null)
 
 	return (
-		<form ref={formRef} action={updateMemberType} className="inline" key={userId + ':' + defaultValue}>
+		<form ref={formRef} action={updateMemberType} className="inline" key={userId + ':' + defaultValue + ':' + (effectiveMonth ?? '')}>
 			<input type="hidden" name="userId" value={userId} />
+			{effectiveMonth != null && <input type="hidden" name="effectiveMonth" value={effectiveMonth} />}
 			<select 
 				name="memberType" 
 				value={defaultValue}

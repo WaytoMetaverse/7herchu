@@ -12,6 +12,7 @@ import MonthSelector from '@/components/admin/MonthSelector'
 import CancelPaymentButton from './CancelPaymentButton'
 import CancelFixedPaymentButton from './CancelFixedPaymentButton'
 import MarkPaidForm from '@/components/admin/MarkPaidForm'
+import { getMemberTypesForMonths, getMemberTypeForMonth, getPreviousMonth } from '@/lib/memberType'
 
 export default async function MembersManagePage({ 
 	searchParams 
@@ -107,22 +108,50 @@ export default async function MembersManagePage({
 		memberRegistrationCounts.set(member.id, memberCounts)
 	}
 
-	// 更新成員類型
+	// 預計算各成員在各月份的類型（依月份生效，過去不異動）
+	const memberTypeByMonth = await getMemberTypesForMonths(
+		members.map(m => m.id),
+		months
+	)
+
+	// 更新成員類型：只異動「生效月」及以後，寫入歷史並更新目前類型；過去月份保留原類型
 	async function updateMemberType(formData: FormData) {
 		'use server'
 		const userId = String(formData.get('userId'))
 		const memberType = String(formData.get('memberType')) as MemberType
+		const effectiveMonth = String(formData.get('effectiveMonth') || '').trim() || new Date().toISOString().slice(0, 7)
 		if (!userId || !memberType) return
 
-		await prisma.memberProfile.upsert({
-			where: { userId },
-			update: { memberType },
-			create: { 
-				userId, 
-				memberType,
-				active: true
-			}
-		})
+		// 先取得「生效月前一月」的類型，寫入歷史以便過去月份顯示不變
+		const previousMonth = getPreviousMonth(effectiveMonth)
+		const previousType = await getMemberTypeForMonth(userId, previousMonth)
+
+		await prisma.$transaction([
+			prisma.memberProfile.upsert({
+				where: { userId },
+				update: { memberType },
+				create: {
+					userId,
+					memberType,
+					active: true
+				}
+			}),
+			// 確保「前一月」的類型被記錄，查詢過去月份時會用到
+			prisma.memberTypeHistory.upsert({
+				where: {
+					userId_effectiveMonth: { userId, effectiveMonth: previousMonth }
+				},
+				create: { userId, effectiveMonth: previousMonth, memberType: previousType },
+				update: { memberType: previousType }
+			}),
+			prisma.memberTypeHistory.upsert({
+				where: {
+					userId_effectiveMonth: { userId, effectiveMonth }
+				},
+				create: { userId, effectiveMonth, memberType },
+				update: { memberType }
+			})
+		])
 		revalidatePath('/admin/members')
 	}
 
@@ -374,8 +403,8 @@ export default async function MembersManagePage({
 		revalidatePath('/admin/members')
 	}
 
-	// 生成繳費訊息
-	const fixedMembers = members.filter(m => m.memberProfile?.memberType === 'FIXED')
+	// 生成繳費訊息：選定月份為「固定」的成員
+	const fixedMembers = members.filter(m => memberTypeByMonth.get(m.id)?.get(selectedMonth) === 'FIXED')
 	const unpaidFixedMembers = fixedMembers.filter(m => {
 		const payment = m.monthlyPayments.find(p => p.month === selectedMonth)
 		return !payment?.isPaid
@@ -449,6 +478,7 @@ export default async function MembersManagePage({
 											<MemberTypeSelect
 												userId={member.id}
 												defaultValue={member.memberProfile?.memberType || 'SINGLE'}
+												effectiveMonth={selectedMonth}
 												updateMemberType={updateMemberType}
 											/>
 										) : (
@@ -459,7 +489,7 @@ export default async function MembersManagePage({
 									</td>
 									{months.map(month => {
 										const payment = member.monthlyPayments.find(p => p.month === month)
-										const isFixed = member.memberProfile?.memberType === 'FIXED'
+										const isFixed = memberTypeByMonth.get(member.id)?.get(month) === 'FIXED'
 										const registrationCount = memberRegistrationCounts.get(member.id)?.get(month) || 0
 										const isJulyAugSep2025 = month === '2025-07' || month === '2025-08' || month === '2025-09'
 										

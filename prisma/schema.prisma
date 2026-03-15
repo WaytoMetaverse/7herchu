@@ -126,6 +126,7 @@ model User {
   isActive      Boolean  @default(true)
   roles         Role[]
   memberProfile MemberProfile?
+  memberTypeHistory MemberTypeHistory[]
   registrations Registration[]
   invoices      FinanceInvoice[]
   monthlyPayments MemberMonthlyPayment[]
@@ -167,6 +168,19 @@ model MemberProfile {
   workDescription  String?
   portfolioPhotos  Json?
   businessCards    Json?
+}
+
+// 成員類型依月份生效：只異動當月及以後，過去不變
+model MemberTypeHistory {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  effectiveMonth  String     // YYYY-MM，從此月起為 memberType
+  memberType      MemberType
+  createdAt       DateTime   @default(now())
+
+  @@unique([userId, effectiveMonth])
+  @@index([userId, effectiveMonth(sort: Desc)])
 }
 
 model MemberInvite {
