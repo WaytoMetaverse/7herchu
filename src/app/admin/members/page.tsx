@@ -122,9 +122,24 @@ export default async function MembersManagePage({
 		const effectiveMonth = String(formData.get('effectiveMonth') || '').trim() || new Date().toISOString().slice(0, 7)
 		if (!userId || !memberType) return
 
-		// 先取得「生效月前一月」的類型，寫入歷史以便過去月份顯示不變
+		// 先取得「生效月前一月」的類型（變更前的類型）
 		const previousMonth = getPreviousMonth(effectiveMonth)
 		const previousType = await getMemberTypeForMonth(userId, previousMonth)
+
+		// 已有歷史的月份（只補沒有記錄的，不覆寫）
+		const existing = await prisma.memberTypeHistory.findMany({
+			where: { userId },
+			select: { effectiveMonth: true }
+		})
+		const existingMonths = new Set(existing.map((r) => r.effectiveMonth))
+
+		// 從「前一月的前一月」往前回填最多 12 個月，讓 1 月等更早月份都有歷史可查，不會 fallback 到 profile
+		const backfillMonths: string[] = []
+		let m = getPreviousMonth(previousMonth)
+		for (let i = 0; i < 12; i++) {
+			if (!existingMonths.has(m)) backfillMonths.push(m)
+			m = getPreviousMonth(m)
+		}
 
 		await prisma.$transaction([
 			prisma.memberProfile.upsert({
@@ -136,7 +151,7 @@ export default async function MembersManagePage({
 					active: true
 				}
 			}),
-			// 確保「前一月」的類型被記錄，查詢過去月份時會用到
+			// 確保「前一月」的類型被記錄
 			prisma.memberTypeHistory.upsert({
 				where: {
 					userId_effectiveMonth: { userId, effectiveMonth: previousMonth }
@@ -144,6 +159,19 @@ export default async function MembersManagePage({
 				create: { userId, effectiveMonth: previousMonth, memberType: previousType },
 				update: { memberType: previousType }
 			}),
+			// 回填更早月份（僅新增，不覆寫既有）
+			...(backfillMonths.length > 0
+				? [
+						prisma.memberTypeHistory.createMany({
+							data: backfillMonths.map((effectiveMonth) => ({
+								userId,
+								effectiveMonth,
+								memberType: previousType
+							})),
+							skipDuplicates: true
+						})
+					]
+				: []),
 			prisma.memberTypeHistory.upsert({
 				where: {
 					userId_effectiveMonth: { userId, effectiveMonth }
