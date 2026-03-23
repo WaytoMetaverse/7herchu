@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
 			bniChapter, 
 			invitedBy,
 			mealCode,
+			diet: dietFromBody,
 			noBeef,
 			noPork
 		} = body
@@ -57,18 +58,22 @@ export async function POST(req: NextRequest) {
 			where: { eventId: eventId }
 		})
 
-		let diet = 'meat'
+		// 無餐點服務時，優先使用前端傳入的飲食選擇
+		const normalizedDiet = dietFromBody === 'veg' ? 'veg' : 'meat'
+		let diet = normalizedDiet
 		const finalMealCode = mealCode || null
 		
 		// 如果有餐點服務
 		if (eventMenu?.hasMealService && mealCode) {
 			if (mealCode === 'C') {
 				diet = 'veg' // C餐點預設為素食
+			} else {
+				diet = 'meat'
 			}
 		}
 		// 如果沒有餐點服務，根據飲食偏好智能選擇
 		else if (!eventMenu?.hasMealService) {
-			// 如果兩者都不吃，預設為素食
+			// 兩者都不吃時強制素食，其他情況尊重前端 diet
 			if (noBeef && noPork) {
 				diet = 'veg'
 			}
