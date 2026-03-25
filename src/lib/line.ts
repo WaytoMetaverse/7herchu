@@ -32,6 +32,13 @@ function getBotConfigs(): LineBotConfig[] {
 	return configs
 }
 
+/** 收到 webhook 的那台 bot 的 token；reply API 必須用同一台，不能用 getAvailableBotToken。 */
+async function getTokenForEventBot(botName: 'primary' | 'backup'): Promise<string | null> {
+	const config = getBotConfigs().find((c) => c.name === botName)
+	if (!config) return null
+	return getChannelAccessToken(config)
+}
+
 async function getChannelAccessToken(botConfig: LineBotConfig): Promise<string | null> {
 	try {
 		const res = await fetch('https://api.line.me/v2/oauth/accessToken', {
@@ -366,35 +373,53 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 	return false
 }
 
-export async function replyToLine(replyToken: string, message: string): Promise<boolean> {
-	const { token, botName } = await getAvailableBotToken()
+/**
+ * @param eventBot 若由 webhook 呼叫，請傳簽名對應的 primary/backup，否則 reply 會默默失敗（403）。
+ */
+export async function replyToLine(
+	replyToken: string,
+	message: string,
+	eventBot?: 'primary' | 'backup'
+): Promise<boolean> {
+	let token: string | null
+	let botName: string
+	if (eventBot) {
+		token = await getTokenForEventBot(eventBot)
+		botName = eventBot
+	} else {
+		const r = await getAvailableBotToken()
+		token = r.token
+		botName = r.botName
+	}
 	if (!token) return false
-	
+
 	try {
 		const res = await fetch('https://api.line.me/v2/bot/message/reply', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
 			body: JSON.stringify({ replyToken, messages: [{ type: 'text', text: message.slice(0, 5000) }] }),
 		})
-		
+
 		// 監控API回應狀態
 		if (!res.ok) {
 			const errorText = await res.text().catch(() => 'Unknown error')
 			console.log(`LINE API回覆錯誤 (機器人: ${botName}): ${res.status} - ${errorText}`)
-			
-			// 檢查是否為額度相關錯誤
-			if (res.status === 429 || res.status === 403) {
+
+			// 僅在未指定 eventBot 時用 getAvailableBotToken 的行為：額度錯誤時調整偏好
+			if (
+				!eventBot &&
+				(res.status === 429 || res.status === 403)
+			) {
 				console.log(`機器人 ${botName} 可能已達到額度上限，嘗試切換機器人`)
-				// 標記當前機器人為不可用
 				await prisma.orgSettings.upsert({
 					where: { id: 'singleton' },
 					create: { id: 'singleton', bankInfo: '', currentLineBot: 'primary' },
-					update: { currentLineBot: 'primary' }, // 重置為主要機器人，讓下次嘗試其他機器人
+					update: { currentLineBot: 'primary' },
 				})
 			}
 			return false
 		}
-		
+
 		console.log(`LINE訊息回覆成功 (機器人: ${botName})`)
 		return true
 	} catch (error) {

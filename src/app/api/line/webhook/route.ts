@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
 	const body = JSON.parse(raw)
 	const events = Array.isArray(body.events) ? body.events : []
 	const botName = sigResult.botName || 'primary' // 根據簽名驗證結果判斷是哪個機器人
+	const eventBot = botName === 'backup' ? 'backup' : 'primary' // reply API 必須用同一台 bot 的 token
 	const groupField = botName === 'backup' ? 'lineGroupIdBackup' : 'lineGroupIdPrimary'
 	
 	for (const ev of events) {
@@ -74,9 +75,18 @@ export async function POST(req: NextRequest) {
 							lineBotStatus: 'active'
 						},
 					})
-					if (ev.replyToken) await replyToLine(ev.replyToken, `綁定成功，之後將自動推送接龍訊息。(機器人: ${botName})`)
+					if (ev.replyToken)
+						await replyToLine(
+							ev.replyToken,
+							`綁定成功，之後將自動推送接龍訊息。(機器人: ${botName})`,
+							eventBot
+						)
 				} else if (ev.replyToken) {
-					await replyToLine(ev.replyToken, '請將機器人邀進群組後，在群組內輸入「綁定」。')
+					await replyToLine(
+						ev.replyToken,
+						'請將機器人邀進群組後，在群組內輸入「綁定」。',
+						eventBot
+					)
 				}
 			}
 		}
@@ -99,7 +109,8 @@ export async function POST(req: NextRequest) {
 					lineBotStatus: 'active'
 				},
 			})
-			if (ev.replyToken) await replyToLine(ev.replyToken, `已加入群組並綁定成功。(機器人: ${botName})`)
+			if (ev.replyToken)
+				await replyToLine(ev.replyToken, `已加入群組並綁定成功。(機器人: ${botName})`, eventBot)
 		}
 	}
 	return NextResponse.json({ ok: true })
