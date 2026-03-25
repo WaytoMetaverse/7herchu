@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
 	const body = JSON.parse(raw)
 	const events = Array.isArray(body.events) ? body.events : []
 	const botName = sigResult.botName || 'primary' // 根據簽名驗證結果判斷是哪個機器人
+	const groupField = botName === 'backup' ? 'lineGroupIdBackup' : 'lineGroupIdPrimary'
 	
 	for (const ev of events) {
 		const type = ev.type
@@ -61,12 +62,14 @@ export async function POST(req: NextRequest) {
 						create: { 
 							id: 'singleton', 
 							bankInfo: '', 
-							lineGroupId: source.groupId,
+							lineGroupId: source.groupId, // 保留舊欄位相容
+							[groupField]: source.groupId,
 							currentLineBot: botName,
 							lineBotStatus: 'active'
 						},
 						update: { 
-							lineGroupId: source.groupId,
+							lineGroupId: source.groupId, // 保留舊欄位相容
+							[groupField]: source.groupId,
 							currentLineBot: botName,
 							lineBotStatus: 'active'
 						},
@@ -84,12 +87,14 @@ export async function POST(req: NextRequest) {
 				create: { 
 					id: 'singleton', 
 					bankInfo: '', 
-					lineGroupId: source.groupId,
+					lineGroupId: source.groupId, // 保留舊欄位相容
+					[groupField]: source.groupId,
 					currentLineBot: botName,
 					lineBotStatus: 'active'
 				},
 				update: { 
-					lineGroupId: source.groupId,
+					lineGroupId: source.groupId, // 保留舊欄位相容
+					[groupField]: source.groupId,
 					currentLineBot: botName,
 					lineBotStatus: 'active'
 				},

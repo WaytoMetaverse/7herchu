@@ -77,9 +77,15 @@ export default async function LineBotStatusPage() {
 					<h2 className="text-xl font-semibold mb-4">詳細資訊</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>
-							<label className="block text-sm font-medium text-gray-700">群組ID</label>
+							<label className="block text-sm font-medium text-gray-700">主要機器人群組ID</label>
 							<p className="mt-1 text-sm text-gray-900 break-all">
-								{orgSettings?.lineGroupId || '未綁定'}
+								{orgSettings?.lineGroupIdPrimary || orgSettings?.lineGroupId || '未綁定'}
+							</p>
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700">備用機器人群組ID</label>
+							<p className="mt-1 text-sm text-gray-900 break-all">
+								{orgSettings?.lineGroupIdBackup || orgSettings?.lineGroupId || '未綁定'}
 							</p>
 						</div>
 						<div>

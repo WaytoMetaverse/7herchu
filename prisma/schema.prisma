@@ -397,6 +397,8 @@ model OrgSettings {
   bankInfo    String
   linePayInfo String?
   lineGroupId String?
+  lineGroupIdPrimary String? // 主要機器人綁定群組ID
+  lineGroupIdBackup  String? // 備用機器人綁定群組ID
   currentLineBot String? @default("primary")  // 當前使用的LINE機器人 (primary/backup)
   linePushAttemptCountPrimary Int @default(0) // 主要機器人推送嘗試次數（每100次切換）
   linePushAttemptCountBackup  Int @default(0) // 備用機器人推送嘗試次數（每100次切換）

@@ -151,11 +151,9 @@ export async function getAvailableBotToken(): Promise<{ token: string | null; bo
 
 export async function pushToLineGroup(message: string): Promise<boolean> {
 	const org = await prisma.orgSettings.findUnique({ where: { id: 'singleton' } })
-	const to = org?.lineGroupId
-	if (!to) {
-		console.log('LINE推送失敗: 沒有綁定群組ID')
-		return false
-	}
+	const legacyGroupId = org?.lineGroupId
+	const primaryGroupId = org?.lineGroupIdPrimary || legacyGroupId
+	const backupGroupId = org?.lineGroupIdBackup || legacyGroupId
 	
 	const configs = getBotConfigs()
 	if (configs.length === 0) {
@@ -257,6 +255,12 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		
 		if (!token) {
 			console.log(`LINE推送失敗: 無法獲取機器人Token (嘗試 ${attempt + 1}/${maxAttempts})`)
+			continue
+		}
+
+		const to = botName === 'backup' ? backupGroupId : primaryGroupId
+		if (!to) {
+			console.log(`LINE推送失敗: ${botName} 尚未綁定群組ID`)
 			continue
 		}
 		
