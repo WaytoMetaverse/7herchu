@@ -162,6 +162,61 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		console.log('LINE推送失敗: 沒有配置機器人')
 		return false
 	}
+
+	// 每次呼叫都算一次「嘗試」，滿100次就先切換機器人
+	let preferredBot: 'primary' | 'backup' = (org?.currentLineBot === 'backup' ? 'backup' : 'primary')
+	const nextBot: 'primary' | 'backup' = preferredBot === 'primary' ? 'backup' : 'primary'
+	if (preferredBot === 'primary') {
+		const updated = await prisma.orgSettings.upsert({
+			where: { id: 'singleton' },
+			create: {
+				id: 'singleton',
+				bankInfo: '',
+				currentLineBot: 'primary',
+				linePushAttemptCountPrimary: 1
+			},
+			update: { linePushAttemptCountPrimary: { increment: 1 } },
+			select: { linePushAttemptCountPrimary: true }
+		})
+		if (updated.linePushAttemptCountPrimary >= 100) {
+			await prisma.orgSettings.update({
+				where: { id: 'singleton' },
+				data: {
+					currentLineBot: nextBot,
+					linePushAttemptCountPrimary: 0,
+					lastLineBotSwitch: new Date(),
+					lineBotStatus: 'active'
+				}
+			})
+			preferredBot = nextBot
+			console.log('主要機器人嘗試次數達100次，已切換到備用機器人')
+		}
+	} else {
+		const updated = await prisma.orgSettings.upsert({
+			where: { id: 'singleton' },
+			create: {
+				id: 'singleton',
+				bankInfo: '',
+				currentLineBot: 'backup',
+				linePushAttemptCountBackup: 1
+			},
+			update: { linePushAttemptCountBackup: { increment: 1 } },
+			select: { linePushAttemptCountBackup: true }
+		})
+		if (updated.linePushAttemptCountBackup >= 100) {
+			await prisma.orgSettings.update({
+				where: { id: 'singleton' },
+				data: {
+					currentLineBot: nextBot,
+					linePushAttemptCountBackup: 0,
+					lastLineBotSwitch: new Date(),
+					lineBotStatus: 'active'
+				}
+			})
+			preferredBot = nextBot
+			console.log('備用機器人嘗試次數達100次，已切換到主要機器人')
+		}
+	}
 	
 	// 最多嘗試3次（主要機器人 → 備用機器人 → 主要機器人）
 	let maxAttempts = 2
@@ -169,33 +224,34 @@ export async function pushToLineGroup(message: string): Promise<boolean> {
 		let token: string | null = null
 		let botName: string = 'none'
 		
-		// 第一次嘗試：強制使用主要機器人（即使狀態是 quota_exceeded）
+		// 第一次嘗試：使用當前偏好機器人
 		if (attempt === 0) {
-			const primaryConfig = configs.find(config => config.name === 'primary')
-			if (primaryConfig) {
-				token = await getChannelAccessToken(primaryConfig)
-				botName = 'primary'
-				console.log(`[LINE推送] 第一次嘗試：強制使用主要機器人，Token: ${token ? '已獲取' : '獲取失敗'}`)
+			const preferredConfig = configs.find(config => config.name === preferredBot)
+			if (preferredConfig) {
+				token = await getChannelAccessToken(preferredConfig)
+				botName = preferredBot
+				console.log(`[LINE推送] 第一次嘗試：使用${preferredBot}機器人，Token: ${token ? '已獲取' : '獲取失敗'}`)
 			} else {
-				console.log('[LINE推送] 第一次嘗試：找不到主要機器人配置')
+				console.log(`[LINE推送] 第一次嘗試：找不到${preferredBot}機器人配置`)
 			}
 		}
-		// 第二次嘗試：使用備用機器人
+		// 第二次嘗試：使用另一隻機器人
 		else if (attempt === 1) {
-			const backupConfig = configs.find(config => config.name === 'backup')
-			if (backupConfig) {
-				token = await getChannelAccessToken(backupConfig)
-				botName = 'backup'
-				console.log('第二次嘗試：使用備用機器人')
+			const fallbackBot = preferredBot === 'primary' ? 'backup' : 'primary'
+			const fallbackConfig = configs.find(config => config.name === fallbackBot)
+			if (fallbackConfig) {
+				token = await getChannelAccessToken(fallbackConfig)
+				botName = fallbackBot
+				console.log(`第二次嘗試：使用${fallbackBot}機器人`)
 			}
 		}
-		// 第三次嘗試：再次嘗試主要機器人（如果備用機器人也滿了）
+		// 第三次嘗試：再次嘗試偏好機器人（如果另一隻也滿了）
 		else if (attempt === 2) {
-			const primaryConfig = configs.find(config => config.name === 'primary')
-			if (primaryConfig) {
-				token = await getChannelAccessToken(primaryConfig)
-				botName = 'primary'
-				console.log('第三次嘗試：再次嘗試主要機器人')
+			const preferredConfig = configs.find(config => config.name === preferredBot)
+			if (preferredConfig) {
+				token = await getChannelAccessToken(preferredConfig)
+				botName = preferredBot
+				console.log(`第三次嘗試：再次嘗試${preferredBot}機器人`)
 			}
 		}
 		
