@@ -19,7 +19,7 @@ export default async function GuestUnpaidPage() {
 	const events = await prisma.event.findMany({
 		where: {
 			type: { in: ['BOD', 'DINNER', 'SOFT', 'VISIT', 'GENERAL', 'JOINT'] },
-			// 只查詢有設定價格的活動（GENERAL/JOINT 即使沒有設定價格，來賓也是 250 元）
+			// 含任一價格欄位或一般／聯合類型（列表內實際是否顯示依 getGuestPrice）
 			OR: [
 				{ defaultPriceCents: { not: null } },
 				{ guestPriceCents: { not: null } },
@@ -52,21 +52,17 @@ export default async function GuestUnpaidPage() {
 		JOINT: '聯合活動'
 	}
 
-	// 計算來賓價格
+	// 一般／聯合：未填 guestPriceCents 預設 250；餐敘／軟性／參訪未填當 0。用 ?? 保留明確填 0。
 	function getGuestPrice(event: typeof events[0]): number {
 		if (event.type === 'BOD') {
-			return (event.bodGuestPriceCents || 0) / 100
+			return (event.bodGuestPriceCents ?? 0) / 100
 		}
-		
-		// GENERAL 和 JOINT 類型，來賓固定 250 元
 		if (event.type === 'GENERAL' || event.type === 'JOINT') {
-			return 250
+			return (event.guestPriceCents ?? 25000) / 100
 		}
-		
 		if (event.type === 'DINNER' || event.type === 'SOFT' || event.type === 'VISIT') {
-			return (event.guestPriceCents || 25000) / 100  // 如果沒有設定，預設 250 元
+			return (event.guestPriceCents ?? 0) / 100
 		}
-		
 		return 0
 	}
 
