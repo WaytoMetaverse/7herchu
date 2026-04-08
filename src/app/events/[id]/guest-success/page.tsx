@@ -75,7 +75,7 @@ export default async function GuestSuccessPage({ params, searchParams }: { param
 			<div className="bg-blue-50 rounded-lg p-4 space-y-2">
 				<h3 className="font-medium text-blue-900">重要提醒</h3>
 				<div className="text-sm text-blue-700 space-y-2">
-					<div>✓ 請匯款至帳號：中國信託822 城中分行 107540665031或匯款或line pay給您的邀約人</div>
+					<div>✓ 請匯款或line pay給您的邀約人</div>
 					<div>✓ 下班時段易塞車請注意交通安全，以確保準時蒞臨與會</div>
 					{phone && <div>✓ 您的報名手機：{phone}</div>}
 				</div>
