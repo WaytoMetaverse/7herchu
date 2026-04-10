@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const description = `${invitationMessage}\n${eventDate}\n${event.location || ''}`
 	
 	return {
-		title: `${event.title} - 來賓報名`,
+		title: `${event.title} - 報名表單`,
 		description: description,
 		openGraph: {
 			title: event.title,

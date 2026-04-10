@@ -204,7 +204,7 @@ export default function GuestRegisterClient({ eventId, invitationCardUrl }: Gues
 			)}
 
 			<div className="text-center space-y-2">
-				<h1 className="text-2xl font-semibold">來賓報名</h1>
+				<h1 className="text-2xl font-semibold">報名表單</h1>
 				<div className="text-gray-600">
 					<div className="font-medium">{event.title}</div>
 					<div className="text-sm">{format(event.startAt, 'yyyy/MM/dd（EEEEE） HH:mm', { locale: zhTW })}</div>
