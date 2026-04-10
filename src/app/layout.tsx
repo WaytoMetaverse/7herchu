@@ -74,6 +74,9 @@ export default async function RootLayout({ children, }: Readonly<{ children: Rea
           </header>
           <main className="page-wrap lg:pt-0 lg:pb-0">
             {children}
+            <footer className="text-center text-xs text-gray-500 py-3 px-4">
+              Copyright © 2025 維次元宇宙科技股份有限公司
+            </footer>
           </main>
           <PWARegister />
           <div className="md:hidden fixed top-0 inset-x-0 h-[56px] z-40 bg-white/70 backdrop-blur flex items-center px-3 gap-2 border-b">
