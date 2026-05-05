@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const items = [
-  { href: '/calendar', label: '講師預約' },
   { href: '/hall', label: '活動大廳' },
   { href: '/group', label: '小組管理' },
   { href: '/admin/speakers-guests', label: '來賓庫' },
