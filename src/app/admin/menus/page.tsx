@@ -38,6 +38,29 @@ export default async function MenuManagePage() {
 		orderBy: { startAt: 'asc' }
 	})
 
+	// 飲食偏好互斥分類（葷無限制 / 不吃牛 / 不吃豬 / 不吃牛不吃豬 / 素食）
+	const accumulateDiet = (
+		dietStats: { meat: number; veg: number; noBeef: number; noPork: number; noBeefNoPork: number; total: number },
+		person: { diet: string | null; noBeef: boolean; noPork: boolean }
+	) => {
+		if (!person.diet) return
+		dietStats.total++
+		if (person.diet === 'veg') {
+			dietStats.veg++
+			return
+		}
+		// meat：依限制條件互斥歸類
+		if (person.noBeef && person.noPork) {
+			dietStats.noBeefNoPork++
+		} else if (person.noBeef) {
+			dietStats.noBeef++
+		} else if (person.noPork) {
+			dietStats.noPork++
+		} else {
+			dietStats.meat++ // 葷食（無限制）
+		}
+	}
+
 	// 計算每個活動的統計
 	const eventsWithStats = events.map(event => {
 		const mealStats = {
@@ -59,43 +82,19 @@ export default async function MenuManagePage() {
 		// 統計一般報名（只統計已報名狀態）
 		event.registrations.filter(reg => reg.status === 'REGISTERED').forEach(reg => {
 			if (reg.mealCode) {
-				// 餐點統計
 				mealStats[reg.mealCode as keyof typeof mealStats]++
 				mealStats.total++
 			}
-			
-			// 飲食偏好統計
-			if (reg.diet) {
-				dietStats[reg.diet as keyof typeof dietStats]++
-				dietStats.total++
-			}
-			if (reg.noBeef && reg.noPork) {
-				dietStats.noBeefNoPork++
-			} else {
-				if (reg.noBeef) dietStats.noBeef++
-				if (reg.noPork) dietStats.noPork++
-			}
+			accumulateDiet(dietStats, reg)
 		})
 
 		// 統計講師預約
 		event.speakerBookings.forEach(booking => {
 			if (booking.mealCode) {
-				// 餐點統計
 				mealStats[booking.mealCode as keyof typeof mealStats]++
 				mealStats.total++
 			}
-			
-			// 飲食偏好統計
-			if (booking.diet) {
-				dietStats[booking.diet as keyof typeof dietStats]++
-				dietStats.total++
-			}
-			if (booking.noBeef && booking.noPork) {
-				dietStats.noBeefNoPork++
-			} else {
-				if (booking.noBeef) dietStats.noBeef++
-				if (booking.noPork) dietStats.noPork++
-			}
+			accumulateDiet(dietStats, booking)
 		})
 
 		return {
@@ -104,9 +103,6 @@ export default async function MenuManagePage() {
 			dietStats
 		}
 	})
-
-
-
 
 
 	// 分群：今日與未來 / 過去
